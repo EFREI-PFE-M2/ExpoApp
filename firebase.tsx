@@ -1,4 +1,4 @@
-import Firebase from 'firebase'
+import firebase from 'firebase'
 import Constants from 'expo-constants'
 
 const {
@@ -12,15 +12,20 @@ const {
   FIREBASE_MEASUREMENTID,
 } = Constants.manifest.extra
 
-Firebase.initializeApp({
-  apiKey: FIREBASE_API_KEY,
-  authDomain: FIREBASE_AUTH_DOMAIN,
-  databaseURL: FIREBASE_DATABASE_URL,
-  projectId: FIREBASE_PROJECT_ID,
-  storageBucket: FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
-  appId: FIREBASE_APP_ID,
-  measurementId: FIREBASE_MEASUREMENTID,
-})
+// Initialize Firebase
+if (firebase.app.length) {
+  firebase.initializeApp({
+    apiKey: FIREBASE_API_KEY,
+    authDomain: FIREBASE_AUTH_DOMAIN,
+    databaseURL: FIREBASE_DATABASE_URL,
+    projectId: FIREBASE_PROJECT_ID,
+    storageBucket: FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
+    appId: FIREBASE_APP_ID,
+    measurementId: FIREBASE_MEASUREMENTID,
+  })
+}
 
-export default Firebase
+export const FirebaseApp: firebase.app.App = firebase.app()
+export const FirebaseAuth: firebase.auth.Auth = firebase.auth()
+export const FirebaseFirestore: firebase.firestore.Firestore = firebase.firestore()

@@ -1,73 +1,181 @@
-import { Ionicons } from '@expo/vector-icons';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
-import * as React from 'react';
+import * as React from 'react'
+import {
+  Entypo,
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from '@expo/vector-icons'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import {
+  createStackNavigator,
+  StackNavigationOptions,
+} from '@react-navigation/stack'
+import Colors from '../constants/Colors'
+import useColorScheme from '../hooks/useColorScheme'
+import CardGame from '../screens/CardGame'
+import Challenge from '../screens/Challenge'
+import Home from '../screens/HomeTabNavigator'
+import Search from '../screens/Search'
+import { BottomTabParamList } from '../types'
+import { StatusBar } from 'react-native'
+import { View } from 'react-native'
 
-import Colors from '../constants/Colors';
-import useColorScheme from '../hooks/useColorScheme';
-import TabOneScreen from '../screens/TabOneScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
-import { BottomTabParamList, TabOneParamList, TabTwoParamList } from '../types';
+const BottomTab = createBottomTabNavigator()
 
-const BottomTab = createBottomTabNavigator<BottomTabParamList>();
-
+/**
+ * @function BottomTabNavigator
+ * @description React Navigation bottom tab navigator,
+ * created with createBottomTabNavigator
+ * @returns React Node
+ */
 export default function BottomTabNavigator() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme()
+
+  const iconWrapper = {
+    size: 24,
+  }
 
   return (
     <BottomTab.Navigator
-      initialRouteName="TabOne"
-      tabBarOptions={{ activeTintColor: Colors[colorScheme].tint }}>
+      initialRouteName="Home"
+      tabBarOptions={{
+        activeTintColor: Colors[colorScheme].tint,
+      }}>
       <BottomTab.Screen
-        name="TabOne"
-        component={TabOneNavigator}
+        name="Home"
+        component={TabHomeNavigator}
         options={{
-          tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Entypo name="home" color={color} {...iconWrapper} />
+          ),
         }}
       />
       <BottomTab.Screen
-        name="TabTwo"
-        component={TabTwoNavigator}
+        name="Search"
+        component={TabSearchNavigator}
         options={{
-          tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="md-search" color={color} {...iconWrapper} />
+          ),
+        }}
+      />
+      <BottomTab.Screen
+        name="Challenges"
+        component={TabChallengeNavigator}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <Entypo name="star-outlined" color={color} {...iconWrapper} />
+          ),
+        }}
+      />
+      <BottomTab.Screen
+        name="Cards"
+        component={TabCardGameNavigator}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons
+              name="view-carousel"
+              color={color}
+              {...iconWrapper}
+            />
+          ),
         }}
       />
     </BottomTab.Navigator>
-  );
+  )
 }
 
-// You can explore the built-in icon families and icons on the web at:
-// https://icons.expo.fyi/
-function TabBarIcon(props: { name: string; color: string }) {
-  return <Ionicons size={30} style={{ marginBottom: -3 }} {...props} />;
+const defaultScreenOptions: StackNavigationOptions = {
+  headerTitleAlign: 'center',
+  headerStyle: {
+    backgroundColor: '#194A4C',
+  },
+  headerTitleStyle: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  headerStatusBarHeight: StatusBar.currentHeight,
 }
 
-// Each tab has its own navigation stack, you can read more about this pattern here:
-// https://reactnavigation.org/docs/tab-based-navigation#a-stack-navigator-for-each-tab
-const TabOneStack = createStackNavigator<TabOneParamList>();
-
-function TabOneNavigator() {
+/**
+ * Home tab navigator
+ */
+const HomeStack = createStackNavigator()
+function TabHomeNavigator() {
   return (
-    <TabOneStack.Navigator>
-      <TabOneStack.Screen
-        name="TabOneScreen"
-        component={TabOneScreen}
-        options={{ headerTitle: 'Tab One Title' }}
+    <HomeStack.Navigator
+      screenOptions={{
+        ...defaultScreenOptions,
+        headerRight: ({ tintColor }) => (
+          <View
+            style={{
+              flexDirection: 'row',
+              width: 60,
+              justifyContent: 'space-between',
+            }}>
+            <MaterialCommunityIcons name="bell" color={tintColor} size={24} />
+            <MaterialIcons name="email" color={tintColor} size={24} />
+          </View>
+        ),
+        headerRightContainerStyle: {
+          marginRight: 15,
+        },
+        headerTintColor: '#fff',
+      }}>
+      <HomeStack.Screen
+        name="Home_Home"
+        component={Home}
+        options={{ headerTitle: 'Flux' }}
       />
-    </TabOneStack.Navigator>
-  );
+    </HomeStack.Navigator>
+  )
 }
 
-const TabTwoStack = createStackNavigator<TabTwoParamList>();
-
-function TabTwoNavigator() {
+/**
+ * Search stack navigator
+ */
+const SearchStack = createStackNavigator()
+function TabSearchNavigator() {
   return (
-    <TabTwoStack.Navigator>
-      <TabTwoStack.Screen
-        name="TabTwoScreen"
-        component={TabTwoScreen}
-        options={{ headerTitle: 'Tab Two Title' }}
+    <SearchStack.Navigator screenOptions={defaultScreenOptions}>
+      <SearchStack.Screen
+        name="Search_Main"
+        component={Search}
+        options={{ headerTitle: 'Search' }}
       />
-    </TabTwoStack.Navigator>
-  );
+    </SearchStack.Navigator>
+  )
+}
+
+/**
+ * Challenge stack navigator
+ */
+const ChallengeStack = createStackNavigator()
+function TabChallengeNavigator() {
+  return (
+    <ChallengeStack.Navigator screenOptions={defaultScreenOptions}>
+      <ChallengeStack.Screen
+        name="Challenge_Main"
+        component={Challenge}
+        options={{ headerTitle: 'Défis' }}
+      />
+    </ChallengeStack.Navigator>
+  )
+}
+
+/**
+ * CardGame stack navigator
+ */
+const CardGameStack = createStackNavigator()
+function TabCardGameNavigator() {
+  return (
+    <CardGameStack.Navigator screenOptions={defaultScreenOptions}>
+      <CardGameStack.Screen
+        name="CardGame_Main"
+        component={CardGame}
+        options={{ headerTitle: 'Cartes' }}
+      />
+    </CardGameStack.Navigator>
+  )
 }

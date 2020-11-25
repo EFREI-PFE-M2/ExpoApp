@@ -8,7 +8,6 @@ import { MonoText } from './StyledText'
 import { Text, View } from './Themed'
 
 export default function EditScreenInfo({ path }: { path: string }) {
-  const count = useSelector((state) => state.counter)
   return (
     <View>
       <View style={styles.getStartedContainer}>
@@ -32,7 +31,6 @@ export default function EditScreenInfo({ path }: { path: string }) {
           darkColor="rgba(255,255,255,0.8)">
           Change any of the text, save the file, and your app will automatically
           update.
-          {count.value}
         </Text>
       </View>
 
