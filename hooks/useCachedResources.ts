@@ -20,6 +20,9 @@ export default function useCachedResources() {
         // Load fonts
         await Font.loadAsync({
           ...Ionicons.font,
+          ...MaterialIcons.font,
+          ...Entypo.font,
+          ...MaterialCommunityIcons.font,
           'space-mono': require('../assets/fonts/SpaceMono-Regular.ttf'),
         })
       } catch (e) {
