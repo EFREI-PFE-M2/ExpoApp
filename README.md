@@ -18,3 +18,5 @@ To debug on your phone:
 - Create an account on [Expo.io](https://expo.io/)
 - In the terminal login to your Expo account: `expo login`
 - Start the development server
+
+## React Navigation
