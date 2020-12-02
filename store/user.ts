@@ -5,34 +5,9 @@ import {
   Reducer,
   Slice,
 } from '@reduxjs/toolkit'
+import { RootState } from '.'
 import { FirebaseApp as firebase, FirebaseAuth as auth } from './../firebase'
-
-type User = {
-  uid: string
-  username: string
-  email: string
-  photoURL: string
-  emailVerified: boolean | undefined
-  notificationSettings: Map<string, boolean>
-  description: string
-  winPercentage: number
-  lossPercentage: number
-  canceledPercentage: number
-  returnOnInvestment: number
-  currentSeries: string[]
-  showStats: boolean
-  level: number
-  experience: number
-  nbFollowers: number
-  nbFollowing: number
-}
-
-type UserStore = {
-  users: {
-    [key: string]: User
-  }
-  current: string
-}
+import { User, UserStore } from './../types'
 
 const defaultUser: User = {
   uid: '',
@@ -70,10 +45,13 @@ export const userSlice: Slice = createSlice({
       const { uid, user } = action.payload
       state.users[uid] = user
     },
+    setCurrent: (state: UserStore, action: PayloadAction<{ uid: string }>) => {
+      state.current = action.payload.uid
+    },
   },
 })
 
-export const { updateUser } = userSlice.actions
+export const { updateUser, setCurrent } = userSlice.actions
 
 export const firebaseAuthLogin = (email: string, password: string) => async (
   dispatch: Dispatch
@@ -92,6 +70,7 @@ export const firebaseAuthLogin = (email: string, password: string) => async (
     user.emailVerified = snapshot.user?.emailVerified || undefined
 
     dispatch(updateUser({ uid: user.uid, user }))
+    dispatch(setCurrent({ uid: user.uid }))
   } catch (err) {
     console.error(err)
   }
@@ -116,5 +95,9 @@ export const firebaseAuthCreateUser = (
     console.error(err)
   }
 }
+
+// Export selectors
+export const selectCurrent = (state: RootState) =>
+  state.user.users[state.user.current]
 
 export const userReducer: Reducer = userSlice.reducer
