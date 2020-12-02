@@ -1,19 +1,24 @@
 import React, { useRef, useState } from 'react'
 import { StyleSheet, Image } from 'react-native'
+import { useDispatch } from 'react-redux'
 import SignInButton from '../components/Custom/SignInButton'
 import SignInTextField from '../components/Custom/SignInTextField'
 import { View, Text } from '../components/Themed'
+import { firebaseAuthLogin } from '../store/user'
 
 export default function SignIn({ navigation }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const passwordInputRef = React.createRef()
+  const dispatch = useDispatch()
 
   const usernameInputOnChange = (value: string) => setUsername(value)
   const usernameInputOnSubmit = () => passwordInputRef.current.focus()
   const passwordInputOnChange = (value: string) => setPassword(value)
 
-  const onSubmit = () => console.log('WANNA LOG?')
+  const onSubmit = () => {
+    dispatch(firebaseAuthLogin(username, password))
+  }
 
   const navigationRetrievePassword = () =>
     navigation.navigate('RetrievePassword')

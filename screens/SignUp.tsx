@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react'
 import { StyleSheet } from 'react-native'
 import { Checkbox, TouchableRipple } from 'react-native-paper'
+import { useDispatch } from 'react-redux'
 import SignInButton from '../components/Custom/SignInButton'
 import SignInTextField from '../components/Custom/SignInTextField'
 import { View, Text } from '../components/Themed'
+import { firebaseAuthCreateUser } from '../store/user'
 
 export default function SignUp({ navigation }) {
   const [username, setUsername] = useState('')
@@ -11,6 +13,7 @@ export default function SignUp({ navigation }) {
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [tosCheck, setTosCheck] = useState(false)
+  const dispatch = useDispatch()
 
   const usernameRef = useRef(null)
   const emailRef = useRef(null)
@@ -28,7 +31,10 @@ export default function SignUp({ navigation }) {
 
   const tosCheckOnChange = () => setTosCheck((prev) => !prev)
 
-  const onSubmit = () => {}
+  const onSubmit = async () => {
+    if (password !== passwordConfirmation) return
+    await dispatch(firebaseAuthCreateUser(email, password))
+  }
 
   const navigationLogin = () => navigation.navigate('SignIn')
   const navigationTos = () => navigation.navigate('TermsOfUse')
