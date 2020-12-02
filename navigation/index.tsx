@@ -17,6 +17,7 @@ import DrawerNavigator from '../screens/Drawer/DrawerNavigator'
 import RetrievePassword from '../screens/RetrievePassword'
 import ResetPassword from '../screens/ResetPassword'
 import TermsOfUse from '../screens/TermsOfUse'
+import useUser from './../hooks/useUser'
 
 export default function Navigation({
   colorScheme,
@@ -35,21 +36,29 @@ export default function Navigation({
 const Stack = createStackNavigator()
 
 function RootNavigator() {
+  const user = useUser()
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
-      initialRouteName="ResetPassword">
-      <Stack.Screen name="Root" component={DrawerNavigator} />
+      initialRouteName="SignIn">
+      {user ? (
+        <>
+          <Stack.Screen name="Root" component={DrawerNavigator} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="SignIn" component={SignIn} />
+          <Stack.Screen name="SignUp" component={SignUp} />
+          <Stack.Screen name="RetrievePassword" component={RetrievePassword} />
+          <Stack.Screen name="ResetPassword" component={ResetPassword} />
+        </>
+      )}
+      <Stack.Screen name="TermsOfUse" component={TermsOfUse} />
       <Stack.Screen
         name="NotFound"
         component={NotFoundScreen}
         options={{ title: 'Oops!' }}
       />
-      <Stack.Screen name="SignIn" component={SignIn} />
-      <Stack.Screen name="SignUp" component={SignUp} />
-      <Stack.Screen name="RetrievePassword" component={RetrievePassword} />
-      <Stack.Screen name="ResetPassword" component={ResetPassword} />
-      <Stack.Screen name="TermsOfUse" component={TermsOfUse} />
     </Stack.Navigator>
   )
 }
