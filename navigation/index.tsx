@@ -8,11 +8,12 @@ import React from 'react'
 import { ColorSchemeName } from 'react-native'
 
 import NotFoundScreen from '../screens/NotFoundScreen'
-import { RootStackParamList } from '../types'
 import LinkingConfiguration from './LinkingConfiguration'
 
 import SignIn from './../screens/SignIn'
 import SignUp from './../screens/SignUp'
+import BottomTabNavigator from './BottomTabNavigator'
+import MessageNavigator from './MessageNavigator'
 import DrawerNavigator from '../screens/Drawer/DrawerNavigator'
 import RetrievePassword from '../screens/RetrievePassword'
 import ResetPassword from '../screens/ResetPassword'
@@ -43,7 +44,9 @@ function RootNavigator() {
       initialRouteName="SignIn">
       {user ? (
         <>
-          <Stack.Screen name="Root" component={DrawerNavigator} />
+          <Stack.Screen name="Root" component={BottomTabNavigator} />
+          <Stack.Screen name="Drawer" component={DrawerNavigator} />
+          <Stack.Screen name="ChatRoom" component={MessageNavigator}/>
         </>
       ) : (
         <>

@@ -14,6 +14,8 @@ import Colors from '../constants/Colors'
 import useColorScheme from '../hooks/useColorScheme'
 import CardGame from '../screens/CardGame'
 import Challenge from '../screens/Challenge'
+import ChatList from '../screens/ChatList'
+import ChatRoom from '../screens/ChatRoom'
 import Home from '../screens/HomeTabNavigator'
 import Search from '../screens/Search'
 import { BottomTabParamList } from '../types'
@@ -81,6 +83,19 @@ export default function BottomTabNavigator() {
           ),
         }}
       />
+      <BottomTab.Screen
+        name="Messages"
+        component={TabMessageNavigator}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons
+              name="mail"
+              color={color}
+              {...iconWrapper}
+            />
+          ),
+        }}
+      />
     </BottomTab.Navigator>
   )
 }
@@ -108,14 +123,8 @@ function TabHomeNavigator() {
       screenOptions={{
         ...defaultScreenOptions,
         headerRight: ({ tintColor }) => (
-          <View
-            style={{
-              flexDirection: 'row',
-              width: 60,
-              justifyContent: 'space-between',
-            }}>
+          <View>
             <MaterialCommunityIcons name="bell" color={tintColor} size={24} />
-            <MaterialIcons name="email" color={tintColor} size={24} />
           </View>
         ),
         headerRightContainerStyle: {
@@ -177,5 +186,22 @@ function TabCardGameNavigator() {
         options={{ headerTitle: 'Cartes' }}
       />
     </CardGameStack.Navigator>
+  )
+}
+
+
+/**
+ * ChatList stack navigator
+ */
+const MessageStack = createStackNavigator()
+function TabMessageNavigator() {
+  return (
+    <MessageStack.Navigator screenOptions={defaultScreenOptions}>
+      <MessageStack.Screen
+        name="Messages"
+        component={ChatList}
+        options={{ headerTitle: 'Messages'}}
+      />  
+    </MessageStack.Navigator>
   )
 }
