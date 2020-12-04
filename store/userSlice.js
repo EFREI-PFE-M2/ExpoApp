@@ -7,7 +7,6 @@ import {
 } from '@reduxjs/toolkit'
 import { FirebaseApp as firebase, FirebaseAuth as auth } from '../firebase'
 
-
 export const userSlice = createSlice({
   name: 'User',
   initialState: {
@@ -27,15 +26,14 @@ export const userSlice = createSlice({
     nbPendingMessages: 0,
     posts: [],
     notifications: [],
-    cards: []
+    cards: [],
   },
   reducers: {
     updateUser: (state, action) => {
-      state = {...state,...action.payload}
-    }
+      state = { ...state, ...action.payload }
+    },
   },
 })
-
 
 /*
 post object format:
@@ -148,10 +146,7 @@ export const { updateUser } = userSlice.actions
 
 export const firebaseAuthLogin = (email, password) => async (dispatch) => {
   try {
-    const snapshot = await auth.signInWithEmailAndPassword(
-      email,
-      password
-    )
+    const snapshot = await auth.signInWithEmailAndPassword(email, password)
 
     let user = defaultUser
     user.uid = snapshot.user?.uid || ''
@@ -166,15 +161,9 @@ export const firebaseAuthLogin = (email, password) => async (dispatch) => {
   }
 }
 
-export const firebaseAuthCreateUser = (
-  email,
-  password
-) => async (dispatch) => {
+export const firebaseAuthCreateUser = (email, password) => async (dispatch) => {
   try {
-    const snapshot = await auth.createUserWithEmailAndPassword(
-      email,
-      password
-    )
+    const snapshot = await auth.createUserWithEmailAndPassword(email, password)
 
     if (!snapshot.user) {
       throw new Error('Unknown error')
@@ -187,6 +176,6 @@ export const firebaseAuthCreateUser = (
 }
 
 // Export selectors
-export const selectCurrent = (state) => state
+export const selectCurrent = (state) => state.user.uid
 
 export const userReducer = userSlice.reducer
