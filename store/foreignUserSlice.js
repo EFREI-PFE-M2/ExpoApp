@@ -1,25 +1,24 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit'
 
 export const foreignUserSlice = createSlice({
   name: 'foreignUser',
   initialState: {
     specificUser: {
       users: [],
-      username : '',
-      winPercentage : 0,
-      lossPercentage : 0,
-      currentSeries : [],
-      level : 0,
-      experience : 0,
-      nbFollowers : 0,
-      nbFollowing : 0,
+      username: '',
+      winPercentage: 0,
+      lossPercentage: 0,
+      currentSeries: [],
+      level: 0,
+      experience: 0,
+      nbFollowers: 0,
+      nbFollowing: 0,
       posts: [],
-      cards: []
-    } 
+      cards: [],
+    },
   },
   reducers: {},
-});
-
+})
 
 /*
 post object format:
@@ -85,12 +84,10 @@ let card ={
 }
 */
 
-
 //actions imports
 
 // thunks
 
 // selectors
 
-
-export default foreignUserSlice.reducer;
+export const foreignUserReducer = foreignUserSlice.reducer

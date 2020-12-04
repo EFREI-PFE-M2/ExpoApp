@@ -1,13 +1,12 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit'
 
 export const subscriberFeedSlice = createSlice({
   name: 'subscriberFeed',
   initialState: {
-    posts: []
+    posts: [],
   },
-  reducers: {
-  },
-});
+  reducers: {},
+})
 
 /*
 post object format:
@@ -68,5 +67,4 @@ let bet ={
 
 // selectors
 
-
-export default subscriberFeedSlice.reducer;
+export const subscriberFeedReducer = subscriberFeedSlice.reducer

@@ -1,14 +1,14 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit'
 
 export const chatSlice = createSlice({
   name: 'chat',
   initialState: {
     privateConversations: [],
     groupConversations: [],
-    searchedUsers: []
+    searchedUsers: [],
   },
   reducers: {},
-});
+})
 
 /*
 searched user object format:
@@ -63,5 +63,4 @@ let message = {
 
 // selectors
 
-
-export default chatSlice.reducer;
+export const chatReducer = chatSlice.reducer

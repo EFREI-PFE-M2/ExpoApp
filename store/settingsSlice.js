@@ -1,15 +1,13 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit'
 
 export const settingsSlice = createSlice({
   name: 'settings',
   initialState: {
     enableNotifications: false,
-    language: ''
+    language: '',
   },
-  reducers: {
-  },
-});
-
+  reducers: {},
+})
 
 //actions imports
 
@@ -17,5 +15,4 @@ export const settingsSlice = createSlice({
 
 // selectors
 
-
-export default settingsSlice.reducer;
+export const settingsReducer = settingsSlice.reducer
