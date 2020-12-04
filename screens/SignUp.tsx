@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux'
 import SignInButton from '../components/Custom/SignInButton'
 import SignInTextField from '../components/Custom/SignInTextField'
 import { View, Text } from '../components/Themed'
-import { firebaseAuthCreateUser } from '../store/user'
+import { firebaseAuthCreateUser } from '../store/userSlice'
 
 export default function SignUp({ navigation }) {
   const [username, setUsername] = useState('')
