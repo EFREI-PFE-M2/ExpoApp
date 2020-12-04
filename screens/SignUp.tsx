@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react'
-import { StyleSheet } from 'react-native'
+import { KeyboardAvoidingView, StyleSheet, ScrollView } from 'react-native'
 import { Checkbox, TouchableRipple } from 'react-native-paper'
 import { useDispatch } from 'react-redux'
 import SignInButton from '../components/Custom/SignInButton'
 import SignInTextField from '../components/Custom/SignInTextField'
-import { View, Text } from '../components/Themed'
+import { View, Text, LayoutView } from '../components/Themed'
 import { firebaseAuthCreateUser } from '../store/userSlice'
 
 export default function SignUp({ navigation }) {
@@ -40,44 +40,48 @@ export default function SignUp({ navigation }) {
   const navigationTos = () => navigation.navigate('TermsOfUse')
 
   return (
-    <View style={styles.container}>
-      <SignInTextField
-        label="Nom d'utilisateur"
-        ref={usernameRef}
-        value={username}
-        onChangeText={usernameInputOnChange}
-        textContentType="username"
-        onSubmitEditing={usernameInputOnSubmit}
-        returnKeyType="next"
-      />
-      <SignInTextField
-        label="Email"
-        ref={emailRef}
-        value={email}
-        onChangeText={emailInputOnChange}
-        textContentType="emailAddress"
-        onSubmitEditing={emailInputOnSubmit}
-        returnKeyType="next"
-      />
-      <SignInTextField
-        label="Mot de passe"
-        ref={passwordRef}
-        value={password}
-        onChangeText={passwordInputOnChange}
-        textContentType="password"
-        onSubmitEditing={passwordInputOnSubmit}
-        secureTextEntry={true}
-        returnKeyType="next"
-      />
-      <SignInTextField
-        label="Confirmation de mot de passe"
-        ref={passwordConfirmationRef}
-        value={passwordConfirmation}
-        onChangeText={passwordConfirmationInputOnChange}
-        textContentType="password"
-        onSubmitEditing={onSubmit}
-        secureTextEntry={true}
-      />
+    <LayoutView style={styles.container}>
+      <KeyboardAvoidingView behavior="position" style={{ width: '100%' }}>
+        <ScrollView contentContainerStyle={{ width: '100%' }}>
+          <SignInTextField
+            label="Nom d'utilisateur"
+            ref={usernameRef}
+            value={username}
+            onChangeText={usernameInputOnChange}
+            textContentType="username"
+            onSubmitEditing={usernameInputOnSubmit}
+            returnKeyType="next"
+          />
+          <SignInTextField
+            label="Email"
+            ref={emailRef}
+            value={email}
+            onChangeText={emailInputOnChange}
+            textContentType="emailAddress"
+            onSubmitEditing={emailInputOnSubmit}
+            returnKeyType="next"
+          />
+          <SignInTextField
+            label="Mot de passe"
+            ref={passwordRef}
+            value={password}
+            onChangeText={passwordInputOnChange}
+            textContentType="password"
+            onSubmitEditing={passwordInputOnSubmit}
+            secureTextEntry={true}
+            returnKeyType="next"
+          />
+          <SignInTextField
+            label="Confirmation de mot de passe"
+            ref={passwordConfirmationRef}
+            value={passwordConfirmation}
+            onChangeText={passwordConfirmationInputOnChange}
+            textContentType="password"
+            onSubmitEditing={onSubmit}
+            secureTextEntry={true}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
       <View style={styles.checkboxContainer}>
         <Checkbox
           status={tosCheck ? 'checked' : 'unchecked'}
@@ -99,7 +103,7 @@ export default function SignUp({ navigation }) {
         style={styles.navigationContainer}>
         <Text style={styles.navigationLogin}>Se connecter</Text>
       </TouchableRipple>
-    </View>
+    </LayoutView>
   )
 }
 
@@ -107,7 +111,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#194A4C',
     width: '100%',
-    height: '100%',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
