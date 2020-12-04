@@ -38,7 +38,7 @@ export default function SignUp({ navigation }) {
 
   const onSubmit = async () => {
     // TODO: String Validations
-    if (await dispatch(firebaseAuthCreateUser(email, password))) {
+    if (await dispatch(firebaseAuthCreateUser(email, password, username))) {
       dispatch(firebaseAuthLogin(email, password))
     }
   }

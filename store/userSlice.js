@@ -157,13 +157,20 @@ export const firebaseAuthLogin = (email, password) => async (dispatch) => {
   }
 }
 
-export const firebaseAuthCreateUser = (email, password) => async (dispatch) => {
+export const firebaseAuthCreateUser = (email, password, username) => async (
+  dispatch
+) => {
   try {
     const snapshot = await auth.createUserWithEmailAndPassword(email, password)
 
     if (!snapshot.user) {
       throw new Error('Unknown error')
     }
+
+    await snapshot.user.updateProfile({
+      displayName: username,
+    })
+
     return true
   } catch (err) {
     dispatch(setFirebaseAuthError(err.code))
