@@ -1,14 +1,13 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit'
 
 export const raceSlice = createSlice({
   name: 'race',
   initialState: {
     races: [],
-    specificRace: {} //done this way because we can view a race page even if it's not in our race list
+    specificRace: {}, //done this way because we can view a race page even if it's not in our race list
   },
-  reducers: {
-  },
-});
+  reducers: {},
+})
 
 /*
 race object format:
@@ -44,7 +43,6 @@ let specificRace = {
     posts: []
 }
 */
-
 
 /*
 post object format:
@@ -105,5 +103,4 @@ let bet ={
 
 // selectors
 
-
-export default raceSlice.reducer;
+export const raceReducer = raceSlice.reducer

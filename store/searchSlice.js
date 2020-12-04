@@ -1,14 +1,13 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit'
 
 export const searchSlice = createSlice({
   name: 'search',
   initialState: {
     searchedUsers: [],
-    searchedGroups: []
+    searchedGroups: [],
   },
-  reducers: {
-  },
-});
+  reducers: {},
+})
 
 /*
 searched user object format:
@@ -19,7 +18,6 @@ let user = {
 }
 */
 
-
 /*
 searched group object format:
 let group = {
@@ -29,12 +27,10 @@ let group = {
 }
 */
 
-
 //actions imports
 
 // thunks
 
 // selectors
 
-
-export default searchSlice.reducer;
+export const searchReducer = searchSlice.reducer

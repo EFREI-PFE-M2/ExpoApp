@@ -1,13 +1,13 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit'
 
 export const cardGameSlice = createSlice({
   name: 'cardGame',
   initialState: {
     ongoingGames: [],
-    searchedUsers: []
+    searchedUsers: [],
   },
   reducers: {},
-});
+})
 
 /*
 searched user object format:
@@ -40,12 +40,10 @@ game object format: {
 }
 */
 
-
 //actions imports
 
 // thunks
 
 // selectors
 
-
-export default cardGameSlice.reducer;
+export const cardGameReducer = cardGameSlice.reducer

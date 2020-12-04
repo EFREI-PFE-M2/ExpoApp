@@ -1,13 +1,13 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit'
 
 export const groupSlice = createSlice({
   name: 'group',
   initialState: {
     groups: [],
-    specificGroup: {} //done this way because we can view a group page even if it's not in our group list
+    specificGroup: {}, //done this way because we can view a group page even if it's not in our group list
   },
   reducers: {},
-});
+})
 
 /*
 group object format:
@@ -33,7 +33,6 @@ let specificGroup = {
     posts: [],
 }
 */
-
 
 /*
 member object format:
@@ -106,12 +105,10 @@ let bet ={
 }
 */
 
-
 //actions imports
 
 // thunks
 
 // selectors
 
-
-export default groupSlice.reducer;
+export const groupReducer = groupSlice.reducer
