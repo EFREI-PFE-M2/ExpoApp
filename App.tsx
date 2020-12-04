@@ -9,6 +9,7 @@ import useCachedResources from './hooks/useCachedResources'
 import useColorScheme from './hooks/useColorScheme'
 import Navigation from './navigation'
 import { Theme } from 'react-native-paper/lib/typescript/src/types'
+import { autoAuth } from './store/userSlice'
 
 const theme: Theme = {
   ...DefaultTheme,
@@ -23,19 +24,21 @@ const theme: Theme = {
   },
 }
 
+store.dispatch(autoAuth())
+
 export default function App() {
   const isLoadingComplete = useCachedResources()
   const colorScheme = useColorScheme()
 
-  if (!isLoadingComplete) {
+  if (!isLoadingComplete || store.getState().user.uid) {
     return null
   } else {
     return (
       <Provider store={store}>
         <PaperProvider theme={theme}>
           <SafeAreaProvider>
-            <Navigation colorScheme={colorScheme} />
             <StatusBar />
+            <Navigation colorScheme={colorScheme} />
           </SafeAreaProvider>
         </PaperProvider>
       </Provider>

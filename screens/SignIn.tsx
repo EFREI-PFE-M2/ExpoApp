@@ -44,7 +44,7 @@ export default function SignIn({ navigation }) {
       {!keyboardState && (
         <Image source={require('./../assets/images/logo0.png')} />
       )}
-      <KeyboardAvoidingView behavior="position" style={{ width: '100%' }}>
+      <KeyboardAvoidingView behavior="padding" style={{ width: '100%' }}>
         <ScrollView contentContainerStyle={{ width: '100%' }}>
           <SignInTextField
             label="Email"
