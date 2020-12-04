@@ -8,8 +8,7 @@ import { raceReducer } from './raceSlice'
 import { searchReducer } from './searchSlice'
 import { subscriberFeedReducer } from './subscriberFeedSlice'
 import { settingsReducer } from './settingsSlice'
-
-
+import { sessionReducer } from './sessionSlice'
 
 export default configureStore({
   reducer: {
@@ -21,7 +20,7 @@ export default configureStore({
     race: raceReducer,
     search: searchReducer,
     subsciberFeed: subscriberFeedReducer,
-    settings: settingsReducer
+    settings: settingsReducer,
+    session: sessionReducer,
   },
 })
-

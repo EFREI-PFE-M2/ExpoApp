@@ -6,6 +6,7 @@ import {
   Slice,
 } from '@reduxjs/toolkit'
 import { FirebaseApp as firebase, FirebaseAuth as auth } from '../firebase'
+import { setFirebaseAuthError } from './sessionSlice'
 
 export const userSlice = createSlice({
   name: 'User',
@@ -30,7 +31,7 @@ export const userSlice = createSlice({
   },
   reducers: {
     updateUser: (state, action) => {
-      state = { ...state, ...action.payload }
+      state = Object.assign(state, action.payload)
     },
   },
 })
@@ -148,7 +149,7 @@ export const firebaseAuthLogin = (email, password) => async (dispatch) => {
   try {
     const snapshot = await auth.signInWithEmailAndPassword(email, password)
 
-    let user = defaultUser
+    let user = {}
     user.uid = snapshot.user?.uid || ''
     user.username = snapshot.user?.displayName || ''
     user.email = snapshot.user?.email || ''
@@ -157,6 +158,7 @@ export const firebaseAuthLogin = (email, password) => async (dispatch) => {
 
     dispatch(updateUser(user))
   } catch (err) {
+    dispatch(setFirebaseAuthError(err.code))
     console.error(err)
   }
 }
@@ -167,12 +169,13 @@ export const firebaseAuthCreateUser = (email, password) => async (dispatch) => {
 
     if (!snapshot.user) {
       throw new Error('Unknown error')
-    } else {
-      await firebaseAuthLogin(email, password)
     }
+    return true
   } catch (err) {
+    dispatch(setFirebaseAuthError(err.code))
     console.error(err)
   }
+  return false
 }
 
 // Export selectors

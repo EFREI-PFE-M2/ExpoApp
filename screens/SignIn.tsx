@@ -5,10 +5,14 @@ import {
   KeyboardAvoidingView,
   ScrollView,
 } from 'react-native'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import SignInButton from '../components/Custom/SignInButton'
 import SignInTextField from '../components/Custom/SignInTextField'
 import { View, Text, LayoutView } from '../components/Themed'
+import {
+  selectFirebaseAuthError,
+  setFirebaseAuthError,
+} from '../store/sessionSlice'
 import { firebaseAuthLogin } from '../store/userSlice'
 import useKeyboardState from './../hooks/useKeyboardState'
 
@@ -18,6 +22,7 @@ export default function SignIn({ navigation }) {
   const passwordInputRef = React.createRef()
   const dispatch = useDispatch()
   const keyboardState = useKeyboardState()
+  const errorMessage = useSelector(selectFirebaseAuthError)
 
   const usernameInputOnChange = (value: string) => setUsername(value)
   const usernameInputOnSubmit = () => passwordInputRef.current.focus()
@@ -29,7 +34,10 @@ export default function SignIn({ navigation }) {
 
   const navigationRetrievePassword = () =>
     navigation.navigate('RetrievePassword')
-  const navigationSignUp = () => navigation.navigate('SignUp')
+  const navigationSignUp = () => {
+    dispatch(setFirebaseAuthError(''))
+    navigation.navigate('SignUp')
+  }
 
   return (
     <LayoutView style={styles.container}>
@@ -58,6 +66,7 @@ export default function SignIn({ navigation }) {
           />
         </ScrollView>
       </KeyboardAvoidingView>
+      <Text style={styles.error}>{errorMessage}</Text>
       <SignInButton onPress={onSubmit} style={styles.button}>
         Se connecter
       </SignInButton>
@@ -97,5 +106,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     textDecorationLine: 'underline',
+  },
+  error: {
+    fontSize: 14,
+    color: '#ff3333',
   },
 })

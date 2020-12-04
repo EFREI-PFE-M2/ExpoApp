@@ -1,11 +1,15 @@
 import React, { useRef, useState } from 'react'
 import { KeyboardAvoidingView, StyleSheet, ScrollView } from 'react-native'
 import { Checkbox, TouchableRipple } from 'react-native-paper'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import SignInButton from '../components/Custom/SignInButton'
 import SignInTextField from '../components/Custom/SignInTextField'
 import { View, Text, LayoutView } from '../components/Themed'
-import { firebaseAuthCreateUser } from '../store/userSlice'
+import {
+  selectFirebaseAuthError,
+  setFirebaseAuthError,
+} from '../store/sessionSlice'
+import { firebaseAuthCreateUser, firebaseAuthLogin } from '../store/userSlice'
 
 export default function SignUp({ navigation }) {
   const [username, setUsername] = useState('')
@@ -13,6 +17,7 @@ export default function SignUp({ navigation }) {
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [tosCheck, setTosCheck] = useState(false)
+  const errorMessage = useSelector(selectFirebaseAuthError)
   const dispatch = useDispatch()
 
   const usernameRef = useRef(null)
@@ -32,12 +37,20 @@ export default function SignUp({ navigation }) {
   const tosCheckOnChange = () => setTosCheck((prev) => !prev)
 
   const onSubmit = async () => {
-    if (password !== passwordConfirmation) return
-    await dispatch(firebaseAuthCreateUser(email, password))
+    // TODO: String Validations
+    if (await dispatch(firebaseAuthCreateUser(email, password))) {
+      dispatch(firebaseAuthLogin(email, password))
+    }
   }
 
-  const navigationLogin = () => navigation.navigate('SignIn')
-  const navigationTos = () => navigation.navigate('TermsOfUse')
+  const navigationLogin = () => {
+    dispatch(setFirebaseAuthError(''))
+    navigation.navigate('SignIn')
+  }
+  const navigationTos = () => {
+    dispatch(setFirebaseAuthError(''))
+    navigation.navigate('TermsOfUse')
+  }
 
   return (
     <LayoutView style={styles.container}>
@@ -97,6 +110,7 @@ export default function SignUp({ navigation }) {
           </TouchableRipple>
         </Text>
       </View>
+      <Text style={styles.error}>{errorMessage}</Text>
       <SignInButton onPress={onSubmit}>S'inscrire</SignInButton>
       <TouchableRipple
         onPress={navigationLogin}
@@ -138,5 +152,9 @@ const styles = StyleSheet.create({
   },
   navigationLogin: {
     color: '#fff',
+  },
+  error: {
+    fontSize: 14,
+    color: '#ff3333',
   },
 })
