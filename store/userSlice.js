@@ -1,11 +1,6 @@
-import {
-  createSlice,
-  Dispatch,
-  PayloadAction,
-  Reducer,
-  Slice,
-} from '@reduxjs/toolkit'
-import { FirebaseApp as firebase, FirebaseAuth as auth } from '../firebase'
+import { createSlice } from '@reduxjs/toolkit'
+import { FirebaseAuth as auth } from '../firebase'
+import { setFirebaseAuthError } from './sessionSlice'
 
 export const userSlice = createSlice({
   name: 'User',
@@ -30,7 +25,7 @@ export const userSlice = createSlice({
   },
   reducers: {
     updateUser: (state, action) => {
-      state = { ...state, ...action.payload }
+      state = Object.assign(state, action.payload)
     },
   },
 })
@@ -142,13 +137,13 @@ let notification ={
 }
 */
 
-export const { updateUser } = userSlice.actions
+export const { updateUser, setLoading } = userSlice.actions
 
 export const firebaseAuthLogin = (email, password) => async (dispatch) => {
   try {
     const snapshot = await auth.signInWithEmailAndPassword(email, password)
 
-    let user = defaultUser
+    let user = {}
     user.uid = snapshot.user?.uid || ''
     user.username = snapshot.user?.displayName || ''
     user.email = snapshot.user?.email || ''
@@ -157,24 +152,49 @@ export const firebaseAuthLogin = (email, password) => async (dispatch) => {
 
     dispatch(updateUser(user))
   } catch (err) {
+    dispatch(setFirebaseAuthError(err.code))
     console.error(err)
   }
 }
 
-export const firebaseAuthCreateUser = (email, password) => async (dispatch) => {
+export const firebaseAuthCreateUser = (email, password, username) => async (
+  dispatch
+) => {
   try {
     const snapshot = await auth.createUserWithEmailAndPassword(email, password)
 
     if (!snapshot.user) {
       throw new Error('Unknown error')
-    } else {
-      await firebaseAuthLogin(email, password)
     }
+
+    await snapshot.user.updateProfile({
+      displayName: username,
+    })
+
+    return true
   } catch (err) {
+    dispatch(setFirebaseAuthError(err.code))
     console.error(err)
   }
+  return false
 }
 
+export const autoAuth = () => async (dispatch) => {
+  // Firebase auth listener
+  await auth.onAuthStateChanged(function (user) {
+    if (user) {
+      let newUser = {}
+      newUser.uid = user.uid
+      newUser.username = user.displayName
+      newUser.email = user.email
+      newUser.photoURL = user.photoURL
+      newUser.emailVerified = user.emailVerified
+      newUser.loading = false
+
+      dispatch(updateUser(newUser))
+    }
+  })
+}
 // Export selectors
 export const selectCurrent = (state) => state.user.uid
 
