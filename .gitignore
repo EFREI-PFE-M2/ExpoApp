@@ -13,3 +13,9 @@ web-build/
 .DS_Store
 
 yarn-error.log
+
+firebase-debug.log
+
+firestore-debug.log
+
+pubsub-debug.log
