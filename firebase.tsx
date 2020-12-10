@@ -1,5 +1,6 @@
 import firebase from 'firebase'
 import Constants from 'expo-constants'
+require('firebase/functions')
 
 const {
   FIREBASE_API_KEY,
@@ -24,6 +25,11 @@ if (firebase.app.length) {
     appId: FIREBASE_APP_ID,
     measurementId: FIREBASE_MEASUREMENTID,
   })
+  if (__DEV__) {
+    firebase.auth().useEmulator('http://localhost:9099')
+    firebase.firestore().useEmulator('localhost', 8080)
+    firebase.functions().useEmulator('localhost', 5001)
+  }
 }
 
 export const FirebaseApp: firebase.app.App = firebase.app()

@@ -19,4 +19,22 @@ To debug on your phone:
 - In the terminal login to your Expo account: `expo login`
 - Start the development server
 
-## React Navigation
+NOTE: if you do not want to run local firebase server, use expo production mode instead: [EXPO PRODUCTION](https://docs.expo.io/workflow/development-mode/)
+
+## Local testing firebase emulators
+
+Firebase emulators allows all the online serverless functions to be run locally, here is how to use it in this project.
+
+Available services:
+
+- Cloud functions
+- Firestore
+- Firebase auth
+- Hosting
+
+Tutorial:
+
+- Make sure to `npm install` or `yarn`
+- Use `npm run emulators` to run the local backend server
+- Once the message `Database successfully filled, server listening ...` appears, go to `localhost:4000`
+- Run the EXPO app `et voilà`
