@@ -9,7 +9,7 @@ import {
 import BottomTabNavigator from '../../navigation/BottomTabNavigator'
 import DrawerProfile from './DrawerProfile'
 import { Entypo, MaterialIcons } from '@expo/vector-icons'
-import Profile from '../Profile'
+import Profile from './Profile'
 import Settings from '../Settings'
 import Help from '../Help'
 import { useDispatch } from 'react-redux'
@@ -64,6 +64,7 @@ export default function DrawerNavigator() {
             <MaterialIcons name="person-outline" size={24} color={color} />
           ),
         }}
+        initialParams={{ self: true }}
       />
       <Drawer.Screen
         name="Réglages"

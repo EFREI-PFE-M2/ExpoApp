@@ -30,6 +30,9 @@ export const userSlice = createSlice({
     updateUser: (state, action) => {
       state = Object.assign(state, action.payload)
     },
+    setNull: (state) => {
+      state = null
+    },
   },
 })
 
@@ -140,7 +143,7 @@ let notification ={
 }
 */
 
-export const { updateUser, setLoading } = userSlice.actions
+export const { updateUser, setNull } = userSlice.actions
 
 export const firebaseAuthLogin = (email, password) => async (dispatch) => {
   try {
@@ -223,7 +226,7 @@ const retrieveUserData = async (id, dispatch) => {
 export const logout = () => async (dispatch) => {
   try {
     await auth.signOut()
-    updateUser({})
+    dispatch(setNull())
   } catch (err) {
     console.log(err)
   }
