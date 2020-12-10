@@ -1,5 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { FirebaseAuth as auth } from '../firebase'
+import {
+  FirebaseAuth as auth,
+  FirebaseFirestore as firestore,
+} from '../firebase'
 import { setFirebaseAuthError } from './sessionSlice'
 
 export const userSlice = createSlice({
@@ -147,10 +150,23 @@ export const firebaseAuthLogin = (email, password) => async (dispatch) => {
     user.uid = snapshot.user?.uid || ''
     user.username = snapshot.user?.displayName || ''
     user.email = snapshot.user?.email || ''
-    user.photoURL = snapshot.user?.photoURL || ''
+    user.photoURL =
+      snapshot.user?.photoURL ||
+      'https://e3.365dm.com/20/11/768x432/skynews-trump-donald_5185898.jpg?20201127092058'
     user.emailVerified = snapshot.user?.emailVerified || undefined
 
-    dispatch(updateUser(user))
+    let userData
+    try {
+      const ref = await firestore
+        .collection('Users')
+        .doc(snapshot.user?.uid)
+        .get()
+      userData = await ref.data()
+    } catch (err) {
+      console.error(err)
+    }
+
+    dispatch(updateUser(Object.assign(userData, user)))
   } catch (err) {
     dispatch(setFirebaseAuthError(err.code))
     console.error(err)
@@ -192,10 +208,28 @@ export const autoAuth = () => async (dispatch) => {
       newUser.loading = false
 
       dispatch(updateUser(newUser))
+      retrieveUserData(user.uid, dispatch)
     }
   })
 }
+
+const retrieveUserData = async (id, dispatch) => {
+  const resultRef = await firestore.collection('Users').doc(id).get()
+  const result = resultRef.data()
+
+  dispatch(updateUser(result))
+}
+
+export const logout = () => async (dispatch) => {
+  try {
+    await auth.signOut()
+    updateUser({})
+  } catch (err) {
+    console.log(err)
+  }
+}
 // Export selectors
 export const selectCurrent = (state) => state.user.uid
+export const selectCurrentUser = (state) => state.user
 
 export const userReducer = userSlice.reducer

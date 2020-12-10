@@ -8,20 +8,35 @@ import {
 } from '@react-navigation/drawer'
 import BottomTabNavigator from '../../navigation/BottomTabNavigator'
 import DrawerProfile from './DrawerProfile'
-import { Entypo } from '@expo/vector-icons'
+import { Entypo, MaterialIcons } from '@expo/vector-icons'
+import Profile from '../Profile'
+import Settings from '../Settings'
+import Help from '../Help'
+import { useDispatch } from 'react-redux'
+import { logout } from './../../store/userSlice'
+import { StyleSheet } from 'react-native'
 
 const Drawer = createDrawerNavigator()
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
-  const labelStyle = {
-    fontSize: 18,
-  }
+  const dispatch = useDispatch()
+  const logoutHandler = () => dispatch(logout())
 
   return (
     <DrawerContentScrollView>
       <DrawerProfile />
-      <DrawerItemList labelStyle={labelStyle} {...props} />
-      <DrawerItem label="Help" onPress={() => alert('Link to help')} />
+      <DrawerItemList
+        labelStyle={styles.labelStyle}
+        inactiveTintColor="#fff8"
+        activeTintColor="#fff"
+        {...props}
+      />
+      <DrawerItem
+        label="Déconnexion"
+        onPress={logoutHandler}
+        labelStyle={styles.logoutStyle}
+        style={styles.logoutContainer}
+      />
     </DrawerContentScrollView>
   )
 }
@@ -41,6 +56,49 @@ export default function DrawerNavigator() {
           ),
         }}
       />
+      <Drawer.Screen
+        name="Profil"
+        component={Profile}
+        options={{
+          drawerIcon: ({ color }) => (
+            <MaterialIcons name="person-outline" size={24} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Réglages"
+        component={Settings}
+        options={{
+          drawerIcon: ({ color }) => (
+            <MaterialIcons name="settings" size={24} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Centre d'assistance"
+        component={Help}
+        options={{
+          drawerIcon: ({ color }) => (
+            <MaterialIcons name="question-answer" size={24} color={color} />
+          ),
+        }}
+      />
     </Drawer.Navigator>
   )
 }
+
+const styles = StyleSheet.create({
+  labelStyle: {
+    fontSize: 18,
+  },
+  logoutStyle: {
+    fontSize: 20,
+    color: '#fff',
+    textAlign: 'center',
+  },
+  logoutContainer: {
+    marginTop: 100,
+    backgroundColor: '#fff9',
+    flex: 1,
+  },
+})
