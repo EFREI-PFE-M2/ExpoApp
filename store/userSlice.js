@@ -23,7 +23,8 @@ export const userSlice = createSlice({
     nbFollowing: 0,
     nbPendingMessages: 0,
     posts: [],
-    notifications: [],
+    notificationToken: '',
+    notificationState: false,
     cards: [],
   },
   reducers: {
@@ -32,6 +33,9 @@ export const userSlice = createSlice({
     },
     setNull: (state) => {
       state = null
+    },
+    changeNotificationState: (state, action) => {
+      state.notificationState = action.payload
     },
   },
 })
@@ -143,7 +147,11 @@ let notification ={
 }
 */
 
-export const { updateUser, setNull } = userSlice.actions
+export const {
+  updateUser,
+  setNull,
+  changeNotificationState,
+} = userSlice.actions
 
 export const firebaseAuthLogin = (email, password) => async (dispatch) => {
   try {
@@ -153,9 +161,7 @@ export const firebaseAuthLogin = (email, password) => async (dispatch) => {
     user.uid = snapshot.user?.uid || ''
     user.username = snapshot.user?.displayName || ''
     user.email = snapshot.user?.email || ''
-    user.photoURL =
-      snapshot.user?.photoURL ||
-      'https://e3.365dm.com/20/11/768x432/skynews-trump-donald_5185898.jpg?20201127092058'
+    user.photoURL = snapshot.user?.photoURL || ''
     user.emailVerified = snapshot.user?.emailVerified || undefined
 
     let userData
@@ -231,8 +237,24 @@ export const logout = () => async (dispatch) => {
     console.log(err)
   }
 }
+
+export const switchNotificationState = (state) => (dispatch) => {
+  try {
+    // Api calls to flip the value of the darn switch
+
+    // Redux value changes
+    dispatch(changeNotificationState(state))
+  } catch (err) {
+    console.log(err)
+  }
+}
 // Export selectors
 export const selectCurrent = (state) => state.user.uid
 export const selectCurrentUser = (state) => state.user
+export const selectCurrentUserEmail = (state) => state.user.email
+export const selectCurrentNotificationToken = (state) =>
+  state.user.notificationToken
+export const selectCurrentNotificationState = (state) =>
+  state.user.notificationState
 
 export const userReducer = userSlice.reducer

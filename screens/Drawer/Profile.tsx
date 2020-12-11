@@ -7,6 +7,7 @@ import {
   Button,
   IconButton,
   ProgressBar,
+  TouchableRipple,
 } from 'react-native-paper'
 import { useSelector } from 'react-redux'
 import Badges from '../../components/ProfileTabs/Badges'
@@ -16,12 +17,13 @@ import Posts from '../../components/ProfileTabs/Posts'
 import { selectCurrentUser } from '../../store/userSlice'
 import { Text, View } from './../../components/Themed'
 import { createStackNavigator } from '@react-navigation/stack'
+import { MaterialIcons } from '@expo/vector-icons'
 
 const SubTab = createMaterialTopTabNavigator()
 const Stack = createStackNavigator()
 
 export default function Profile(props) {
-  const { user, route } = props
+  const { user, route, navigation } = props
   const displayUser = route.params.self ? useSelector(selectCurrentUser) : user
   const {
     uid,
@@ -32,13 +34,14 @@ export default function Profile(props) {
     winPercentage,
     nbFollowers,
     nbFollowing,
+    currentSeries,
   } = displayUser
 
   const renderXPCard = () => (
     <View style={XPCardStyles.container}>
       <View style={XPCardStyles.level}>
         <Text style={XPCardStyles.label}>Niveau</Text>
-        <Badge size={24} style={XPCardStyles.badge}>
+        <Badge size={32} style={XPCardStyles.badge}>
           {level}
         </Badge>
       </View>
@@ -49,18 +52,26 @@ export default function Profile(props) {
   const renderUserInformation = () => (
     <View style={infoCardStyles.container}>
       <Text style={infoCardStyles.username}>{username}</Text>
-      <View style={infoCardStyles.container}>
-        <IconButton color="#194A4C" size={32} icon="message" />
-        <View style={{ width: 10 }} />
-        <IconButton color="#194A4C" size={32} icon="account-multiple-plus" />
-      </View>
+      {!self && 
+        <View style={[infoCardStyles.container, { paddingRight: 0 }]}>
+          <IconButton color="#194A4C" size={32} icon="message" />
+          <View style={{ width: 10 }} />
+          <IconButton color="#194A4C" size={32} icon="account-multiple-plus" />
+        </View>
+      }
     </View>
   )
 
   const renderStats = () => (
     <View style={infoCardStyles.container}>
       <Text>
+        Pronos <Text style={infoCardStyles.label}>999</Text>
+      </Text>
+      <Text>
         Gagnés <Text style={infoCardStyles.label}>{winPercentage}%</Text>
+      </Text>
+      <Text>
+        Perdus <Text style={infoCardStyles.label}>{100  -  winPercentage}%</Text>
       </Text>
     </View>
   )
@@ -116,24 +127,56 @@ export default function Profile(props) {
     </SubTab.Navigator>
   )
 
+  const renderCurrentSeries = () => (
+    <View style={infoCardStyles.container}>
+      <Text>Serie en cours</Text>
+      <View style={[infoCardStyles.container, { paddingRight: 0 }]}>
+        {currentSeries?.map((serie) => (
+          <Badge
+            size={16}
+            style={{
+              backgroundColor: serie ? '#194A4C' : '#C4C4C4',
+              marginHorizontal: 2,
+            }}
+          />
+        ))}
+      </View>
+    </View>
+  )
+
+  const goBack = () => navigation.navigate('Home')
+
   return (
     <View style={styles.container}>
       <View
-        style={{ height: 80, backgroundColor: '#194A4C', marginBottom: 20 }}
-      />
+        style={{
+          height: 80,
+          backgroundColor: '#194A4C',
+          marginBottom: 20,
+          paddingTop: 30,
+          paddingLeft: 10,
+        }}>
+        <TouchableRipple onPress={goBack}>
+          <MaterialIcons name="chevron-left" size={38} color="#fff" />
+        </TouchableRipple>
+      </View>
       <View style={styles.banner}>
         <Avatar.Image source={{ uri: photoURL }} size={65} />
         {renderXPCard()}
       </View>
       {renderUserInformation()}
       {renderStats()}
+      {renderCurrentSeries()}
       {renderFollowers()}
+      {renderTabNavigator()}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    flex: 1
+  },
   banner: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -162,6 +205,7 @@ const XPCardStyles = StyleSheet.create({
   badge: {
     backgroundColor: '#194A4C',
     marginLeft: 10,
+    fontWeight: 'bold',
   },
 })
 
@@ -174,7 +218,7 @@ const infoCardStyles = StyleSheet.create({
     marginVertical: 5,
   },
   username: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
     marginHorizontal: 10,
   },
