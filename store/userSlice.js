@@ -1,5 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { FirebaseAuth as auth } from '../firebase'
+import {
+  FirebaseAuth as auth,
+  FirebaseFirestore as firestore,
+} from '../firebase'
 import { setFirebaseAuthError } from './sessionSlice'
 
 export const userSlice = createSlice({
@@ -20,12 +23,19 @@ export const userSlice = createSlice({
     nbFollowing: 0,
     nbPendingMessages: 0,
     posts: [],
-    notifications: [],
+    notificationToken: '',
+    notificationState: false,
     cards: [],
   },
   reducers: {
     updateUser: (state, action) => {
       state = Object.assign(state, action.payload)
+    },
+    setNull: (state) => {
+      state = null
+    },
+    changeNotificationState: (state, action) => {
+      state.notificationState = action.payload
     },
   },
 })
@@ -137,7 +147,11 @@ let notification ={
 }
 */
 
-export const { updateUser, setLoading } = userSlice.actions
+export const {
+  updateUser,
+  setNull,
+  changeNotificationState,
+} = userSlice.actions
 
 export const firebaseAuthLogin = (email, password) => async (dispatch) => {
   try {
@@ -150,7 +164,18 @@ export const firebaseAuthLogin = (email, password) => async (dispatch) => {
     user.photoURL = snapshot.user?.photoURL || ''
     user.emailVerified = snapshot.user?.emailVerified || undefined
 
-    dispatch(updateUser(user))
+    let userData
+    try {
+      const ref = await firestore
+        .collection('Users')
+        .doc(snapshot.user?.uid)
+        .get()
+      userData = await ref.data()
+    } catch (err) {
+      console.error(err)
+    }
+
+    dispatch(updateUser(Object.assign(userData, user)))
   } catch (err) {
     dispatch(setFirebaseAuthError(err.code))
     console.error(err)
@@ -192,10 +217,44 @@ export const autoAuth = () => async (dispatch) => {
       newUser.loading = false
 
       dispatch(updateUser(newUser))
+      retrieveUserData(user.uid, dispatch)
     }
   })
 }
+
+const retrieveUserData = async (id, dispatch) => {
+  const resultRef = await firestore.collection('Users').doc(id).get()
+  const result = resultRef.data()
+
+  dispatch(updateUser(result))
+}
+
+export const logout = () => async (dispatch) => {
+  try {
+    await auth.signOut()
+    dispatch(setNull())
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const switchNotificationState = (state) => (dispatch) => {
+  try {
+    // Api calls to flip the value of the darn switch
+
+    // Redux value changes
+    dispatch(changeNotificationState(state))
+  } catch (err) {
+    console.log(err)
+  }
+}
 // Export selectors
 export const selectCurrent = (state) => state.user.uid
+export const selectCurrentUser = (state) => state.user
+export const selectCurrentUserEmail = (state) => state.user.email
+export const selectCurrentNotificationToken = (state) =>
+  state.user.notificationToken
+export const selectCurrentNotificationState = (state) =>
+  state.user.notificationState
 
 export const userReducer = userSlice.reducer

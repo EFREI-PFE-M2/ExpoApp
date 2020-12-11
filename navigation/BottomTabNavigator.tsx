@@ -19,6 +19,9 @@ import Search from '../screens/Search'
 import { BottomTabParamList } from '../types'
 import { StatusBar } from 'react-native'
 import { View } from 'react-native'
+import { TouchableRipple } from 'react-native-paper'
+import { useNavigation } from '@react-navigation/native'
+import Navigation from '.'
 
 const BottomTab = createBottomTabNavigator()
 
@@ -103,6 +106,7 @@ const defaultScreenOptions: StackNavigationOptions = {
  */
 const HomeStack = createStackNavigator()
 function TabHomeNavigator() {
+  const navigation = useNavigation()
   return (
     <HomeStack.Navigator
       screenOptions={{
@@ -117,6 +121,11 @@ function TabHomeNavigator() {
             <MaterialCommunityIcons name="bell" color={tintColor} size={24} />
             <MaterialIcons name="email" color={tintColor} size={24} />
           </View>
+        ),
+        headerLeft: ({ tintColor }) => (
+          <TouchableRipple onPress={() => navigation.navigate('Home')}>
+            <MaterialIcons name="menu" size={24} color={tintColor} />
+          </TouchableRipple>
         ),
         headerRightContainerStyle: {
           marginRight: 15,
