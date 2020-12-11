@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text } from '../components/Themed'
-import { Button, Switch, TouchableRipple } from 'react-native-paper'
+import { Button, Switch, TouchableRipple, IconButton } from 'react-native-paper'
 import { MaterialIcons } from '@expo/vector-icons'
 import { StyleSheet } from 'react-native'
 import SignInTextField from '../components/Custom/SignInTextField'
@@ -30,6 +30,7 @@ export default function Settings(props) {
   const onSwitchChange = () =>
     dispatch(changeNotificationState(!notificationState))
   const onDeleteAccount = () => console.log('NEVER')
+  const save = () => console.log('save')
 
   const renderTopbar = () => (
     <View
@@ -37,13 +38,23 @@ export default function Settings(props) {
         height: 80,
         backgroundColor: '#194A4C',
         marginBottom: 20,
-        paddingTop: 30,
-        paddingLeft: 10,
-        width: '100%',
+        paddingTop: 15,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-      <TouchableRipple onPress={goBack}>
-        <MaterialIcons name="chevron-left" size={38} color="#fff" />
-      </TouchableRipple>
+      <IconButton 
+        icon="chevron-left"
+        onPress={goBack}
+        size={30}
+        color="#fff"
+      />
+      <IconButton 
+        icon="content-save-edit" 
+        onPress={save}
+        size={30}
+        color="#fff"
+      />
     </View>
   )
 

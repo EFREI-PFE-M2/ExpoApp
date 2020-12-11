@@ -144,22 +144,38 @@ export default function Profile(props) {
     </View>
   )
 
+  const renderTopBar = () => (
+    <View
+      style={{
+        height: 80,
+        backgroundColor: '#194A4C',
+        marginBottom: 20,
+        paddingTop: 15,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+      <IconButton 
+        icon="chevron-left"
+        onPress={goBack}
+        size={30}
+        color="#fff"
+      />
+      <IconButton 
+        icon="account-edit" 
+        onPress={edit}
+        size={30}
+        color="#fff"
+      />
+    </View>
+  )
+
   const goBack = () => navigation.navigate('Home')
+  const edit = () => console.log('editing')
 
   return (
     <View style={styles.container}>
-      <View
-        style={{
-          height: 80,
-          backgroundColor: '#194A4C',
-          marginBottom: 20,
-          paddingTop: 30,
-          paddingLeft: 10,
-        }}>
-        <TouchableRipple onPress={goBack}>
-          <MaterialIcons name="chevron-left" size={38} color="#fff" />
-        </TouchableRipple>
-      </View>
+      {renderTopBar()}
       <View style={styles.banner}>
         <Avatar.Image source={{ uri: photoURL }} size={65} />
         {renderXPCard()}
