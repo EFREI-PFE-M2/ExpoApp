@@ -19,9 +19,10 @@ import Search from '../screens/Search'
 import { BottomTabParamList } from '../types'
 import { StatusBar } from 'react-native'
 import { View } from 'react-native'
-import { TouchableRipple } from 'react-native-paper'
+import { IconButton, TouchableRipple } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import Navigation from '.'
+import Race from '../screens/Race'
 
 const BottomTab = createBottomTabNavigator()
 
@@ -136,6 +137,11 @@ function TabHomeNavigator() {
         name="Home_Home"
         component={Home}
         options={{ headerTitle: 'Flux' }}
+      />
+      <HomeStack.Screen
+        name="Home_Race"
+        component={Race}
+        options={{ headerTitle: 'Course' }}
       />
     </HomeStack.Navigator>
   )
