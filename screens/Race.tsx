@@ -1,47 +1,75 @@
 import React from 'react'
 import { StyleSheet } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
-import { IconButton } from 'react-native-paper'
 import { Text, View } from '../components/Themed'
+import { IconButton } from 'react-native-paper'
+import { useSelector } from 'react-redux'
 
 export default function Race({ route, navigation }) {
   const { raceID } = route.params
+  const {
+    allocation,
+    category,
+    distance,
+    location,
+    raceCode,
+    nbContenders,
+    raceTitle,
+    direction,
+    field,
+  } = useSelector((state) =>
+    state.race.races.find((element) => element.id === raceID)
+  )
 
-  navigation.setOptions({})
+  const goBack = () => navigation.goBack()
+
+  navigation.setOptions({
+    headerRight: null,
+    headerLeft: ({ color }) => (
+      <IconButton
+        icon="chevron-left"
+        size={36}
+        color={color}
+        onPress={goBack}
+      />
+    ),
+  })
+
+  const raceCodeSplit = raceCode.split(' ')
 
   return (
     <ScrollView>
       <View>
-        <Text style={styles.title}>R2 FEURS</Text>
-        <Text style={styles.title}>C1 PRIX CITEOS</Text>
+        <Text style={styles.title}>{`${raceCodeSplit[0]} ${location}`}</Text>
+        <Text style={styles.title}>{`${raceCodeSplit[1]} ${raceTitle}`}</Text>
       </View>
 
       <Container>
         <Column>
           <TitleText>Discipline</TitleText>
-          <BaseText>Plat</BaseText>
+          <BaseText>{category}</BaseText>
         </Column>
         <Column>
           <TitleText>Distance</TitleText>
-          <BaseText>1850m</BaseText>
+          <BaseText>{`${allocation}m`}</BaseText>
         </Column>
         <Column>
           <TitleText>Partans</TitleText>
-          <BaseText>9</BaseText>
+          <BaseText>{nbContenders}</BaseText>
         </Column>
         <Column>
           <TitleText>Allocation</TitleText>
-          <BaseText>11 000e</BaseText>
+          <BaseText>{`${allocation}€`}</BaseText>
         </Column>
       </Container>
       <Container>
         <Column>
           <TitleText>Corde</TitleText>
-          <BaseText>Corde a droite</BaseText>
+          <BaseText>{direction}</BaseText>
         </Column>
         <Column>
           <TitleText>Terrain</TitleText>
-          <BaseText>Piste en herbe</BaseText>
+          <BaseText>{field}</BaseText>
         </Column>
       </Container>
       <View style={styles.prono}></View>

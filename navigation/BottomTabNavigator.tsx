@@ -124,9 +124,12 @@ function TabHomeNavigator() {
           </View>
         ),
         headerLeft: ({ tintColor }) => (
-          <TouchableRipple onPress={() => navigation.navigate('Home')}>
-            <MaterialIcons name="menu" size={24} color={tintColor} />
-          </TouchableRipple>
+          <IconButton
+            onPress={() => navigation.navigate('Home')}
+            icon="menu"
+            size={24}
+            color={tintColor}
+          />
         ),
         headerRightContainerStyle: {
           marginRight: 15,

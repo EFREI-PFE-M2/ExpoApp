@@ -14,8 +14,8 @@ export const raceSlice = createSlice({
         distance: 400,
         nbContenders: 9,
         allocation: 18000,
-        direction: 'right',
-        field: 'herbe',
+        direction: 'Droite',
+        field: 'Herbe',
         equidiaPronostic: [1, 6, 8, 3, 5],
         betTypesAuthorized: ['simple', 'couple', 'quinte'],
         horses: {
