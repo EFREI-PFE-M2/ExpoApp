@@ -1,8 +1,8 @@
 import React from 'react'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, Image } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Text, View } from '../components/Themed'
-import { IconButton } from 'react-native-paper'
+import { Badge, IconButton } from 'react-native-paper'
 import { useSelector } from 'react-redux'
 
 export default function Race({ route, navigation }) {
@@ -17,6 +17,7 @@ export default function Race({ route, navigation }) {
     raceTitle,
     direction,
     field,
+    equidiaPronostic,
   } = useSelector((state) =>
     state.race.races.find((element) => element.id === raceID)
   )
@@ -72,7 +73,16 @@ export default function Race({ route, navigation }) {
           <BaseText>{field}</BaseText>
         </Column>
       </Container>
-      <View style={styles.prono}></View>
+      <View style={styles.prono}>
+        <Image source={require('./../assets/images/equidia.png')} />
+        <View style={{ flexDirection: 'row' }}>
+          {equidiaPronostic.map((element) => (
+            <Badge size={24} style={styles.badge}>
+              {element}
+            </Badge>
+          ))}
+        </View>
+      </View>
 
       <View style={styles.pubs}>
         <Text>Publications</Text>
@@ -111,8 +121,14 @@ function TitleText({ children, style, ...rest }) {
 
 const styles = StyleSheet.create({
   prono: {
+    borderWidth: 1,
+    borderColor: '#D6D6D6',
     width: '100%',
-    height: 25,
+    height: 40,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   title: {
     color: '#194A4C',
@@ -145,6 +161,11 @@ const styles = StyleSheet.create({
   ViewContainer: {
     flexDirection: 'row',
     paddingHorizontal: 15,
-    paddingTop: 5,
+    paddingVertical: 5,
+  },
+  badge: {
+    backgroundColor: '#194A4C',
+    marginLeft: 10,
+    fontWeight: 'bold',
   },
 })
