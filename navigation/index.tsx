@@ -34,9 +34,6 @@ export default function Navigation({
 }
 
 const Stack = createStackNavigator()
-//<Stack.Screen name="ChatRoom" component={ChatRoom}/>
-//          <Stack.Screen name="ChatList" component={ChatList}/>
-//<Stack.Screen name="AddChat" component={AddChat}/>
 function RootNavigator() {
   const user = useSelector(selectCurrent)
   return (
@@ -46,8 +43,6 @@ function RootNavigator() {
       {user ? (
         <>
           <Stack.Screen name="Drawer" component={DrawerNavigator} />
-          
-          
         </>
       ) : (
         <>

@@ -19,7 +19,7 @@ import Search from '../screens/Search'
 import { BottomTabParamList } from '../types'
 import { StatusBar } from 'react-native'
 import { View } from 'react-native'
-import { TouchableRipple } from 'react-native-paper'
+import { IconButton, TouchableRipple } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import Navigation from '.'
 
@@ -31,7 +31,7 @@ const BottomTab = createBottomTabNavigator()
  * created with createBottomTabNavigator
  * @returns React Node
  */
-export default function BottomTabNavigator() {
+export default function BottomTabNavigator({ navigation }) {
   const colorScheme = useColorScheme()
 
   const iconWrapper = {
@@ -112,15 +112,7 @@ function TabHomeNavigator() {
       screenOptions={{
         ...defaultScreenOptions,
         headerRight: ({ tintColor }) => (
-          <View
-            style={{
-              flexDirection: 'row',
-              width: 60,
-              justifyContent: 'space-between',
-            }}>
-            <MaterialCommunityIcons name="bell" color={tintColor} size={24} />
-            <MaterialIcons name="email" color={tintColor} size={24} />
-          </View>
+          <IconButton icon="bell" size={24} color={tintColor} />
         ),
         headerLeft: ({ tintColor }) => (
           <TouchableRipple onPress={() => navigation.navigate('Home')}>

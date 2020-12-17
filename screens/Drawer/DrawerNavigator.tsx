@@ -15,6 +15,7 @@ import Help from '../Help'
 import { useDispatch } from 'react-redux'
 import { logout } from './../../store/userSlice'
 import { StyleSheet } from 'react-native'
+import ChatNavigator from './../../navigation/ChatNavigator'
 
 const Drawer = createDrawerNavigator()
 
@@ -65,6 +66,15 @@ export default function DrawerNavigator() {
           ),
         }}
         initialParams={{ self: true }}
+      />
+      <Drawer.Screen
+        name="Message"
+        component={ChatNavigator}
+        options={{
+          drawerIcon: ({ color }) => (
+            <MaterialIcons name="message" size={24} color={color} />
+          ),
+        }}
       />
       <Drawer.Screen
         name="Réglages"
