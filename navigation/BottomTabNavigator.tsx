@@ -98,6 +98,7 @@ const defaultScreenOptions: StackNavigationOptions = {
     fontSize: 24,
     fontWeight: 'bold',
   },
+  headerTintColor: '#fff',
   headerStatusBarHeight: StatusBar.currentHeight,
 }
 
@@ -122,7 +123,6 @@ function TabHomeNavigator() {
         headerRightContainerStyle: {
           marginRight: 15,
         },
-        headerTintColor: '#fff',
       }}>
       <HomeStack.Screen
         name="Home_Home"

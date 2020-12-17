@@ -49,16 +49,7 @@ class AddChatScreen extends React.Component {
 
 export default function AddChat() {
     return (
-      <Stack.Navigator 
-      screenOptions={{...defaultScreenOptions}}>
-        
-       <Stack.Screen
-          name="AddChat"
-          component={AddChatScreen}
-          options={{ headerTitle: 'AddChat', 
-          headerTintColor: '#fff'}}
-        />
-      </Stack.Navigator>
+      <AddChatScreen/>
     )
 }
 

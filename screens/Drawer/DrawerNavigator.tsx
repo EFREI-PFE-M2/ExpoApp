@@ -68,7 +68,7 @@ export default function DrawerNavigator() {
         initialParams={{ self: true }}
       />
       <Drawer.Screen
-        name="Message"
+        name="Messages"
         component={ChatNavigator}
         options={{
           drawerIcon: ({ color }) => (
