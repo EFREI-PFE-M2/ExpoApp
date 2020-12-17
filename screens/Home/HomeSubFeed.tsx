@@ -48,8 +48,8 @@ export default function HomeSubFeed() {
           type="survey"
           photoURL="https://pbs.twimg.com/profile_images/669103856106668033/UF3cgUk4_400x400.jpg"
           username="Jeff B." date="21/06/2020" nbLikes={2} nbComments={14}
-          text="This is my bet"
-          content={{responses: {'oui': 545, 'non': 120, 'peut être' : 60}, expirationDatetime: new Date()}}
+          text="Ca va?"
+          content={{responses: {'oui': 545, 'non': 120, 'peut être' : 60}, expirationDatetime: new Date(), userVote: ''}}
           />
       </ScrollView>
     </SafeAreaView>

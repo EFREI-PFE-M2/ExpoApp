@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, Image} from './Themed'
-import { StyleSheet, TouchableOpacity } from 'react-native'
+import { StyleSheet, TouchableOpacity, FlatList } from 'react-native'
 import { Avatar, Divider, Button, Card } from 'react-native-paper'
 import {
   MaterialIcons,
@@ -26,6 +26,14 @@ export default function Post(props) {
             <Card>
               <Card.Cover source={{ uri: content.image }} />
             </Card>
+          )
+        }
+        {
+          type === "survey" && (
+            <FlatList
+              data={Object.keys(content.responses).map((item, i) => ({response: item, nbVotes: content.responses[item]}))}
+              renderItem={({item}) => <Text>{item.response}</Text>}
+            />
           )
         }
         {
