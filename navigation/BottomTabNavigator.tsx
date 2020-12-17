@@ -5,25 +5,23 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from '@expo/vector-icons'
-import { IconButton } from 'react-native-paper'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import {
   createStackNavigator,
   StackNavigationOptions,
-  StackNavigationProp,
 } from '@react-navigation/stack'
 import Colors from '../constants/Colors'
 import useColorScheme from '../hooks/useColorScheme'
 import CardGame from '../screens/CardGame'
 import Challenge from '../screens/Challenge'
-import ChatList from '../screens/ChatList.js'
-import ChatRoom from '../screens/ChatRoom'
 import Home from '../screens/HomeTabNavigator'
 import Search from '../screens/Search'
-import PrivateChatMenuOptions from '../components/Custom/PrivateChatMenuOptions'
 import { BottomTabParamList } from '../types'
-import { View, StatusBar, StyleSheet } from 'react-native'
+import { StatusBar } from 'react-native'
+import { View } from 'react-native'
+import { TouchableRipple } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
+import Navigation from '.'
 
 const BottomTab = createBottomTabNavigator()
 
@@ -86,20 +84,11 @@ export default function BottomTabNavigator() {
           ),
         }}
       />
-      <BottomTab.Screen
-        name="Messages"
-        component={TabMessageNavigator}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="mail" color={color} {...iconWrapper} />
-          ),
-        }}
-      />
     </BottomTab.Navigator>
   )
 }
 
-const defaultScreenOptions /*: StackNavigationOptions*/ = {
+const defaultScreenOptions: StackNavigationOptions = {
   headerTitleAlign: 'center',
   headerStyle: {
     backgroundColor: '#194A4C',
@@ -117,14 +106,26 @@ const defaultScreenOptions /*: StackNavigationOptions*/ = {
  */
 const HomeStack = createStackNavigator()
 function TabHomeNavigator() {
+  const navigation = useNavigation()
   return (
     <HomeStack.Navigator
       screenOptions={{
         ...defaultScreenOptions,
         headerRight: ({ tintColor }) => (
-          <View>
+          <View
+            style={{
+              flexDirection: 'row',
+              width: 60,
+              justifyContent: 'space-between',
+            }}>
             <MaterialCommunityIcons name="bell" color={tintColor} size={24} />
+            <MaterialIcons name="email" color={tintColor} size={24} />
           </View>
+        ),
+        headerLeft: ({ tintColor }) => (
+          <TouchableRipple onPress={() => navigation.navigate('Home')}>
+            <MaterialIcons name="menu" size={24} color={tintColor} />
+          </TouchableRipple>
         ),
         headerRightContainerStyle: {
           marginRight: 15,
@@ -187,67 +188,3 @@ function TabCardGameNavigator() {
     </CardGameStack.Navigator>
   )
 }
-
-import AddChat from '../screens/AddChat'
-/**
- * ChatList stack navigator
- */
-const MessageStack = createStackNavigator()
-function TabMessageNavigator() {
-  //type RootStackParamList = {AddChat: undefined}
-  //type ScreenNavigationProp = StackNavigationProp<RootStackParamList>
-  //const navigation = useNavigation<ScreenNavigationProp>()
-  return (
-    <MessageStack.Navigator
-      screenOptions={{
-        ...defaultScreenOptions,
-        headerRight: ({ tintColor }) => (
-          <View>
-            <IconButton
-              icon="message-plus"
-              color={tintColor}
-              size={22}
-              onPress={() => {} /*navigation.navigate('AddChat')*/}
-            />
-          </View>
-        ),
-        headerRightContainerStyle: {
-          marginRight: 5,
-        },
-        headerTintColor: '#fff',
-      }}>
-      <MessageStack.Screen
-        name="Messages"
-        component={ChatList}
-        options={{ headerTitle: 'Messages' }}
-      />
-      <MessageStack.Screen
-        name="ChatRoom"
-        component={ChatRoom}
-        options={({ route }) => ({
-          title: route.params.title,
-          headerTitleAlign: 'left',
-          headerRight: ({ tintColor }) => (
-            <View style={styles.iconRight}>
-              <PrivateChatMenuOptions />
-            </View>
-          ),
-          headerTintColor: '#fff',
-        })}
-      />
-    </MessageStack.Navigator>
-  )
-}
-
-const styles = StyleSheet.create({
-  iconRight: {
-    backgroundColor: '#194A4C',
-    paddingTop: 5,
-    paddingEnd: 10,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#E5E5E5',
-    justifyContent: 'flex-end',
-  },
-})

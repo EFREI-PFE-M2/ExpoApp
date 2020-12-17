@@ -1,16 +1,28 @@
 import React, { useRef, useState } from 'react'
-import { StyleSheet, Image } from 'react-native'
-import { useDispatch } from 'react-redux'
+import {
+  StyleSheet,
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
+} from 'react-native'
+import { useDispatch, useSelector } from 'react-redux'
 import SignInButton from '../components/Custom/SignInButton'
 import SignInTextField from '../components/Custom/SignInTextField'
-import { View, Text } from '../components/Themed'
-import { firebaseAuthLogin } from '../store/user'
+import { View, Text, LayoutView } from '../components/Themed'
+import {
+  selectFirebaseAuthError,
+  setFirebaseAuthError,
+} from '../store/sessionSlice'
+import { firebaseAuthLogin } from '../store/userSlice'
+import useKeyboardState from './../hooks/useKeyboardState'
 
 export default function SignIn({ navigation }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const passwordInputRef = React.createRef()
   const dispatch = useDispatch()
+  const keyboardState = useKeyboardState()
+  const errorMessage = useSelector(selectFirebaseAuthError)
 
   const usernameInputOnChange = (value: string) => setUsername(value)
   const usernameInputOnSubmit = () => passwordInputRef.current.focus()
@@ -22,29 +34,39 @@ export default function SignIn({ navigation }) {
 
   const navigationRetrievePassword = () =>
     navigation.navigate('RetrievePassword')
-  const navigationSignUp = () => navigation.navigate('SignUp')
+  const navigationSignUp = () => {
+    dispatch(setFirebaseAuthError(''))
+    navigation.navigate('SignUp')
+  }
 
   return (
-    <View style={styles.container}>
-      <Image source={require('./../assets/images/logo0.png')} />
-      <SignInTextField
-        label="Email"
-        value={username}
-        onChangeText={usernameInputOnChange}
-        textContentType="username"
-        onSubmitEditing={usernameInputOnSubmit}
-        keyboardType="email-address"
-        returnKeyType="next"
-      />
-      <SignInTextField
-        label="Mot de passe"
-        ref={passwordInputRef}
-        value={password}
-        onChangeText={passwordInputOnChange}
-        textContentType="password"
-        onSubmitEditing={onSubmit}
-        secureTextEntry={true}
-      />
+    <LayoutView style={styles.container}>
+      {!keyboardState && (
+        <Image source={require('./../assets/images/logo0.png')} />
+      )}
+      <KeyboardAvoidingView behavior="padding" style={{ width: '100%' }}>
+        <ScrollView contentContainerStyle={{ width: '100%' }}>
+          <SignInTextField
+            label="Email"
+            value={username}
+            onChangeText={usernameInputOnChange}
+            textContentType="username"
+            onSubmitEditing={usernameInputOnSubmit}
+            keyboardType="email-address"
+            returnKeyType="next"
+          />
+          <SignInTextField
+            label="Mot de passe"
+            ref={passwordInputRef}
+            value={password}
+            onChangeText={passwordInputOnChange}
+            textContentType="password"
+            onSubmitEditing={onSubmit}
+            secureTextEntry={true}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+      <Text style={styles.error}>{errorMessage}</Text>
       <SignInButton onPress={onSubmit} style={styles.button}>
         Se connecter
       </SignInButton>
@@ -56,7 +78,7 @@ export default function SignIn({ navigation }) {
           S'inscrire
         </Text>
       </View>
-    </View>
+    </LayoutView>
   )
 }
 
@@ -84,5 +106,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     textDecorationLine: 'underline',
+  },
+  error: {
+    fontSize: 14,
+    color: '#ff3333',
   },
 })

@@ -16,10 +16,8 @@ import DrawerNavigator from '../screens/Drawer/DrawerNavigator'
 import RetrievePassword from '../screens/RetrievePassword'
 import ResetPassword from '../screens/ResetPassword'
 import TermsOfUse from '../screens/TermsOfUse'
-import useUser from './../hooks/useUser'
-import AddChat from '../screens/AddChat'
-import ChatRoom from '../screens/ChatRoom'
-import ChatList from '../screens/ChatList'
+import { useSelector } from 'react-redux'
+import { selectCurrent } from '../store/userSlice'
 
 export default function Navigation({
   colorScheme,
@@ -40,7 +38,7 @@ const Stack = createStackNavigator()
 //          <Stack.Screen name="ChatList" component={ChatList}/>
 //<Stack.Screen name="AddChat" component={AddChat}/>
 function RootNavigator() {
-  const user = useUser()
+  const user = useSelector(selectCurrent)
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}

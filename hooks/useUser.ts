@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux'
-import { selectCurrent } from '../store/user'
+import { selectCurrent } from '../store/userSlice'
 import { User } from './../types'
 
 export default function (): User {

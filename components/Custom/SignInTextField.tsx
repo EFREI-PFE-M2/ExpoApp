@@ -4,6 +4,7 @@ import { TextInput } from 'react-native-paper'
 import { TextInputProps } from 'react-native-paper/lib/typescript/src/components/TextInput/TextInput'
 
 export default React.forwardRef(function SignInTextField(props, ref) {
+  const { style: propStyle, ...rest } = props
   const style: StyleProp<TextStyle> = {
     fontSize: 18,
     height: 52,
@@ -17,8 +18,8 @@ export default React.forwardRef(function SignInTextField(props, ref) {
       mode="flat"
       underlineColor="#194A4C"
       underlineColorAndroid="#194A4C"
-      style={style}
-      {...props}
+      style={[style, propStyle]}
+      {...rest}
     />
   )
 })
