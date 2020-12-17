@@ -12,13 +12,14 @@ import LinkingConfiguration from './LinkingConfiguration'
 
 import SignIn from './../screens/SignIn'
 import SignUp from './../screens/SignUp'
-import BottomTabNavigator from './BottomTabNavigator'
-import MessageNavigator from './MessageNavigator'
 import DrawerNavigator from '../screens/Drawer/DrawerNavigator'
 import RetrievePassword from '../screens/RetrievePassword'
 import ResetPassword from '../screens/ResetPassword'
 import TermsOfUse from '../screens/TermsOfUse'
 import useUser from './../hooks/useUser'
+import AddChat from '../screens/AddChat'
+import ChatRoom from '../screens/ChatRoom'
+import ChatList from '../screens/ChatList'
 
 export default function Navigation({
   colorScheme,
@@ -35,7 +36,9 @@ export default function Navigation({
 }
 
 const Stack = createStackNavigator()
-
+//<Stack.Screen name="ChatRoom" component={ChatRoom}/>
+//          <Stack.Screen name="ChatList" component={ChatList}/>
+//<Stack.Screen name="AddChat" component={AddChat}/>
 function RootNavigator() {
   const user = useUser()
   return (
@@ -44,9 +47,9 @@ function RootNavigator() {
       initialRouteName="SignIn">
       {user ? (
         <>
-          <Stack.Screen name="Root" component={BottomTabNavigator} />
           <Stack.Screen name="Drawer" component={DrawerNavigator} />
-          <Stack.Screen name="ChatRoom" component={MessageNavigator}/>
+          
+          
         </>
       ) : (
         <>

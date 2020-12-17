@@ -42,3 +42,19 @@ export type UserStore = {
   }
   current: string
 }
+/*
+export type PrivateConversation = {
+  senderID: string
+  senderUsername: string
+  senderProfilePhoto: string
+  receiverID: string
+}
+
+export type MessageStore = {
+  messages: {
+    [key: string]: Message
+  }
+
+}*/
+
+

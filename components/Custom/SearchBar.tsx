@@ -10,8 +10,7 @@ function ChatFooter() {
   return (
     <View style={styles.containerChatFooter}>
       <View style={styles.chatFooterLeftPart}>
-          <MaterialCommunityIcons name="image" size={30} onPress={() => {}}/>
-          <MaterialCommunityIcons name="microphone" size={30} onPress={() => {}}/>
+          <MaterialCommunityIcons name="md-search" size={30} onPress={() => {}}/>
       </View>
       
       <View style={styles.chatFooterMiddlePart}>
@@ -28,6 +27,7 @@ function ChatFooter() {
 }
 
 export default ChatFooter
+
 
 const styles = StyleSheet.create({
     containerChatFooter: {
