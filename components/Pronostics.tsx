@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     paddingTop: 5,
     paddingLeft: 5,
+    borderRadius: 5,
   },
   infoContainer: {
     flexDirection: 'row',
