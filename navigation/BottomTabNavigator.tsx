@@ -61,6 +61,7 @@ export default function BottomTabNavigator() {
           tabBarIcon: ({ color }) => (
             <Ionicons name="md-search" color={color} {...iconWrapper} />
           ),
+          tabBarLabel: 'Rechercher',
         }}
       />
       <BottomTab.Screen
@@ -160,7 +161,7 @@ function TabSearchNavigator() {
       <SearchStack.Screen
         name="Search_Main"
         component={Search}
-        options={{ headerTitle: 'Search' }}
+        options={{ headerTitle: 'Rechercher' }}
       />
     </SearchStack.Navigator>
   )
