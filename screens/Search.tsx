@@ -1,8 +1,10 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
+import { useNavigation } from '@react-navigation/native'
 import React, { ReactPropTypes, useState } from 'react'
 import { ScrollView } from 'react-native-gesture-handler'
-import { IconButton, Searchbar, Surface } from 'react-native-paper'
+import { IconButton, Portal, Searchbar, Surface } from 'react-native-paper'
 import { Text, View } from '../components/Themed'
+import AddGroup from './AddGroup'
 
 const Tab = createMaterialTopTabNavigator()
 
@@ -55,8 +57,11 @@ function UserTab() {
 
 function GroupTab() {
   const [search, setSearch] = useState('')
+  const [visible, setVisible] = useState(false)
 
   const searchInputOnChange = (value) => setSearch(value)
+  const createGroupPress = () => setVisible(true)
+  const closeGroupAdd = () => setVisible(false)
 
   return (
     <View style={{ overflow: 'visible' }}>
@@ -71,11 +76,17 @@ function GroupTab() {
           inputStyle={{ color: '#000' }}
           style={{ flex: 1, elevation: 0 }}
         />
-        <IconButton icon="plus-box" size={24} color="#194A4C" />
+        <IconButton
+          icon="plus-box"
+          size={24}
+          color="#194A4C"
+          onPress={createGroupPress}
+        />
       </Surface>
       <ScrollView>
         <Text>Content</Text>
       </ScrollView>
+      <Portal>{visible && <AddGroup goBack={closeGroupAdd} />}</Portal>
     </View>
   )
 }

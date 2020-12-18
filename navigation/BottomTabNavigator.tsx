@@ -5,7 +5,10 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from '@expo/vector-icons'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import {
+  BottomTabBar,
+  createBottomTabNavigator,
+} from '@react-navigation/bottom-tabs'
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -23,6 +26,7 @@ import { IconButton, TouchableRipple } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import Navigation from '.'
 import Race from '../screens/Race'
+import Group from '../screens/Group'
 
 const BottomTab = createBottomTabNavigator()
 
@@ -146,6 +150,11 @@ function TabHomeNavigator() {
         name="Home_Race"
         component={Race}
         options={{ headerTitle: 'Course' }}
+      />
+      <HomeStack.Screen
+        name="Home_Group"
+        component={Group}
+        options={{ headerTitle: 'Groupe' }}
       />
     </HomeStack.Navigator>
   )
