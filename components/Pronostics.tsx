@@ -7,9 +7,21 @@ import { View, Text } from './Themed'
 import moment from 'moment'
 
 const BACKGROUND_COLOR = '#194A4C'
-const WIN = 'Gagné'
-const LOSS = 'Perdu'
-const INPROGRESS = 'En cours'
+
+const resultState = {
+  WIN: {
+    color: '#53EC7E',
+    label: 'Gagné',
+  },
+  LOSS: {
+    color: '#EC5353',
+    label: 'Perdu',
+  },
+  INPROGRESS: {
+    color: '#000000AD',
+    label: 'En cours',
+  },
+}
 
 export default function Pronostics({ betID, userID, edit }) {
   // Those selectors should be replaced as a hook
@@ -20,12 +32,13 @@ export default function Pronostics({ betID, userID, edit }) {
     state.race.races?.find((race) => race.id === betRaceID)
   )
 
-  const compareBet = bet?.map((element) => results.includes(element))
-  const betResult = results
-    ? compareBet?.length === 0
-      ? WIN
-      : LOSS
-    : INPROGRESS
+  const compareBet = bet?.filter((element) => !results.includes(element))
+  const betResult =
+    results?.length !== 0
+      ? compareBet?.length === 0
+        ? resultState.WIN
+        : resultState.LOSS
+      : resultState.INPROGRESS
   const dateFormat = moment(Date.parse(datetime)).format('dddd Do YY - h:mm')
 
   return (
@@ -46,8 +59,9 @@ export default function Pronostics({ betID, userID, edit }) {
       ) : (
         <View />
       )}
-      <View style={styles.resultContainer}>
-        <Text style={styles.result}>{betResult}</Text>
+      <View
+        style={[styles.resultContainer, { backgroundColor: betResult.color }]}>
+        <Text style={styles.result}>{betResult.label}</Text>
       </View>
     </View>
   )
@@ -69,7 +83,12 @@ function PronoSection({ type, result, list }) {
     <View style={pronoStyles.container}>
       <Logo />
       {list?.map((element) => {
-        const backgroundColor = result.includes(element) ? '#53EC7E' : '#EC5353'
+        const backgroundColor =
+          result?.length !== 0
+            ? result?.includes(element)
+              ? resultState.WIN.color
+              : resultState.LOSS.color
+            : resultState.INPROGRESS.color
         return (
           <Badge style={[pronoStyles.badge, { backgroundColor }]} size={24}>
             {element}
@@ -110,7 +129,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: '#EC5353',
     height: 24,
     width: 70,
     alignItems: 'center',
@@ -146,6 +164,7 @@ const pronoStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: '#fff0',
+    marginTop: 5,
   },
   badge: {
     marginLeft: 10,
