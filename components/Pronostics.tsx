@@ -52,17 +52,18 @@ export default function Pronostics({ betID, userID, edit }) {
       </View>
       <PronoSection type={betType} list={bet} result={results} />
       {edit ? (
-        <View>
-          <IconButton icon="cancel" size={30} color="#fff" />
-          <IconButton icon="pen" size={30} color="#fff" />
+        <View style={styles.editContainer}>
+          <IconButton icon="cancel" size={24} color={resultState.LOSS.color} />
+          <IconButton icon="pen" size={24} color="#fff" />
         </View>
       ) : (
-        <View />
+        <View
+          style={[styles.resultContainer, 
+            { backgroundColor: betResult.color }]
+        }>
+          <Text style={styles.result}>{betResult.label}</Text>
+        </View>
       )}
-      <View
-        style={[styles.resultContainer, { backgroundColor: betResult.color }]}>
-        <Text style={styles.result}>{betResult.label}</Text>
-      </View>
     </View>
   )
 }
@@ -140,6 +141,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
+  editContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    height: '100%',
+    backgroundColor: '#fff0',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
 })
 
 const raceCodeStyles = StyleSheet.create({
