@@ -5,7 +5,7 @@ import { View } from '../../components/Themed'
 export default function HomeSubFeed() {
   return (
     <View>
-      <Pronostics />
+      <Pronostics betID={1} userID={1} />
     </View>
   )
 }

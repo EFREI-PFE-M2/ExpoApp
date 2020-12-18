@@ -1,26 +1,43 @@
 import React from 'react'
 import { StyleSheet } from 'react-native'
 import { Badge, IconButton } from 'react-native-paper'
+import { useSelector } from 'react-redux'
 import useRaceType from '../hooks/useRaceType'
 import { View, Text } from './Themed'
+import moment from 'moment'
 
 const BACKGROUND_COLOR = '#194A4C'
+const WIN = 'Gagné'
+const LOSS = 'Perdu'
+const INPROGRESS = 'En cours'
 
 export default function Pronostics({ betID, userID, edit }) {
+  // Those selectors should be replaced as a hook
+  const { betRaceID, bet, betType } = useSelector(
+    (state) => state.foreignUser[userID]?.userBets[betID]
+  )
+  const { raceTitle, category, results, datetime } = useSelector((state) =>
+    state.race.races?.find((race) => race.id === betRaceID)
+  )
+
+  const compareBet = bet?.map((element) => results.includes(element))
+  const betResult = results
+    ? compareBet?.length === 0
+      ? WIN
+      : LOSS
+    : INPROGRESS
+  const dateFormat = moment(Date.parse(datetime)).format('dddd Do YY - h:mm')
+
   return (
     <View style={styles.container}>
       <View style={styles.infoContainer}>
         <RaceCodeRender code="R2 C1" />
         <View style={styles.textContainer}>
-          <Text style={styles.title}>Prix Citeos</Text>
-          <Text style={styles.info}>Plat - 22 Aout 14:30</Text>
+          <Text style={styles.title}>{raceTitle}</Text>
+          <Text style={styles.info}>{`${category} - ${dateFormat}`}</Text>
         </View>
       </View>
-      <PronoSection
-        type="quinte"
-        list={[1, 2, 3, 4, 5]}
-        result={[1, 6, 3, 4, 9]}
-      />
+      <PronoSection type={betType} list={bet} result={results} />
       {edit ? (
         <View>
           <IconButton icon="cancel" size={30} color="#fff" />
@@ -30,7 +47,7 @@ export default function Pronostics({ betID, userID, edit }) {
         <View />
       )}
       <View style={styles.resultContainer}>
-        <Text style={styles.result}>Perdu</Text>
+        <Text style={styles.result}>{betResult}</Text>
       </View>
     </View>
   )
