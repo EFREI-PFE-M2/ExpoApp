@@ -1,7 +1,8 @@
-import React from 'react'
+import React, {useRef, useEffect} from 'react'
 import { View, Text, Image} from './Themed'
 import { StyleSheet, TouchableOpacity, FlatList } from 'react-native'
 import { Avatar, Divider, Button, Card } from 'react-native-paper'
+import Pronostics from './Pronostics'
 import {
   MaterialIcons,
 } from '@expo/vector-icons'
@@ -11,6 +12,20 @@ export default function Post(props) {
 
   const { postID, username, photoURL, date, text, nbLikes, nbComments, type, content } = props
   
+  let responseObjectList = [];
+  let totalVotes = 0;
+  if(type === "survey"){
+
+    Object.keys(content.responses).forEach((response)=>{
+      totalVotes += content.responses[response]
+    })
+
+    responseObjectList = Object.keys(content.responses).map((response, i) => {
+      return {response: response, percentage: Math.round((content.responses[response]/totalVotes)*100)}
+    })
+  }
+
+
   return (
     <View style={styles.container}>
         <View style={{flexDirection: 'row'}}>
@@ -30,10 +45,27 @@ export default function Post(props) {
         }
         {
           type === "survey" && (
-            <FlatList
-              data={Object.keys(content.responses).map((item, i) => ({response: item, nbVotes: content.responses[item]}))}
-              renderItem={({item}) => <Text>{item.response}</Text>}
-            />
+            <React.Fragment>
+              <FlatList
+                data={responseObjectList}
+                renderItem={({item}) => (
+                  <View style={{backgroundColor: "#7D7D7D", width: `${item.percentage}%`, 
+                  marginTop: 2, marginBottom: 2,padding: 4, flexDirection: 'row', borderRadius: 15}} >
+                      <View numberOfLines={1} style={{position: 'relative', flexDirection: 'row', backgroundColor: '#1fe0'}}>
+                        <Text style={{fontWeight: 'bold'}}>{`${item.percentage}%`} </Text>
+                        <Text>{item.response}</Text>
+                      </View>
+                  </View>
+                )}
+              />
+              <Text style={{color: '#757575'}}>{totalVotes} votes · {content.expirationDate}</Text>
+            </React.Fragment>
+
+          )
+        }
+        {
+          type === "bet" && (
+            <Pronostics/>
           )
         }
         {
@@ -115,5 +147,5 @@ const styles = StyleSheet.create({
     image: {
       width: 50,
       height: 50,
-    },
+    }
   })

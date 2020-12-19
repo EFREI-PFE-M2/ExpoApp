@@ -49,7 +49,7 @@ export default function HomeSubFeed() {
           photoURL="https://pbs.twimg.com/profile_images/669103856106668033/UF3cgUk4_400x400.jpg"
           username="Jeff B." date="21/06/2020" nbLikes={2} nbComments={14}
           text="Ca va?"
-          content={{responses: {'oui': 545, 'non': 120, 'peut être' : 60}, expirationDatetime: new Date(), userVote: ''}}
+          content={{responses: {'oui': 545, 'non': 120, 'peut être' : 60}, expirationDate: "Il reste 6 heures 2 minutes", userVote: ''}}
           />
       </ScrollView>
     </SafeAreaView>
