@@ -5,7 +5,10 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from '@expo/vector-icons'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import {
+  BottomTabBar,
+  createBottomTabNavigator,
+} from '@react-navigation/bottom-tabs'
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -23,6 +26,7 @@ import { IconButton, TouchableRipple } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import Navigation from '.'
 import Race from '../screens/Race'
+import Group from '../screens/Group'
 
 const BottomTab = createBottomTabNavigator()
 
@@ -61,6 +65,7 @@ export default function BottomTabNavigator() {
           tabBarIcon: ({ color }) => (
             <Ionicons name="md-search" color={color} {...iconWrapper} />
           ),
+          tabBarLabel: 'Rechercher',
         }}
       />
       <BottomTab.Screen
@@ -146,6 +151,11 @@ function TabHomeNavigator() {
         component={Race}
         options={{ headerTitle: 'Course' }}
       />
+      <HomeStack.Screen
+        name="Home_Group"
+        component={Group}
+        options={{ headerTitle: 'Groupe' }}
+      />
     </HomeStack.Navigator>
   )
 }
@@ -160,7 +170,7 @@ function TabSearchNavigator() {
       <SearchStack.Screen
         name="Search_Main"
         component={Search}
-        options={{ headerTitle: 'Search' }}
+        options={{ headerTitle: 'Rechercher' }}
       />
     </SearchStack.Navigator>
   )
