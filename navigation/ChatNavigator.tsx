@@ -30,6 +30,15 @@ export default function ChatStack({navigation}) {
       <Stack.Screen name="ChatList" 
         component={ChatList} 
         options={{ headerTitle: 'Messages',
+        headerLeft: () =>
+          <View>
+            <IconButton 
+              icon="chevron-left"
+              onPress={() => navigation.navigate('Home')}
+              size={30}
+              color="#fff"
+            />
+          </View>,
         headerRight: ({ tintColor }) => (
           <View>
             <IconButton
@@ -57,7 +66,7 @@ export default function ChatStack({navigation}) {
         <Stack.Screen name="AddChat"
           component={AddChat}
           options={{ 
-            headerTitle: 'Invitations de chat'
+            headerTitle: 'Nouvelle discussion'
           }}/>
     </Stack.Navigator> 
   )

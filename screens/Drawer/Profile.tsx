@@ -91,7 +91,7 @@ export default function Profile(props) {
     <SubTab.Navigator
       tabBarOptions={{
         labelStyle: {
-          fontSize: 18,
+          fontSize: 12,
           fontWeight: 'bold',
           color: '#194A4C',
         },
@@ -147,10 +147,10 @@ export default function Profile(props) {
   const renderTopBar = () => (
     <View
       style={{
-        height: 80,
+        height: 90,
         backgroundColor: '#194A4C',
+        paddingTop: 35,
         marginBottom: 20,
-        paddingTop: 15,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center'
@@ -161,6 +161,7 @@ export default function Profile(props) {
         size={30}
         color="#fff"
       />
+      <Text style={{fontSize:24, fontWeight:'bold',color:"#fff"}}>Mon Profil</Text>
       <IconButton 
         icon="account-edit" 
         onPress={edit}

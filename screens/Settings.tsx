@@ -35,10 +35,10 @@ export default function Settings(props) {
   const renderTopbar = () => (
     <View
       style={{
-        height: 80,
+        height: 90,
         backgroundColor: '#194A4C',
+        paddingTop: 35,
         marginBottom: 20,
-        paddingTop: 15,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center'
@@ -49,6 +49,7 @@ export default function Settings(props) {
         size={30}
         color="#fff"
       />
+      <Text style={{fontSize:24, fontWeight:'bold',color:"#fff"}}>Réglages</Text>
       <IconButton 
         icon="content-save-edit" 
         onPress={save}

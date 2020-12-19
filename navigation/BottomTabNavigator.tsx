@@ -106,8 +106,7 @@ const defaultScreenOptions: StackNavigationOptions = {
  * Home tab navigator
  */
 const HomeStack = createStackNavigator()
-function TabHomeNavigator() {
-  const navigation = useNavigation()
+function TabHomeNavigator({ navigation }) {
   return (
     <HomeStack.Navigator
       screenOptions={{
@@ -116,13 +115,10 @@ function TabHomeNavigator() {
           <IconButton icon="bell" size={24} color={tintColor} />
         ),
         headerLeft: ({ tintColor }) => (
-          <TouchableRipple onPress={() => navigation.navigate('Home')}>
-            <MaterialIcons name="menu" size={24} color={tintColor} />
+          <TouchableRipple onPress={() => navigation.openDrawer()}>
+            <MaterialIcons name="menu" style={{marginStart: 15}} size={24} color={tintColor} />
           </TouchableRipple>
         ),
-        headerRightContainerStyle: {
-          marginRight: 15,
-        },
       }}>
       <HomeStack.Screen
         name="Home_Home"

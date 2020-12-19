@@ -21,14 +21,14 @@ export default function HomeTabNavigator() {
       <Tab.Navigator
         tabBarOptions={{
           labelStyle: {
-            fontSize: 18,
+            fontSize: 12,
             fontWeight: 'bold',
             color: '#194A4C',
           },
           indicatorStyle: {
             backgroundColor: '#194A4C',
           },
-          scrollEnabled: true,
+          //scrollEnabled: true,
           showLabel: true,
           showIcon: true,
           tabStyle: {

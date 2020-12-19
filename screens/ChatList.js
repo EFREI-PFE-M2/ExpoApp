@@ -126,23 +126,8 @@ function PublishedDate(dt) {
     return `${weekday} ${day} ${month}${year}, à ${oclock}`
   }
 }
-/*<View
-  style={{
-    alignItems: 'flex-start',
-    backgroundColor: 'rgba(0,0,0,0)',
-  }}>
-  <LogoTitle {...props} />
-  <Text>{name} Hello</Text>
-</View>
 
-function LogoTitle() {
-  return <Avatar.Image size={48} source={{ uri: avatar }} />
-}
-*/
 export default function ChatList({ navigation }) {
-  //type RootStackParamList = {ChatRoom: undefined}
-  //type ScreenNavigationProp = StackNavigationProp<RootStackParamList>
-  //const navigation = useNavigation<ScreenNavigationProp>()
   return (
     <ScrollView>
       {users.map((u, i) => {
@@ -158,11 +143,7 @@ export default function ChatList({ navigation }) {
                       flexDirection: 'row',
                       backgroundColor: 'rgba(0, 0, 0, 0)',
                     }}>
-                    <Avatar.Image
-                      size={45}
-                      style={{ borderColor: '#fff', border: 2 }}
-                      source={{ uri: u.avatar }}
-                    />
+                    <Avatar.Image size={45} source={{ uri: u.avatar }} />
                     <View
                       style={{
                         marginStart: 10,
