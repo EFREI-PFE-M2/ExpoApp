@@ -698,4 +698,4 @@ let races = [{
   }]
 
 
-export default races;
+exports.races =  races;
