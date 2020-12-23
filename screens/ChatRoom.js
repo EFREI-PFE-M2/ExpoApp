@@ -1,70 +1,181 @@
-import React, { ReactPropTypes } from 'react'
-import { StyleSheet, ScrollView, StatusBar, Image } from 'react-native'
+import React, { useState } from 'react'
+import {
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  StatusBar,
+  Image,
+} from 'react-native'
+import {} from 'react-native'
 import { Text, View } from '../components/Themed'
 import ChatFooter from '../components/Custom/ChatFooter'
+import { chatHistory } from '../store/testChatStore'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+import { GetPublishedDate } from '../functions/ChatFunctions'
 import { Avatar } from 'react-native-paper'
-import {
-  createStackNavigator,
-  StackNavigationOptions,
-} from '@react-navigation/stack'
-import { MaterialIcons } from '@expo/vector-icons'
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 
-const MessageStack = createStackNavigator()
-
-const defaultScreenOptions = {
-  headerTitleAlign: 'center',
-  headerStyle: {
-    backgroundColor: '#194A4C',
-  },
-  headerTitleStyle: {
-    //color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  headerStatusBarHeight: StatusBar.currentHeight,
+function showExtraInfo(check, sameItem) {
+  if (!(check && sameItem)) {
+    return 'none'
+  } else {
+    return undefined
+  }
 }
 
-function ChatRoomScreen({ navigation }) {
+export default function ChatRoom({ route }) {
+  const [showState, setShowState] = useState(false)
+  const [currentItem, setCurrentItem] = useState(0)
+  const [chatHistoryUpdate, setChatHistoryUpdate] = useState(chatHistory)
+  const [content, setContent] = useState('')
+
+  const { from, fromPicture, to, toPicture } = route.params
+
+  const chat = chatHistoryUpdate.find(
+    (item) =>
+      (item.owners[0] == from && item.owners[1] == to) ||
+      (item.owners[1] == from && item.owners[0] == to)
+  )
+
+  const sendMessage = () => {
+    const datetime = new Date()
+
+    if (content.trim() != '') {
+      const message = {
+        from,
+        to,
+        content: content.trim(),
+        datetime,
+      }
+
+      chat.messages.push(message)
+      setContent('')
+      setChatHistoryUpdate(chatHistory)
+    }
+  }
+
   return (
     <View style={styles.container}>
-      <ScrollView></ScrollView>
-      <ChatFooter />
+      <ScrollView>
+        {chat.messages.map((m, i) => {
+          if (m.from == from) {
+            return (
+              <View style={{ backgroundColor: 'rgba(0,0,0,0)', padding: 10 }}>
+                <Text
+                  style={{
+                    display: showExtraInfo(showState, i == currentItem),
+                    ...styles.publishedDateStyle,
+                  }}>
+                  {GetPublishedDate(m.datetime)}
+                </Text>
+                <Text
+                  style={{
+                    paddingRight: 60,
+                    paddingTop: 15,
+                    alignSelf: 'flex-end',
+                  }}>
+                  {from}
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: 'rgba(0,0,0,0)',
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                  }}>
+                  <TouchableOpacity
+                    style={styles.containerMessageRight}
+                    onPress={() => {
+                      setShowState(!showState)
+                      setCurrentItem(i)
+                    }}>
+                    <View style={{ backgroundColor: 'rgba(0,0,0,0)' }}>
+                      <Text style={{ color: '#fff' }}>{m.content}</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <Avatar.Image
+                    size={48}
+                    style={{ marginStart: 10 }}
+                    source={{ uri: fromPicture }}
+                  />
+                </View>
+              </View>
+            )
+          } else {
+            return (
+              <View style={{ backgroundColor: 'rgba(0,0,0,0)', padding: 10 }}>
+                <Text
+                  style={{
+                    display: showExtraInfo(showState, i == currentItem),
+                    ...styles.publishedDateStyle,
+                  }}>
+                  {GetPublishedDate(m.datetime)}
+                </Text>
+                <Text style={{ paddingLeft: 60, paddingTop: 15 }}>
+                  {m.from}
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: 'rgba(0,0,0,0)',
+                    flexDirection: 'row',
+                  }}>
+                  <Avatar.Image
+                    size={48}
+                    style={{ marginEnd: 10 }}
+                    source={{ uri: toPicture }}
+                  />
+                  <TouchableOpacity
+                    key={i}
+                    style={styles.containerMessageLeft}
+                    onPress={() => {
+                      setShowState(!showState)
+                      setCurrentItem(i)
+                    }}>
+                    <Text>{m.content}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )
+          }
+        })}
+      </ScrollView>
+      <View style={styles.containerChatFooter}>
+        <View style={styles.chatFooterLeftPart}>
+          <MaterialCommunityIcons
+            name="image"
+            size={30}
+            onPress={() => alert('Include image picker')}
+          />
+          <MaterialCommunityIcons
+            name="microphone"
+            size={30}
+            onPress={() => alert('Include voice message')}
+          />
+        </View>
+
+        <View style={styles.chatFooterMiddlePart}>
+          <TextInput
+            style={styles.chatTextInput}
+            value={content}
+            onChangeText={(text) => setContent(text)}
+            placeholder="Envoyer un message..."
+            multiline
+            numberOfLines={2}
+          />
+        </View>
+
+        <View style={styles.chatFooterRightPart}>
+          <MaterialIcons name="send" size={30} onPress={sendMessage} />
+        </View>
+      </View>
     </View>
   )
 }
-
-const avatar =
-  'https://images.ladbible.com/resize?type=jpeg&url=http://beta.ems.ladbiblegroup.com/s3/content/a87d98d35f68c2fc94b0604a44d2e0dc.png&quality=70&width=720&aspectratio=16:9&extend=white'
-
-const name = 'The Rock'
-
-export default function ChatRoom() {
-  return <ChatRoomScreen />
-  /*return (
-    <MessageStack.Navigator screenOptions={{ ...defaultScreenOptions }}>
-      <MessageStack.Screen
-        name="ChatRoom"
-        component={ChatRoomScreen}
-        options={({ route }) => ({
-          title: route.params.title,
-          headerRight: ({ tintColor }) => (
-            <View style={styles.iconRight}>
-              <MaterialIcons
-                name="more-vert"
-                color={tintColor}
-                size={24}
-                onPress={() => {
-                  // go for menu options
-                }}
-              />
-            </View>
-          ),
-          headerTintColor: '#fff',
-        })}
-      />
-    </MessageStack.Navigator>
-  )*/
-}
+/*<ChatFooter
+        from={from}
+        to={to}
+        chatHistory={chatHistoryUpdate}
+        updateChatHistory={setChatHistoryUpdate}
+      />*/
 
 const styles = StyleSheet.create({
   iconRight: {
@@ -76,5 +187,56 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#E5E5E5',
     justifyContent: 'flex-end',
+  },
+  containerMessageRight: {
+    backgroundColor: '#194A4C',
+    padding: 15,
+    borderTopStartRadius: 10,
+    borderTopEndRadius: 10,
+    borderBottomStartRadius: 10,
+    borderBottomEndRadius: 10,
+    marginBottom: 15,
+    marginStart: 200,
+  },
+  containerMessageLeft: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderTopStartRadius: 10,
+    borderTopEndRadius: 10,
+    borderBottomStartRadius: 10,
+    borderBottomEndRadius: 10,
+    marginBottom: 15,
+    marginEnd: 200,
+  },
+  publishedDateStyle: {
+    fontSize: 11,
+    alignSelf: 'center',
+  },
+  containerChatFooter: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    paddingStart: 10,
+    paddingTop: 10,
+    paddingBottom: 5,
+  },
+  chatFooterLeftPart: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginEnd: 10,
+  },
+  chatFooterMiddlePart: {
+    flex: 1,
+    marginEnd: 10,
+  },
+  chatFooterRightPart: {
+    marginEnd: 10,
+  },
+  chatTextInput: {
+    height: 30,
+    fontSize: 11,
+    borderBottomColor: 'grey',
+    borderBottomWidth: 1,
+    opacity: 0.6,
+    paddingBottom: 5,
   },
 })

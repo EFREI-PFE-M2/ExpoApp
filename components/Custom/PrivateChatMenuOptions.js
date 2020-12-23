@@ -24,7 +24,6 @@ export default function PrivateChatMenuOptions() {
         }>
         <Menu.Item
           onPress={() => alert('Redirect to user profile')}
-          icon="account-circle"
           titleStyle={{ color: 'black' }}
           title="Voir le profil"
         />

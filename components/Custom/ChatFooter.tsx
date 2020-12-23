@@ -1,33 +1,58 @@
-import * as React from 'react';
-import { StyleSheet, View, Text, TextInput } from 'react-native';
-
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, TextInput } from 'react-native';
+import { GetPublishedDate } from '../../functions/ChatFunctions'
 import {
   MaterialIcons,
   MaterialCommunityIcons
 } from '@expo/vector-icons'
 
-function ChatFooter() {
+export default function ChatFooter(props) {
+  const {from, to, chatHistory, updateChatHistory} = props
+  const [content, setContent] = useState('')
+
+  const sendMessage = () => {
+    const chat = chatHistory.find(
+      (item) =>
+        (item.owners[0] == from && item.owners[1] == to) ||
+        (item.owners[1] == from && item.owners[0] == to)
+    )
+
+    const datetime = new Date()
+  
+    if (content.trim() != '') {
+      const message = {
+        from,
+        to,
+        content: content.trim(),
+        datetime
+      }
+
+
+      chat.messages.push(message)
+      setContent('')
+      updateChatHistory(chatHistory)
+    }
+  }
+
   return (
     <View style={styles.containerChatFooter}>
       <View style={styles.chatFooterLeftPart}>
-          <MaterialCommunityIcons name="image" size={30} onPress={() => {}}/>
-          <MaterialCommunityIcons name="microphone" size={30} onPress={() => {}}/>
+          <MaterialCommunityIcons name="image" size={30} onPress={() => alert('Include image picker')}/>
+          <MaterialCommunityIcons name="microphone" size={30} onPress={() => alert('Include voice message')}/>
       </View>
       
       <View style={styles.chatFooterMiddlePart}>
-        <TextInput style={styles.chatTextInput}
-      /*onChangeText={text => onChangeText(text)}*/ placeholder="Envoyer un message..."
+        <TextInput style={styles.chatTextInput} value={content}
+      onChangeText={(text) => setContent(text)} placeholder="Envoyer un message..."
       multiline numberOfLines={2} />
       </View>
       
       <View style={styles.chatFooterRightPart}>
-      <MaterialIcons name="send" size={30} onPress={() => {}}/>
+      <MaterialIcons name="send" size={30} onPress={sendMessage}/>
       </View>   
     </View>
   )
 }
-
-export default ChatFooter
 
 const styles = StyleSheet.create({
     containerChatFooter: {

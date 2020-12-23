@@ -41,7 +41,7 @@ export default function NewPost(props) {
         flexDirection: 'row',
         width: '100%',
         borderTopColor: '#D6D6D6',
-        borderTopWidth: 1,
+        borderTopWidth: 1
       }}>
       <IconButton
         icon="image"
