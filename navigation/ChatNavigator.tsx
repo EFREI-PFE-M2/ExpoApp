@@ -63,11 +63,11 @@ export default function ChatStack({navigation}) {
               <PrivateChatMenuOptions />
             </View>
           )})}/>
-        <Stack.Screen name="AddChat"
+      <Stack.Screen name="AddChat"
           component={AddChat}
           options={{ 
             headerTitle: 'Nouvelle discussion'
-          }}/>
+      }}/>
     </Stack.Navigator> 
   )
 }
