@@ -1,11 +1,5 @@
 import React, { useState } from 'react'
-import {
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  StatusBar,
-  Image,
-} from 'react-native'
+import { StyleSheet, ScrollView, TextInput } from 'react-native'
 import {} from 'react-native'
 import { Text, View } from '../components/Themed'
 import ChatFooter from '../components/Custom/ChatFooter'
@@ -138,6 +132,7 @@ export default function ChatRoom({ route }) {
           }
         })}
       </ScrollView>
+
       <View style={styles.containerChatFooter}>
         <View style={styles.chatFooterLeftPart}>
           <MaterialCommunityIcons
@@ -170,12 +165,6 @@ export default function ChatRoom({ route }) {
     </View>
   )
 }
-/*<ChatFooter
-        from={from}
-        to={to}
-        chatHistory={chatHistoryUpdate}
-        updateChatHistory={setChatHistoryUpdate}
-      />*/
 
 const styles = StyleSheet.create({
   iconRight: {
@@ -221,11 +210,12 @@ const styles = StyleSheet.create({
   },
   chatFooterLeftPart: {
     flexDirection: 'row',
+    flex: 1,
     justifyContent: 'space-between',
     marginEnd: 10,
   },
   chatFooterMiddlePart: {
-    flex: 1,
+    flex: 4,
     marginEnd: 10,
   },
   chatFooterRightPart: {

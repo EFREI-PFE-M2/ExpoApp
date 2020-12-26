@@ -3,10 +3,14 @@ import { Text, TouchableOpacity, StyleSheet, StatusBar, View } from 'react-nativ
 import { Searchbar, Avatar } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { users } from '../store/testChatStore'
+import { selectCurrentUser } from '../store/userSlice'
+import { useSelector } from 'react-redux'
 
 function AddChatScreen() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [searchedUsers, setSearchedUsers] = React.useState(users)
+  const displayUser = useSelector(selectCurrentUser)
+  const { photoURL, username } = displayUser  
   const navigation = useNavigation()
 
   return (<View>
@@ -28,6 +32,10 @@ function AddChatScreen() {
             style={styles.containerProfile}
             onPress={() =>
               navigation.navigate('ChatRoom', {
+                from: username,
+                fromPicture: photoURL,
+                to: u.name,
+                toPicture: u.avatar,
                 title: (
                   <View
                     style={{
