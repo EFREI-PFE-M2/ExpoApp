@@ -6,7 +6,7 @@ import {
   GetMessageShort,
   GetRoomTitleShort,
   GetPublishedDate,
-} from '../functions/ChatFunctions'
+} from '../utils/ChatFunctions'
 import { users } from '../store/testChatStore'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/userSlice'
@@ -26,15 +26,15 @@ export default function ChatList({ navigation }) {
               navigation.navigate('ChatRoom', {
                 from: username,
                 fromPicture: photoURL,
-                to: u.name,
-                toPicture: u.avatar,
+                to: u.username,
+                toPicture: u.photoURL,
                 title: (
                   <View
                     style={{
                       flexDirection: 'row',
                       backgroundColor: 'rgba(0, 0, 0, 0)',
                     }}>
-                    <Avatar.Image size={45} source={{ uri: u.avatar }} />
+                    <Avatar.Image size={45} source={{ uri: u.photoURL }} />
                     <View
                       style={{
                         marginStart: 10,
@@ -42,16 +42,16 @@ export default function ChatList({ navigation }) {
                         backgroundColor: 'rgba(0, 0, 0, 0)',
                       }}>
                       <Text style={styles.titleStyle}>
-                        {GetRoomTitleShort(u.name)}
+                        {GetRoomTitleShort(u.username)}
                       </Text>
                     </View>
                   </View>
                 ),
               })
             }>
-            <Avatar.Image size={40} source={{ uri: u.avatar }} />
+            <Avatar.Image size={40} source={{ uri: u.photoURL }} />
             <View style={{ marginStart: 10, ...styles.viewStyle }}>
-              <Text style={styles.nameStyle}>{u.name}</Text>
+              <Text style={styles.nameStyle}>{u.username}</Text>
               <View style={styles.viewStyle}>
                 <Text style={styles.lastMessageStyle}>
                   {GetMessageShort(u.comment)}

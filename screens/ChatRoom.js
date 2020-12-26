@@ -1,11 +1,9 @@
 import React, { useState } from 'react'
 import { StyleSheet, ScrollView, TextInput } from 'react-native'
-import {} from 'react-native'
 import { Text, View } from '../components/Themed'
-import ChatFooter from '../components/Custom/ChatFooter'
 import { chatHistory } from '../store/testChatStore'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { GetPublishedDate } from '../functions/ChatFunctions'
+import { GetPublishedDate } from '../utils/ChatFunctions'
 import { Avatar } from 'react-native-paper'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, TextInput } from 'react-native';
-import { GetPublishedDate } from '../../functions/ChatFunctions'
+import { GetPublishedDate } from '../../utils/ChatFunctions'
 import {
   MaterialIcons,
   MaterialCommunityIcons
@@ -26,7 +26,6 @@ export default function ChatFooter(props) {
         content: content.trim(),
         datetime
       }
-
 
       chat.messages.push(message)
       setContent('')

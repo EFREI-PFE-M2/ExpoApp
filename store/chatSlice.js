@@ -1,4 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit'
+import {
+  FirebaseAuth as auth,
+  FirebaseFirestore as firestore,
+} from '../firebase'
 
 export const chatSlice = createSlice({
   name: 'chat',
@@ -7,7 +11,11 @@ export const chatSlice = createSlice({
     groupConversations: [],
     searchedUsers: [],
   },
-  reducers: {},
+  reducers: {
+    updateSearchedUsers: (state, action) => {
+      state.searchedUsers = action.payload
+    },
+  },
 })
 
 /*
@@ -18,6 +26,24 @@ let user = {
   profilePicture: '',
 }
 */
+
+export const retrieveAllUsers = () => async (dispatch) => {
+  try {
+    let users = []
+    const snapshot = await firestore.collection('Users').get()
+    snapshot.docs.map((doc) => {
+      const u = doc.data()
+      const user = {}
+      user.userID = u.uid
+      user.username = u.displayName
+      user.photoURL = u.photoURL
+      users.push(user)
+    })
+    dispatch(updateSearchedUsers(users))
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 /*
 privateConversation object format:
@@ -59,8 +85,11 @@ let message = {
 
 //actions imports
 
+export const { updateSearchedUsers } = chatSlice.actions
+
 // thunks
 
 // selectors
+export const selectSearchedUsers = (state) => state.searchedUsers
 
 export const chatReducer = chatSlice.reducer

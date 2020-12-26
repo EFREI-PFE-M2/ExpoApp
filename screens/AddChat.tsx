@@ -1,15 +1,19 @@
-import React from 'react'
+import React, { useState }  from 'react'
 import { Text, TouchableOpacity, StyleSheet, StatusBar, View } from 'react-native'
 import { Searchbar, Avatar } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { users } from '../store/testChatStore'
 import { selectCurrentUser } from '../store/userSlice'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { retrieveAllUsers, selectSearchedUsers } from '../store/chatSlice'
+import store from '../store'
 
 function AddChatScreen() {
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const [searchedUsers, setSearchedUsers] = React.useState(users)
+  const [searchQuery, setSearchQuery] = useState('')
+  const users_ = useSelector(selectSearchedUsers)
+  const [searchedUsers, setSearchedUsers] = useState(users_)
   const displayUser = useSelector(selectCurrentUser)
+  
   const { photoURL, username } = displayUser  
   const navigation = useNavigation()
 
@@ -18,7 +22,7 @@ function AddChatScreen() {
         <Searchbar inputStyle={{color: "#000"}}
         placeholder="Recherche" iconColor="#000" onChangeText={(query) => { 
           setSearchQuery(query); 
-          let array = users.filter(u => u.name.includes(query));
+          let array = users.filter(u => u.username.includes(query));
           setSearchedUsers(array);
         }}
         value={searchQuery}
@@ -34,8 +38,8 @@ function AddChatScreen() {
               navigation.navigate('ChatRoom', {
                 from: username,
                 fromPicture: photoURL,
-                to: u.name,
-                toPicture: u.avatar,
+                to: u.username,
+                toPicture: u.photoURL,
                 title: (
                   <View
                     style={{
@@ -44,7 +48,7 @@ function AddChatScreen() {
                     }}>
                     <Avatar.Image
                       size={45}
-                      source={{ uri: u.avatar }}
+                      source={{ uri: u.photoURL }}
                     />
                     <View
                       style={{
@@ -53,20 +57,20 @@ function AddChatScreen() {
                         backgroundColor: 'rgba(0, 0, 0, 0)',
                       }}>
                       <Text style={styles.titleStyle}>
-                        {u.name}
+                        {u.username}
                       </Text>
                     </View>
                   </View>
                 ),
               })
             }>
-            <Avatar.Image size={40} source={{ uri: u.avatar }} />
+            <Avatar.Image size={40} source={{ uri: u.photoURL }} />
             <View style={{
                         marginStart: 10,
                         marginTop: 10,
                         backgroundColor: 'rgba(0, 0, 0, 0)',
                       }}>
-              <Text>{u.name}</Text>
+              <Text>{u.username}</Text>
             </View>
           </TouchableOpacity>
         )

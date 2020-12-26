@@ -1,11 +1,14 @@
 import { createStackNavigator, StackNavigationOptions } from '@react-navigation/stack'
 import React from 'react'
+import store from '../store'
+import { useSelector } from 'react-redux'
 import AddChat from '../screens/AddChat'
 import ChatList from '../screens/ChatList'
 import ChatRoom from '../screens/ChatRoom'
 import {View, StatusBar, StyleSheet} from 'react-native'
 import { IconButton } from 'react-native-paper'
 import PrivateChatMenuOptions from '../components/Custom/PrivateChatMenuOptions'
+import { retrieveAllUsers, selectSearchedUsers } from '../store/chatSlice'
 
 
 const Stack = createStackNavigator()
@@ -45,7 +48,7 @@ export default function ChatStack({navigation}) {
               icon="message-plus"
               color={tintColor}
               size={22}
-              onPress={() => navigation.navigate('AddChat')}
+              onPress={() => { store.dispatch(retrieveAllUsers); navigation.navigate('AddChat')} }
             />
           </View>
         ),
