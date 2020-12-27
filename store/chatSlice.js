@@ -7,87 +7,8 @@ import {
 export const chatSlice = createSlice({
   name: 'chat',
   initialState: {
-    privateConversations: {
-      1: {
-        senderID: 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32', //'KfOdJZSnByX1iQNZdy5cyDVLSh03',
-        senderDisplayName: 'Test user 1',
-        senderPhotoURL:
-          'https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg',
-        receiverID: 'MD3IFJBvLQbKkR3Z8g2BEGJ2Lht2',
-        receiverDisplayName: 'Test user 2',
-        receiverPhotoURL:
-          'https://media.npr.org/assets/img/2020/11/01/gettyimages-1256154622_custom-75dab75fd97ed1b3b9a761385d2c33284789bc3b-s800-c85.jpg',
-        messages: [
-          {
-            type: 'text',
-            createdAt: new Date().getTime(),
-            displayName: 'Test user 1',
-            photoURL:
-              'https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg',
-            uid: 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32',
-            text: 'Lorem ipsum [...]',
-          },
-          {
-            type: 'text',
-            createdAt: new Date().getTime(),
-            displayName: 'Test user 2',
-            photoURL:
-              'https://media.npr.org/assets/img/2020/11/01/gettyimages-1256154622_custom-75dab75fd97ed1b3b9a761385d2c33284789bc3b-s800-c85.jpg',
-            uid: 'MD3IFJBvLQbKkR3Z8g2BEGJ2Lht2',
-            text: 'Lorem ipsum [...]',
-          },
-          {
-            type: 'text',
-            createdAt: new Date().getTime(),
-            displayName: 'Test user 1',
-            photoURL:
-              'https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg',
-            uid: 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32',
-            text: 'Lorem ipsum [...]',
-          },
-          {
-            type: 'text',
-            createdAt: new Date().getTime(),
-            displayName: 'Test user 1',
-            photoURL:
-              'https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg',
-            uid: 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32',
-            text: 'Lorem ipsum [...]',
-          },
-          {
-            type: 'text',
-            createdAt: new Date().getTime(),
-            displayName: 'Test user 2',
-            photoURL:
-              'https://media.npr.org/assets/img/2020/11/01/gettyimages-1256154622_custom-75dab75fd97ed1b3b9a761385d2c33284789bc3b-s800-c85.jpg',
-            uid: 'MD3IFJBvLQbKkR3Z8g2BEGJ2Lht2',
-            text: 'Lorem ipsum [...]',
-          },
-          {
-            type: 'text',
-            createdAt: new Date().getTime(),
-            displayName: 'Test user 2',
-            photoURL:
-              'https://media.npr.org/assets/img/2020/11/01/gettyimages-1256154622_custom-75dab75fd97ed1b3b9a761385d2c33284789bc3b-s800-c85.jpg',
-            uid: 'MD3IFJBvLQbKkR3Z8g2BEGJ2Lht2',
-            text: 'Lorem ipsum [...]',
-          },
-          {
-            type: 'text',
-            createdAt: new Date().getTime(),
-            displayName: 'Test user 1',
-            photoURL:
-              'https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg',
-            uid: 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32',
-            text: 'Lorem ipsum [...]',
-          },
-        ],
-      },
-      xDkv5ByD2CDZb5ixdzJy: {
-        messages: {},
-      },
-    },
-    groupConversations: [],
+    privateConversations: {},
+    groupConversations: {},
     searchedUsers: [],
     error: '',
   },
