@@ -3,7 +3,16 @@ import { createSlice } from '@reduxjs/toolkit'
 export const groupSlice = createSlice({
   name: 'group',
   initialState: {
-    groups: [],
+    groups: {
+      1: {
+        name: 'Your Nuke',
+        masterID: 1,
+        private: false,
+        nbMembers: 9,
+        creationDate: new Date().toISOString(),
+        photoURL: 'https://img-9gag-fun.9cache.com/photo/a73w9Lr_700bwp.webp',
+      },
+    },
     specificGroup: {}, //done this way because we can view a group page even if it's not in our group list
   },
   reducers: {},

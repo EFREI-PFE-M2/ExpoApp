@@ -5,7 +5,10 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from '@expo/vector-icons'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import {
+  BottomTabBar,
+  createBottomTabNavigator,
+} from '@react-navigation/bottom-tabs'
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -22,6 +25,8 @@ import { View } from 'react-native'
 import { IconButton, TouchableRipple } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import Navigation from '.'
+import Race from '../screens/Race'
+import Group from '../screens/Group'
 
 const BottomTab = createBottomTabNavigator()
 
@@ -60,6 +65,7 @@ export default function BottomTabNavigator({ navigation }) {
           tabBarIcon: ({ color }) => (
             <Ionicons name="md-search" color={color} {...iconWrapper} />
           ),
+          tabBarLabel: 'Rechercher',
         }}
       />
       <BottomTab.Screen
@@ -115,15 +121,28 @@ function TabHomeNavigator({ navigation }) {
           <IconButton icon="bell" size={24} color={tintColor} />
         ),
         headerLeft: ({ tintColor }) => (
-          <TouchableRipple onPress={() => navigation.openDrawer()}>
-            <MaterialIcons name="menu" style={{marginStart: 15}} size={24} color={tintColor} />
-          </TouchableRipple>
+          <IconButton
+            onPress={() => navigation.openDrawer()}
+            icon="menu"
+            size={24}
+            color={tintColor}
+          />
         ),
       }}>
       <HomeStack.Screen
         name="Home_Home"
         component={Home}
         options={{ headerTitle: 'Flux' }}
+      />
+      <HomeStack.Screen
+        name="Home_Race"
+        component={Race}
+        options={{ headerTitle: 'Course' }}
+      />
+      <HomeStack.Screen
+        name="Home_Group"
+        component={Group}
+        options={{ headerTitle: 'Groupe' }}
       />
     </HomeStack.Navigator>
   )
@@ -139,7 +158,7 @@ function TabSearchNavigator() {
       <SearchStack.Screen
         name="Search_Main"
         component={Search}
-        options={{ headerTitle: 'Search' }}
+        options={{ headerTitle: 'Rechercher' }}
       />
     </SearchStack.Navigator>
   )
