@@ -9,27 +9,27 @@ export const chatSlice = createSlice({
   initialState: {
     privateConversations: {
       1: {
-        senderID: 'KfOdJZSnByX1iQNZdy5cyDVLSh03',
+        senderID: 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32', //'KfOdJZSnByX1iQNZdy5cyDVLSh03',
         senderDisplayName: 'Test user 1',
         senderPhotoURL:
           'https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg',
         receiverID: 'MD3IFJBvLQbKkR3Z8g2BEGJ2Lht2',
         receiverDisplayName: 'Test user 2',
-        receivePhotoURL:
+        receiverPhotoURL:
           'https://media.npr.org/assets/img/2020/11/01/gettyimages-1256154622_custom-75dab75fd97ed1b3b9a761385d2c33284789bc3b-s800-c85.jpg',
         messages: [
           {
             type: 'text',
-            createdAt: new Date().toLocaleString(),
+            createdAt: new Date().getTime(),
             displayName: 'Test user 1',
             photoURL:
               'https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg',
-            uid: 'KfOdJZSnByX1iQNZdy5cyDVLSh03',
+            uid: 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32',
             text: 'Lorem ipsum [...]',
           },
           {
             type: 'text',
-            createdAt: new Date().toLocaleString(),
+            createdAt: new Date().getTime(),
             displayName: 'Test user 2',
             photoURL:
               'https://media.npr.org/assets/img/2020/11/01/gettyimages-1256154622_custom-75dab75fd97ed1b3b9a761385d2c33284789bc3b-s800-c85.jpg',
@@ -38,25 +38,25 @@ export const chatSlice = createSlice({
           },
           {
             type: 'text',
-            createdAt: new Date().toLocaleString(),
+            createdAt: new Date().getTime(),
             displayName: 'Test user 1',
             photoURL:
               'https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg',
-            uid: 'KfOdJZSnByX1iQNZdy5cyDVLSh03',
+            uid: 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32',
             text: 'Lorem ipsum [...]',
           },
           {
             type: 'text',
-            createdAt: new Date().toLocaleString(),
+            createdAt: new Date().getTime(),
             displayName: 'Test user 1',
             photoURL:
               'https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg',
-            uid: 'KfOdJZSnByX1iQNZdy5cyDVLSh03',
+            uid: 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32',
             text: 'Lorem ipsum [...]',
           },
           {
             type: 'text',
-            createdAt: new Date().toLocaleString(),
+            createdAt: new Date().getTime(),
             displayName: 'Test user 2',
             photoURL:
               'https://media.npr.org/assets/img/2020/11/01/gettyimages-1256154622_custom-75dab75fd97ed1b3b9a761385d2c33284789bc3b-s800-c85.jpg',
@@ -65,7 +65,7 @@ export const chatSlice = createSlice({
           },
           {
             type: 'text',
-            createdAt: new Date().toLocaleString(),
+            createdAt: new Date().getTime(),
             displayName: 'Test user 2',
             photoURL:
               'https://media.npr.org/assets/img/2020/11/01/gettyimages-1256154622_custom-75dab75fd97ed1b3b9a761385d2c33284789bc3b-s800-c85.jpg',
@@ -74,11 +74,11 @@ export const chatSlice = createSlice({
           },
           {
             type: 'text',
-            createdAt: new Date().toLocaleString(),
+            createdAt: new Date().getTime(),
             displayName: 'Test user 1',
             photoURL:
               'https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg',
-            uid: 'KfOdJZSnByX1iQNZdy5cyDVLSh03',
+            uid: 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32',
             text: 'Lorem ipsum [...]',
           },
         ],
@@ -121,22 +121,39 @@ let user = {
 }
 */
 
-export const retrieveAllUsers = () => async (dispatch) => {
-  try {
-    let users = []
-    const snapshot = await firestore.collection('Users').get()
-    snapshot.docs.map((doc) => {
+export const searchUsers = (query) => async (dispatch) => {
+  let users = []
+
+  const ref = await firestore.collection('Users')
+  var snapshot
+
+  if (query.length != 0) {
+    snapshot = ref
+      .where('username', 'array-contains', query)
+      .orderBy('username', 'asc')
+      .limit(10)
+      .get()
+    console.log('query null')
+  } else {
+    snapshot = ref.orderBy('username', 'asc').limit(10).get()
+    console.log('query not null')
+  }
+
+  if (snapshot.empty) {
+    console.log('No results')
+  } else {
+    snapshot.forEach((doc) => {
       const u = doc.data()
       const user = {}
       user.userID = u.uid
       user.username = u.displayName
       user.photoURL = u.photoURL
       users.push(user)
+      console.log(doc.data())
     })
-    dispatch(updateSearchedUsers(users))
-  } catch (err) {
-    console.error(err)
   }
+
+  dispatch(updateSearchedUsers(users))
 }
 
 /*

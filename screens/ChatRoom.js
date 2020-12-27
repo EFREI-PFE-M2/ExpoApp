@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { StyleSheet, ScrollView, TextInput } from 'react-native'
 import { Text, View } from '../components/Themed'
 import { chatHistory } from '../store/testChatStore'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectCurrentUser } from '../store/userSlice'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { GetPublishedDate } from '../utils/ChatFunctions'
 import { Avatar } from 'react-native-paper'
@@ -18,39 +20,39 @@ function showExtraInfo(check, sameItem) {
 export default function ChatRoom({ route }) {
   const [showState, setShowState] = useState(false)
   const [currentItem, setCurrentItem] = useState(0)
-  const [chatHistoryUpdate, setChatHistoryUpdate] = useState(chatHistory)
+  const displayUser = useSelector(selectCurrentUser)
+  const { username, photoURL, uid } = displayUser
+
+  const { chatInfo } = route.params
+
+  const [chatHistory, setChatHistory] = useState(chatInfo.messages)
   const [content, setContent] = useState('')
 
-  const { from, fromPicture, to, toPicture } = route.params
-
-  const chat = chatHistoryUpdate.find(
-    (item) =>
-      (item.owners[0] == from && item.owners[1] == to) ||
-      (item.owners[1] == from && item.owners[0] == to)
-  )
-
   const sendMessage = () => {
-    const datetime = new Date()
+    const datetime = new Date().getTime()
 
     if (content.trim() != '') {
       const message = {
-        from,
-        to,
-        content: content.trim(),
-        datetime,
+        type: 'text',
+        createdAt: datetime,
+        displayName: username,
+        photoURL,
+        uid,
+        text: content.trim(),
       }
 
-      chat.messages.push(message)
+      let messages = chatHistory
+      messages.push(message)
       setContent('')
-      setChatHistoryUpdate(chatHistory)
+      setChatHistory(messages)
     }
   }
 
   return (
     <View style={styles.container}>
       <ScrollView>
-        {chat.messages.map((m, i) => {
-          if (m.from == from) {
+        {chatHistory.map((m, i) => {
+          if (m.uid == chatInfo.senderID) {
             return (
               <View style={{ backgroundColor: 'rgba(0,0,0,0)', padding: 10 }}>
                 <Text
@@ -58,7 +60,7 @@ export default function ChatRoom({ route }) {
                     display: showExtraInfo(showState, i == currentItem),
                     ...styles.publishedDateStyle,
                   }}>
-                  {GetPublishedDate(m.datetime)}
+                  {GetPublishedDate(m.createdAt)}
                 </Text>
                 <Text
                   style={{
@@ -66,7 +68,7 @@ export default function ChatRoom({ route }) {
                     paddingTop: 15,
                     alignSelf: 'flex-end',
                   }}>
-                  {from}
+                  {m.displayName}
                 </Text>
                 <View
                   style={{
@@ -81,13 +83,13 @@ export default function ChatRoom({ route }) {
                       setCurrentItem(i)
                     }}>
                     <View style={{ backgroundColor: 'rgba(0,0,0,0)' }}>
-                      <Text style={{ color: '#fff' }}>{m.content}</Text>
+                      <Text style={{ color: '#fff' }}>{m.text}</Text>
                     </View>
                   </TouchableOpacity>
                   <Avatar.Image
                     size={48}
                     style={{ marginStart: 10 }}
-                    source={{ uri: fromPicture }}
+                    source={{ uri: m.photoURL }}
                   />
                 </View>
               </View>
@@ -100,10 +102,10 @@ export default function ChatRoom({ route }) {
                     display: showExtraInfo(showState, i == currentItem),
                     ...styles.publishedDateStyle,
                   }}>
-                  {GetPublishedDate(m.datetime)}
+                  {GetPublishedDate(m.createdAt)}
                 </Text>
                 <Text style={{ paddingLeft: 60, paddingTop: 15 }}>
-                  {m.from}
+                  {m.displayName}
                 </Text>
                 <View
                   style={{
@@ -113,7 +115,7 @@ export default function ChatRoom({ route }) {
                   <Avatar.Image
                     size={48}
                     style={{ marginEnd: 10 }}
-                    source={{ uri: toPicture }}
+                    source={{ uri: m.photoURL }}
                   />
                   <TouchableOpacity
                     key={i}
@@ -122,7 +124,7 @@ export default function ChatRoom({ route }) {
                       setShowState(!showState)
                       setCurrentItem(i)
                     }}>
-                    <Text>{m.content}</Text>
+                    <Text>{m.text}</Text>
                   </TouchableOpacity>
                 </View>
               </View>

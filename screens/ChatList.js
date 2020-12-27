@@ -7,37 +7,56 @@ import {
   GetRoomTitleShort,
   GetPublishedDate,
 } from '../utils/ChatFunctions'
-import { users } from '../store/testChatStore'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/userSlice'
 import { getConversation } from '../store/chatSlice'
 
 export default function ChatList({ navigation }) {
   const displayUser = useSelector(selectCurrentUser)
-  const dispatch = useDispatch()
-  dispatch(getConversation('xDkv5ByD2CDZb5ixdzJy'))
-  const { photoURL, username } = displayUser
+  const { uid } = displayUser
+
+  //const dispatch = useDispatch()
+  //dispatch(getConversation('xDkv5ByD2CDZb5ixdzJy'))
+
+  const privateChats = useSelector((state) => state.chat.privateConversations)
+
+  let chats = []
+  for (let i in privateChats) chats.push(privateChats[i])
+
+  let chatInfo = chats.find(
+    (c) =>
+      (c.senderID = 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32') &&
+      (c.receiverID = 'MD3IFJBvLQbKkR3Z8g2BEGJ2Lht2')
+  )
+
+  chats = chats.filter((c) => (c.senderID = uid))
 
   return (
     <ScrollView>
-      {users.map((u, i) => {
+      {chats.map((c, i) => {
+        const chatInfo = chats.find(
+          (ch) => (ch.senderID = c.senderID) && (ch.receiverID = c.receiverID)
+        )
+
+        const displayName = c.receiverDisplayName
+        const photoURL = c.receiverPhotoURL
+        const comment = chatInfo.messages.pop().text
+        const createdAt = chatInfo.messages.pop().createdAt
+
         return (
           <TouchableOpacity
             key={i}
             style={styles.containerChatRoomItem}
             onPress={() =>
               navigation.navigate('ChatRoom', {
-                from: username,
-                fromPicture: photoURL,
-                to: u.username,
-                toPicture: u.photoURL,
+                chatInfo,
                 title: (
                   <View
                     style={{
                       flexDirection: 'row',
                       backgroundColor: 'rgba(0, 0, 0, 0)',
                     }}>
-                    <Avatar.Image size={45} source={{ uri: u.photoURL }} />
+                    <Avatar.Image size={45} source={{ uri: photoURL }} />
                     <View
                       style={{
                         marginStart: 10,
@@ -45,22 +64,22 @@ export default function ChatList({ navigation }) {
                         backgroundColor: 'rgba(0, 0, 0, 0)',
                       }}>
                       <Text style={styles.titleStyle}>
-                        {GetRoomTitleShort(u.username)}
+                        {GetRoomTitleShort(displayName)}
                       </Text>
                     </View>
                   </View>
                 ),
               })
             }>
-            <Avatar.Image size={40} source={{ uri: u.photoURL }} />
+            <Avatar.Image size={60} source={{ uri: photoURL }} />
             <View style={{ marginStart: 10, ...styles.viewStyle }}>
-              <Text style={styles.nameStyle}>{u.username}</Text>
+              <Text style={styles.nameStyle}>{displayName}</Text>
               <View style={styles.viewStyle}>
                 <Text style={styles.lastMessageStyle}>
-                  {GetMessageShort(u.comment)}
+                  {GetMessageShort(comment)}
                 </Text>
                 <Text style={styles.publishedDateStyle}>
-                  - {GetPublishedDate(u.datetime)}
+                  - {GetPublishedDate(createdAt)}
                 </Text>
               </View>
             </View>
@@ -102,16 +121,16 @@ const styles = StyleSheet.create({
   },
   nameStyle: {
     fontWeight: 'bold',
-    fontSize: 12,
+    fontSize: 16,
   },
   lastMessageStyle: {
     flex: 1,
-    fontSize: 10,
+    fontSize: 12,
   },
   publishedDateStyle: {
     flex: 1,
     color: 'grey',
-    fontSize: 8,
+    fontSize: 10,
   },
   viewStyle: {
     flex: 1,
