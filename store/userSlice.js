@@ -192,7 +192,11 @@ export const firebaseAuthCreateUser = (email, password, username) => async (
       throw new Error('Unknown error')
     }
 
-    await snapshot.user.updateProfile({
+    // await snapshot.user.updateProfile({
+    //   displayName: username,
+    // })
+
+    await firestore.collection('Users').doc(snapshot.user.uid).set({
       displayName: username,
     })
 
