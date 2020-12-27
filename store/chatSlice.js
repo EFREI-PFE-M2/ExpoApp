@@ -87,11 +87,7 @@ export const chatSlice = createSlice({
     groupConversations: [],
     searchedUsers: [],
   },
-  reducers: {
-    updateSearchedUsers: (state, action) => {
-      state.searchedUsers = action.payload
-    },
-  },
+  reducers: {},
 })
 
 /*
@@ -164,6 +160,17 @@ let message = {
 export const { updateSearchedUsers } = chatSlice.actions
 
 // thunks
+export const getConversation = (conversationID) => async (dispatch) => {
+  try {
+    const snapshot = await firestore
+      .collection('PrivateConversation')
+      .doc(conversationID)
+      .get()
+    console.log(snapshot)
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 // selectors
 export const selectSearchedUsers = (state) => state.searchedUsers

@@ -8,11 +8,14 @@ import {
   GetPublishedDate,
 } from '../utils/ChatFunctions'
 import { users } from '../store/testChatStore'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/userSlice'
+import { getConversation } from '../store/chatSlice'
 
 export default function ChatList({ navigation }) {
   const displayUser = useSelector(selectCurrentUser)
+  const dispatch = useDispatch()
+  dispatch(getConversation('xDkv5ByD2CDZb5ixdzJy'))
   const { photoURL, username } = displayUser
 
   return (
