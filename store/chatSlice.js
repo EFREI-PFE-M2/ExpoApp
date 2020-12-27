@@ -83,18 +83,32 @@ export const chatSlice = createSlice({
           },
         ],
       },
+      xDkv5ByD2CDZb5ixdzJy: {
+        messages: {},
+      },
     },
     groupConversations: [],
     searchedUsers: [],
+    error: '',
   },
   reducers: {
     updateSearchedUsers: (state, action) => {
       state.searchedUsers = action.payload
     },
     addToPrivate: (state, action) => {
-      const { id, data } = action.payload
-      state.privateConversations[id] = data
-    }
+      // Action.payload is a snapshot!
+      action.payload?.forEach((element) => {
+        state.privateConversations[element.id] = element.data
+      })
+    },
+    setError: (state, action) => {
+      state.error = action.payload
+    },
+    addMessagesToConversation: (state, action) => {
+      const { conversationID, messageID, message } = action.payload
+
+      state.privateConversations[conversationID].messages[messageID] = message
+    },
   },
 })
 
@@ -165,12 +179,17 @@ let message = {
 
 //actions imports
 
-export const { updateSearchedUsers, addToPrivate } = chatSlice.actions
+export const {
+  updateSearchedUsers,
+  addToPrivate,
+  setError,
+  addMessagesToConversation,
+} = chatSlice.actions
 
 // thunks
-export const getConversation = (conversationID) => async (dispatch) => {
+export const getConversationList = (conversationID) => async (dispatch) => {
   try {
-    // Snapshot will only contain field 
+    // Snapshot will only contain field
     // const snapshot = await firestore
     //   .collection('PrivateConversation')
     //   .doc(conversationID)
@@ -185,10 +204,12 @@ export const getConversation = (conversationID) => async (dispatch) => {
       .doc(conversationID)
       .get()
 
-      dispatch(addToPrivate({ 
+    dispatch(
+      addToPrivate({
         id: snapshot.id,
-        data: snapshot.data()
-      }))
+        data: snapshot.data(),
+      })
+    )
   } catch (err) {
     console.error(err)
   }
@@ -198,7 +219,101 @@ export const getConversationFromID = (userID) => async (dispatch) => {
   try {
     const snapshot = await firestore
       .collection('PrivateConversation')
-      
+      .where('users', 'array-contains', userID)
+      .get()
+
+    let data = []
+    snapshot.forEach((doc) => {
+      data.push({ id: doc.id, data: doc.data() })
+    })
+    dispatch(addToPrivate(data))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const createConversation = (senderID, receiverID) => async (
+  dispatch
+) => {
+  try {
+    const snapshot = await firestore
+      .collection('PrivateConversation')
+      .where('users', 'array-contains-any', [senderID, receiverID])
+      .get()
+
+    if (snapshot.size) return dispatch(setError('Conversation already exists.'))
+
+    let data = {
+      senderID,
+      receiverID,
+      users: [senderID, receiverID],
+    }
+
+    // Create new conversation on the database
+    const querySnapshot = await firestore
+      .collection('PrivateConversation')
+      .add(data)
+
+    // Add to local
+    dispatch(
+      addToPrivate([
+        {
+          id: querySnapshot.id,
+          data,
+        },
+      ])
+    )
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const startMessagesListening = (conversationID) => async (dispatch) => {
+  try {
+    const unsubscribe = await firestore
+      .collection('PrivateConversation')
+      .doc(conversationID)
+      .collection('messages')
+      .onSnapshot((snapshot) => {
+        snapshot.docChanges()?.forEach((change) => {
+          if (change.type === 'added') {
+            dispatch(
+              addMessagesToConversation({
+                conversationID,
+                messageID: change.doc.id,
+                message: change.doc.data(),
+              })
+            )
+          }
+        })
+      })
+
+    return unsubscribe
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const sendTextMessage = (conversationID, content) => async (
+  dispatch,
+  getState
+) => {
+  const { chat } = getState()
+  try {
+    if (!content || !conversationID) return
+
+    // Check locally if conversation ID exists
+    if (!chat.privateConversations.hasOwnProperty(conversationID))
+      return dispatch(setError('Conversation not loaded, error aborting.'))
+
+    await firestore
+      .collection('PrivateConversation')
+      .doc(conversationID)
+      .collection('messages')
+      .add({
+        type: 'text',
+        text: content,
+      })
   } catch (err) {
     console.error(err)
   }

@@ -58,9 +58,10 @@ export default function Pronostics({ betID, userID, edit }) {
         </View>
       ) : (
         <View
-          style={[styles.resultContainer, 
-            { backgroundColor: betResult.color }]
-        }>
+          style={[
+            styles.resultContainer,
+            { backgroundColor: betResult.color },
+          ]}>
           <Text style={styles.result}>{betResult.label}</Text>
         </View>
       )}
@@ -83,7 +84,7 @@ function PronoSection({ type, result, list }) {
   return (
     <View style={pronoStyles.container}>
       <Logo />
-      {list?.map((element) => {
+      {list?.map((element, key) => {
         const backgroundColor =
           result?.length !== 0
             ? result?.includes(element)
@@ -91,7 +92,10 @@ function PronoSection({ type, result, list }) {
               : resultState.LOSS.color
             : resultState.INPROGRESS.color
         return (
-          <Badge style={[pronoStyles.badge, { backgroundColor }]} size={24}>
+          <Badge
+            style={[pronoStyles.badge, { backgroundColor }]}
+            size={24}
+            key={key}>
             {element}
           </Badge>
         )
@@ -149,8 +153,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff0',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center'
-  }
+    justifyContent: 'center',
+  },
 })
 
 const raceCodeStyles = StyleSheet.create({
