@@ -5,30 +5,37 @@ import { useNavigation } from '@react-navigation/native'
 import { users } from '../store/testChatStore'
 import { selectCurrentUser } from '../store/userSlice'
 import { useSelector, useDispatch } from 'react-redux'
-import { retrieveAllUsers, selectSearchedUsers } from '../store/chatSlice'
+import { searchUsers } from '../store/chatSlice'
 import store from '../store'
 
 function AddChatScreen() {
   const [searchQuery, setSearchQuery] = useState('')
-  const users_ = useSelector(selectSearchedUsers)
-  const [searchedUsers, setSearchedUsers] = useState(users_)
+  //const users_ = useSelector((s))
+  const [searchedUsers, setSearchedUsers] = useState(users)
   const displayUser = useSelector(selectCurrentUser)
   
   const { photoURL, username } = displayUser  
   const navigation = useNavigation()
+  const dispatch = useDispatch()
 
   return (<View>
       <View style={styles.searchBar}>
         <Searchbar inputStyle={{color: "#000"}}
         placeholder="Recherche" iconColor="#000" onChangeText={(query) => { 
-          setSearchQuery(query); 
-          let array = users.filter(u => u.username.includes(query));
-          setSearchedUsers(array);
+          dispatch(searchUsers(query))
+          //setSearchQuery(query); 
+          //let array = users.filter(u => u.username.includes(query));
+          //setSearchedUsers(array);
         }}
         value={searchQuery}
         />
       
-      </View>
+      </View></View>
+    );
+}
+
+/*
+</View>
       {searchedUsers.map((u, i) => {
         return (
           <TouchableOpacity
@@ -76,8 +83,7 @@ function AddChatScreen() {
         )
       })}
       </View>
-    );
-}
+*/
 
 export default function AddChat() {
     return (

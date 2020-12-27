@@ -1,14 +1,15 @@
-export function GetRoomTitleShort(title) {
+export function GetRoomTitleShort(title: string) {
   if (title.length > 25) return title.substring(0, 25) + '...'
   else return title
 }
 
-export function GetMessageShort(comment) {
+export function GetMessageShort(comment: string) {
   if (comment.length > 35) return comment.substring(0, 34) + '...'
   else return comment
 }
 
-export function GetPublishedDate(dt) {
+export function GetPublishedDate(timestamp: number) {
+  let dt = new Date(timestamp)
   let now = new Date()
   let secondByMs = 1000
   let minuteByMs = 60 * secondByMs
