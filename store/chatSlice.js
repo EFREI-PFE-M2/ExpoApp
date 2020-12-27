@@ -87,7 +87,15 @@ export const chatSlice = createSlice({
     groupConversations: [],
     searchedUsers: [],
   },
-  reducers: {},
+  reducers: {
+    updateSearchedUsers: (state, action) => {
+      state.searchedUsers = action.payload
+    },
+    addToPrivate: (state, action) => {
+      const { id, data } = action.payload
+      state.privateConversations[id] = data
+    }
+  },
 })
 
 /*
@@ -157,16 +165,40 @@ let message = {
 
 //actions imports
 
-export const { updateSearchedUsers } = chatSlice.actions
+export const { updateSearchedUsers, addToPrivate } = chatSlice.actions
 
 // thunks
 export const getConversation = (conversationID) => async (dispatch) => {
   try {
+    // Snapshot will only contain field 
+    // const snapshot = await firestore
+    //   .collection('PrivateConversation')
+    //   .doc(conversationID)
+    //   .collection('messages')
+    //   .orderBy('createdAt', 'desc')
+    //   .limitToLast(10)
+    //   .get()
+    // snapshot.forEach((data) => console.log(data.id, data.data()))
+
     const snapshot = await firestore
       .collection('PrivateConversation')
       .doc(conversationID)
       .get()
-    console.log(snapshot)
+
+      dispatch(addToPrivate({ 
+        id: snapshot.id,
+        data: snapshot.data()
+      }))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const getConversationFromID = (userID) => async (dispatch) => {
+  try {
+    const snapshot = await firestore
+      .collection('PrivateConversation')
+      
   } catch (err) {
     console.error(err)
   }
