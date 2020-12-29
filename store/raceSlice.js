@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { FirebaseApp } from '../firebase'
 
 export const raceSlice = createSlice({
   name: 'race',
@@ -35,7 +36,11 @@ export const raceSlice = createSlice({
     ],
     specificRace: '', //done this way because we can view a race page even if it's not in our race list
   },
-  reducers: {},
+  reducers: {
+    init: (state, action) => {
+      state.races = action.payload
+    },
+  },
 })
 
 /*
@@ -127,8 +132,30 @@ let bet ={
 */
 
 //actions imports
+const { init } = raceSlice.actions
 
 // thunks
+export const getInitRaces = (date) => async (dispatch) => {
+  try {
+    const result = await fetch(
+      `https://europe-west1-pmu-commu.cloudfunctions.net/races?date=December 17, 1995 03:24:00`,
+      { mode: 'no-cors' }
+    )
+
+    console.log(result)
+
+    if (!result) return
+    const response = await result.json()
+
+    if (!response) return
+
+    console.log(response)
+
+    dispatch(init(response))
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 // selectors
 

@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { StyleSheet, Image } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Text, View } from '../components/Themed'
 import { Badge, IconButton } from 'react-native-paper'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { getInitRaces } from '../store/raceSlice'
 
 export default function Race({ route, navigation }) {
   const { raceID } = route.params
@@ -21,6 +22,7 @@ export default function Race({ route, navigation }) {
   } = useSelector((state) =>
     state.race.races.find((element) => element.id === raceID)
   )
+  const dispatch = useDispatch()
 
   const goBack = () => navigation.goBack()
 
@@ -37,6 +39,10 @@ export default function Race({ route, navigation }) {
   })
 
   const raceCodeSplit = raceCode.split(' ')
+
+  useEffect(() => {
+    dispatch(getInitRaces('December 17, 1995 03:24:00'))
+  }, [])
 
   return (
     <ScrollView>
