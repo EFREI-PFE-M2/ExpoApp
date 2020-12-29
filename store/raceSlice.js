@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { FirebaseApp } from '../firebase'
+import { FirebaseFunctions as functions } from '../firebase'
 
 export const raceSlice = createSlice({
   name: 'race',
@@ -137,19 +137,10 @@ const { init } = raceSlice.actions
 // thunks
 export const getInitRaces = (date) => async (dispatch) => {
   try {
-    const result = await fetch(
-      `https://europe-west1-pmu-commu.cloudfunctions.net/races?date=December 17, 1995 03:24:00`,
-      { mode: 'no-cors' }
-    )
+    const getRaces = functions.httpsCallable('races')
+    const result = await getRaces({ date: 'December 17, 1995 03:24:00' })
 
     console.log(result)
-
-    if (!result) return
-    const response = await result.json()
-
-    if (!response) return
-
-    console.log(response)
 
     dispatch(init(response))
   } catch (err) {
