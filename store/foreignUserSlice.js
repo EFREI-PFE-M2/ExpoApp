@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+import firebase, { FirebaseFirestore as firestore } from '../firebase'
 
 export const foreignUserSlice = createSlice({
   name: 'foreignUser',
@@ -29,7 +30,12 @@ export const foreignUserSlice = createSlice({
       },
     },
   },
-  reducers: {},
+  reducers: {
+    addUser: (state, action) => {
+      const { id, data } = action.payload
+      state[id] = data
+    },
+  },
 })
 
 /*
@@ -97,9 +103,27 @@ let card ={
 */
 
 //actions imports
+export const { addUser } = foreignUserSlice.actions
 
 // thunks
+export const retrieveUsers = (ids) => async (dispatch) => {
+  if (!ids?.length) return
+  try {
+    const results = await Promise.all([
+      ids.map((id) => firestore.collection('Users').doc(id).get()),
+    ])
 
+    results.forEach((doc) => console.log(doc))
+
+    if (!results.size) return
+
+    results.forEach((doc) => {
+      dispatch(addUser({ id: doc.id, data: doc.data() }))
+    })
+  } catch (err) {
+    console.log(err)
+  }
+}
 // selectors
 
 export const foreignUserReducer = foreignUserSlice.reducer

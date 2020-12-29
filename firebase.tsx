@@ -1,5 +1,7 @@
 import firebase from 'firebase'
 import Constants from 'expo-constants'
+import 'firebase/functions'
+// import '@firebase/messaging'
 
 const {
   FIREBASE_API_KEY,
@@ -35,4 +37,5 @@ export const FirebaseApp: firebase.app.App = firebase.app()
 export const FirebaseAuth: firebase.auth.Auth = firebase.auth()
 export const FirebaseFirestore: firebase.firestore.Firestore = firebase.firestore()
 export const FirebaseFunctions: firebase.functions.Functions = firebase.functions()
-export const FirebaseMessaging: firebase.messaging.Messaging = firebase.messaging()
+// export const FirebaseMessaging: firebase.messaging.Messaging = firebase.messaging()
+export default firebase
