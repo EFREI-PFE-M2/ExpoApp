@@ -14,15 +14,16 @@ exports.helloWorld = functions
   
 exports.races = functions
   .region('europe-west1')
-  .https.onRequest((request, response) => {
-    let dateParameter = request.query.date
-    if(dateParameter){
+  .https.onCall((contextData, context) => {
+    let { date: dateParameter } = contextData
+    if (dateParameter) {
       let date = new Date(dateParameter)
       let dayID = date.getDay()
-      let dayRaces = data.races.filter((race)=>race.weekDayID === dayID)
-      .map((race=> ({...race, date: `${dateParameter} ${race.hour}` })))
-      response.send(dayRaces)
-    }else{
-      response.send('date parameter undefined')
+      let dayRaces = data.races
+        .filter((race) => race.weekDayID === dayID)
+        .map((race) => ({ ...race, date: `${dateParameter} ${race.hour}` }))
+      return dayRaces
+    } else {
+      return false
     }
   })
