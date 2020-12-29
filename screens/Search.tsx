@@ -1,13 +1,21 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import { useNavigation } from '@react-navigation/native'
-import React, { ReactPropTypes, useState } from 'react'
+import React, { ReactPropTypes, useEffect, useState } from 'react'
 import { StyleSheet } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
 import { IconButton, Portal, Searchbar, Surface } from 'react-native-paper'
 import { useDispatch, useSelector } from 'react-redux'
+import GroupCard from '../components/GroupCard_Small'
 import { Text, View } from '../components/Themed'
 import UserCard from '../components/UserCard_Small'
-import { searchUsers, selectUserResults } from '../store/searchSlice'
+import {
+  searchGroups,
+  searchUsers,
+  selectGroupResults,
+  selectUserResults,
+  resetGroups,
+  resetUsers,
+} from '../store/searchSlice'
 import AddGroup from './AddGroup'
 
 const Tab = createMaterialTopTabNavigator()
@@ -48,8 +56,12 @@ function UserTab() {
 
   const submit = () => dispatch(searchUsers(search))
 
+  useEffect(() => {
+    !search && dispatch(resetUsers())
+  }, [search])
+
   return (
-    <View>
+    <View style={{ flexDirection: 'column', flex: 1 }}>
       <Searchbar
         placeholder="Chercher un utilisateur"
         placeholderTextColor="#757575"
@@ -70,13 +82,24 @@ function UserTab() {
 function GroupTab() {
   const [search, setSearch] = useState('')
   const [visible, setVisible] = useState(false)
+  const results = useSelector(selectGroupResults)
+  const dispatch = useDispatch()
 
   const searchInputOnChange = (value) => setSearch(value)
   const createGroupPress = () => setVisible(true)
   const closeGroupAdd = () => setVisible(false)
 
+  const submit = () => dispatch(searchGroups(search))
+
+  const RenderGroups = () =>
+    results?.map((group, key) => <GroupCard key={key} group={group} />)
+
+  useEffect(() => {
+    !search && dispatch(resetGroups())
+  }, [search])
+
   return (
-    <View style={{ overflow: 'visible' }}>
+    <View style={{ overflow: 'visible', flexDirection: 'column', flex: 1 }}>
       <Surface
         style={{
           flexDirection: 'row',
@@ -93,6 +116,8 @@ function GroupTab() {
           iconColor="#194A4C"
           inputStyle={{ color: '#000' }}
           style={{ flex: 1, elevation: 0 }}
+          blurOnSubmit
+          onSubmitEditing={submit}
         />
         <IconButton
           icon="plus-box"
@@ -101,9 +126,7 @@ function GroupTab() {
           onPress={createGroupPress}
         />
       </Surface>
-      <ScrollView>
-        <Empty />
-      </ScrollView>
+      <ScrollView>{results?.length ? <RenderGroups /> : <Empty />}</ScrollView>
       <Portal>{visible && <AddGroup goBack={closeGroupAdd} />}</Portal>
     </View>
   )
@@ -112,14 +135,22 @@ function GroupTab() {
 function Empty() {
   return (
     <View style={EmptyStyles.container}>
-      <Text>Search for something ...</Text>
+      <Text
+        style={{
+          color: '#D6D6D6',
+          fontSize: 24,
+          textAlign: 'center',
+          marginBottom: 30,
+          marginTop: 20,
+        }}>
+        Search {'\n'} for something ...
+      </Text>
     </View>
   )
 }
 
 const EmptyStyles = StyleSheet.create({
   container: {
-    height: 300,
     justifyContent: 'center',
     alignItems: 'center',
   },

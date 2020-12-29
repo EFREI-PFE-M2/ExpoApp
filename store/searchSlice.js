@@ -15,6 +15,12 @@ export const searchSlice = createSlice({
     addToGroups: (state, action) => {
       state.searchedGroups = action.payload
     },
+    resetUsers: (state) => {
+      state.searchedUsers = []
+    },
+    resetGroups: (state) => {
+      state.searchedGroups = []
+    },
   },
 })
 
@@ -37,7 +43,12 @@ let group = {
 */
 
 //actions imports
-const { addToGroups, addToUsers } = searchSlice.actions
+export const {
+  addToGroups,
+  addToUsers,
+  resetGroups,
+  resetUsers,
+} = searchSlice.actions
 
 // thunks
 export const searchUsers = (keyword) => async (dispatch, getState) => {
@@ -64,7 +75,28 @@ export const searchUsers = (keyword) => async (dispatch, getState) => {
   await dispatch(addToUsers(users))
 }
 
+export const searchGroups = (keyword) => async (dispatch) => {
+  let groups = []
+  try {
+    const result = await firestore
+      .collection('Groups')
+      .where('name', '==', keyword)
+      .get()
+
+    if (!result.size) return
+
+    result.forEach((doc) => {
+      groups.push({ id: doc.id, ...doc.data() })
+    })
+  } catch (err) {
+    console.log(err)
+  }
+
+  await dispatch(addToGroups(groups))
+}
+
 // selectors
 export const selectUserResults = ({ search }) => search.searchedUsers
+export const selectGroupResults = ({ search }) => search.searchedGroups
 
 export const searchReducer = searchSlice.reducer
