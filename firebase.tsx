@@ -24,11 +24,11 @@ if (firebase.app.length) {
     appId: FIREBASE_APP_ID,
     measurementId: FIREBASE_MEASUREMENTID,
   })
-  if (__DEV__) {
-    firebase.auth().useEmulator('http://192.168.1.105:9099')
-    firebase.firestore().useEmulator('http://192.168.1.105:8080')
-    firebase.functions().useEmulator('localhost', 5001)
-  }
+  // if (__DEV__) {
+  //   firebase.auth().useEmulator('http://192.168.1.105:9099')
+  //   firebase.firestore().useEmulator('http://192.168.1.105:8080')
+  //   firebase.functions().useEmulator('localhost', 5001)
+  // }
 }
 
 export const FirebaseApp: firebase.app.App = firebase.app()

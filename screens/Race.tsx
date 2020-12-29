@@ -19,10 +19,10 @@ export default function Race({ route, navigation }) {
     direction,
     field,
     equidiaPronostic,
+    locationCode,
   } = useSelector((state) =>
     state.race.races.find((element) => element.id === raceID)
   )
-  const dispatch = useDispatch()
 
   const goBack = () => navigation.goBack()
 
@@ -38,17 +38,15 @@ export default function Race({ route, navigation }) {
     ),
   })
 
-  const raceCodeSplit = raceCode.split(' ')
-
-  useEffect(() => {
-    dispatch(getInitRaces('December 17, 1995 03:24:00'))
-  }, [])
-
   return (
     <ScrollView>
       <View>
-        <Text style={styles.title}>{`${raceCodeSplit[0]} ${location}`}</Text>
-        <Text style={styles.title}>{`${raceCodeSplit[1]} ${raceTitle}`}</Text>
+        <Text
+          style={[
+            styles.title,
+            { color: '#757575' },
+          ]}>{`${raceCode} ${location}`}</Text>
+        <Text style={styles.title}>{`${locationCode} ${raceTitle}`}</Text>
       </View>
 
       <Container>
@@ -82,8 +80,8 @@ export default function Race({ route, navigation }) {
       <View style={styles.prono}>
         <Image source={require('./../assets/images/equidia.png')} />
         <View style={{ flexDirection: 'row' }}>
-          {equidiaPronostic.map((element) => (
-            <Badge size={24} style={styles.badge}>
+          {equidiaPronostic.map((element, key) => (
+            <Badge size={24} style={styles.badge} key={key}>
               {element}
             </Badge>
           ))}
