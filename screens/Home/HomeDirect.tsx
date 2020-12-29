@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { StyleSheet } from 'react-native'
 import { IconButton, Menu, TouchableRipple } from 'react-native-paper'
 import { View, Text } from '../../components/Themed'
@@ -6,28 +6,28 @@ import moment from 'moment'
 import { MaterialIcons } from '@expo/vector-icons'
 import RaceCard from '../../components/RaceCard'
 import { ScrollView } from 'react-native-gesture-handler'
+import { useDispatch, useSelector } from 'react-redux'
+import { getInitRaces } from '../../store/raceSlice'
 
 const TODAY = `Aujourd'hui`
 const TOMORROW = 'Demain'
 const WEEK = 'Cette semaine'
 
 export default function HomeDirect() {
+  const races = useSelector(({ race }) => race.races)
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(getInitRaces(new Date().toDateString()))
+  }, [])
+  
   return (
     <ScrollView style={styles.container}>
       <DatePicker />
       <View>
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
-        <RaceCard raceID={1} />
+        {races?.map((race, key) => (
+          <RaceCard raceID={race.id} key={key} />
+        ))}
       </View>
     </ScrollView>
   )
@@ -36,14 +36,21 @@ export default function HomeDirect() {
 function DatePicker() {
   const [visible, setVisible] = useState(false)
   const [choice, setChoice] = useState(TODAY)
+  const dispatch = useDispatch()
+
+  const today = new Date()
+  const tomorrow = new Date()
+  tomorrow.setDate(today.getDate() + 1)
 
   const onDismiss = () => setVisible(false)
   const onSelectToday = () => {
     setChoice(TODAY)
+    dispatch(getInitRaces(today.toLocaleString()))
     onDismiss()
   }
   const onSelectTomorrow = () => {
     setChoice(TOMORROW)
+    dispatch(getInitRaces(tomorrow.toDateString()))
     onDismiss()
   }
   const onSelectWeek = () => {

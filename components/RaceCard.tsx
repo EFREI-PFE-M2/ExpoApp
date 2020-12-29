@@ -22,19 +22,25 @@ export default function RaceCard(props) {
     raceCode,
     nbContenders,
     raceTitle,
+    horses,
+    locationCode,
+    hour,
   } = race
 
-  const raceCodeParts = raceCode.split(' ')
-  const description = `${category} - ${distance}m - ${nbContenders} partants`
+  const description = `${category} - ${distance}m - ${
+    horses?.length || 0
+  } partants`
+
+  const hourFormat = hour.split(':')
 
   return (
     <TouchableRipple style={styles.container} onPress={onPress}>
       <>
-        <Text style={styles.time}>11h50</Text>
+        <Text style={styles.time}>{`${hourFormat[0]}h${hourFormat[1]}`}</Text>
 
         <View style={styles.codeContainer}>
-          <Text style={styles.raceCode}>{raceCodeParts[0]}</Text>
-          <Text style={styles.raceCode}>{raceCodeParts[1]}</Text>
+          <Text style={styles.raceCode}>{raceCode}</Text>
+          <Text style={styles.raceCode}>{locationCode}</Text>
         </View>
 
         <View style={styles.infoContainer}>
@@ -48,10 +54,10 @@ export default function RaceCard(props) {
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text>123</Text>
           <MaterialIcons name="message" size={12} color="#757575" />
-        </View>
+        </View> */}
 
         <IconButton
           icon="chevron-right"
