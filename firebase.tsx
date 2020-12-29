@@ -36,3 +36,4 @@ export const FirebaseAuth: firebase.auth.Auth = firebase.auth()
 export const FirebaseFirestore: firebase.firestore.Firestore = firebase.firestore()
 export const FirebaseFunctions: firebase.functions.Functions = firebase.functions()
 export const FirebaseMessaging: firebase.messaging.Messaging = firebase.messaging()
+export default firebase
