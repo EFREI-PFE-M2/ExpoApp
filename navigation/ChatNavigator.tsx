@@ -6,6 +6,8 @@ import ChatRoom from '../screens/ChatRoom'
 import {View, StatusBar, StyleSheet} from 'react-native'
 import { IconButton } from 'react-native-paper'
 import PrivateChatMenuOptions from '../components/Custom/PrivateChatMenuOptions'
+import { useDispatch, useSelector } from 'react-redux'
+import { searchUsers } from '../store/chatSlice'
 
 const Stack = createStackNavigator()
 
@@ -24,6 +26,7 @@ const defaultScreenOptions: StackNavigationOptions = {
 }
 
 export default function ChatStack({navigation}) {
+  const dispatch = useDispatch()
   return (
     <Stack.Navigator screenOptions={defaultScreenOptions}>
       <Stack.Screen name="ChatList" 
@@ -44,7 +47,7 @@ export default function ChatStack({navigation}) {
               icon="message-plus"
               color={tintColor}
               size={22}
-              onPress={() => { navigation.navigate('AddChat')} }
+              onPress={async () => { await dispatch(searchUsers('')); navigation.navigate('AddChat') } }
             />
           </View>
         ),

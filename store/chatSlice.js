@@ -45,35 +45,35 @@ let user = {
 export const searchUsers = (query) => async (dispatch) => {
   let users = []
 
-  const ref = await firestore.collection('Users')
-  var snapshot
+  const snapshot =
+    query.length != 0
+      ? await firestore
+          .collection('Users')
+          .where('displayName', '>=', query)
+          .where('displayName', '<=', query + '~')
+          .orderBy('displayName')
+          .limit(10)
+          .get()
+          .catch((error) => console.log(error))
+      : await firestore
+          .collection('Users')
+          .orderBy('displayName')
+          .limit(10)
+          .get()
+          .catch((error) => console.log(error))
 
-  if (query.length != 0) {
-    snapshot = ref
-      .where('username', 'array-contains', query)
-      .orderBy('username', 'asc')
-      .limit(10)
-      .get()
-    console.log('query null')
-  } else {
-    snapshot = ref.orderBy('username', 'asc').limit(10).get()
-    console.log('query not null')
-  }
+  snapshot.docs.map((doc) => {
+    const user = doc.data()
 
-  if (snapshot.empty) {
-    console.log('No results')
-  } else {
-    snapshot.forEach((doc) => {
-      const u = doc.data()
-      const user = {}
-      user.userID = u.uid
-      user.username = u.displayName
-      user.photoURL = u.photoURL
-      users.push(user)
-      console.log(doc.data())
+    users.push({
+      uid: doc.id,
+      username: user.displayName,
+      photoURL: user.photoURL,
     })
-  }
+  })
 
+  const message = users.length != 0 ? 'OK' : 'No results'
+  console.log(message)
   dispatch(updateSearchedUsers(users))
 }
 

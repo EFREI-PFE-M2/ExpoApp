@@ -1,75 +1,40 @@
-import React, { useState }  from 'react'
+import React, { useEffect, useState }  from 'react'
 import { Text, TouchableOpacity, StyleSheet, StatusBar, View } from 'react-native'
 import { Searchbar, Avatar } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
-import { users } from '../store/testChatStore'
+//import { users } from '../store/testChatStore'
 import { selectCurrentUser } from '../store/userSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { searchUsers } from '../store/chatSlice'
 import store from '../store'
+import { ScrollView } from 'react-native-gesture-handler'
 
 function AddChatScreen() {
   const [searchQuery, setSearchQuery] = useState('')
-  //const users_ = useSelector((s))
-  const [searchedUsers, setSearchedUsers] = useState(users)
+  const dispatch = useDispatch()
+
+  const searchedUsers = useSelector((state) => state.chat.searchedUsers)  
   const displayUser = useSelector(selectCurrentUser)
   
   const { photoURL, username } = displayUser  
-  const navigation = useNavigation()
-  const dispatch = useDispatch()
 
   return (<View>
       <View style={styles.searchBar}>
         <Searchbar inputStyle={{color: "#000"}}
-        placeholder="Recherche" iconColor="#000" onChangeText={(query) => { 
-          dispatch(searchUsers(query))
-          //setSearchQuery(query); 
-          //let array = users.filter(u => u.username.includes(query));
-          //setSearchedUsers(array);
+        placeholder="Recherche" iconColor="#000" onChangeText={async (query) => { 
+          setSearchQuery(query);
+          await dispatch(searchUsers(query))
         }}
         value={searchQuery}
         />
-      
-      </View></View>
-    );
-}
-
-/*
-</View>
-      {searchedUsers.map((u, i) => {
-        return (
-          <TouchableOpacity
+      </View>
+      <ScrollView>
+        {searchedUsers.map((u: any, i: any) => { 
+          return(<TouchableOpacity
             key={i}
             style={styles.containerProfile}
             onPress={() =>
-              navigation.navigate('ChatRoom', {
-                from: username,
-                fromPicture: photoURL,
-                to: u.username,
-                toPicture: u.photoURL,
-                title: (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      backgroundColor: 'rgba(0, 0, 0, 0)',
-                    }}>
-                    <Avatar.Image
-                      size={45}
-                      source={{ uri: u.photoURL }}
-                    />
-                    <View
-                      style={{
-                        marginStart: 10,
-                        flexDirection: 'column',
-                        backgroundColor: 'rgba(0, 0, 0, 0)',
-                      }}>
-                      <Text style={styles.titleStyle}>
-                        {u.username}
-                      </Text>
-                    </View>
-                  </View>
-                ),
-              })
+              {alert('create chat')} 
             }>
             <Avatar.Image size={40} source={{ uri: u.photoURL }} />
             <View style={{
@@ -79,11 +44,11 @@ function AddChatScreen() {
                       }}>
               <Text>{u.username}</Text>
             </View>
-          </TouchableOpacity>
-        )
-      })}
+          </TouchableOpacity>)})}
+      </ScrollView>
       </View>
-*/
+    );
+}
 
 export default function AddChat() {
     return (

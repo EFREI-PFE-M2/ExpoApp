@@ -9,14 +9,11 @@ import {
 } from '../utils/ChatFunctions'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/userSlice'
-import { getConversation } from '../store/chatSlice'
+import { getConversation, searchUsers } from '../store/chatSlice'
 
 export default function ChatList({ navigation }) {
   const displayUser = useSelector(selectCurrentUser)
   const { uid } = displayUser
-
-  //const dispatch = useDispatch()
-  //dispatch(getConversation('xDkv5ByD2CDZb5ixdzJy'))
 
   const privateChats = useSelector((state) => state.chat.privateConversations)
 
