@@ -1,13 +1,14 @@
 import { createStackNavigator, StackNavigationOptions } from '@react-navigation/stack'
-import React from 'react'
+import React, { useState } from 'react'
 import AddChat from '../screens/AddChat'
 import ChatList from '../screens/ChatList'
 import ChatRoom from '../screens/ChatRoom'
-import {View, StatusBar, StyleSheet} from 'react-native'
-import { IconButton } from 'react-native-paper'
+import {View, Text, StatusBar, StyleSheet, TouchableWithoutFeedback} from 'react-native'
+import { Button, IconButton } from 'react-native-paper'
 import PrivateChatMenuOptions from '../components/Custom/PrivateChatMenuOptions'
 import { useDispatch, useSelector } from 'react-redux'
 import { searchUsers } from '../store/chatSlice'
+//import { TouchableWithoutFeedback } from 'react-native-gesture-handler'
 
 const Stack = createStackNavigator()
 
@@ -27,6 +28,10 @@ const defaultScreenOptions: StackNavigationOptions = {
 
 export default function ChatStack({navigation}) {
   const dispatch = useDispatch()
+  const [showState, setShowState] = useState(false);
+  const btn = () => { 
+    return (<Text></Text>)
+  }
   return (
     <Stack.Navigator screenOptions={defaultScreenOptions}>
       <Stack.Screen name="ChatList" 
@@ -36,7 +41,7 @@ export default function ChatStack({navigation}) {
           <View>
             <IconButton 
               icon="chevron-left"
-              onPress={() => navigation.navigate('Home')}
+              onPress={() => {setShowState(false); navigation.navigate('Home')}}
               size={30}
               color="#fff"
             />
@@ -47,7 +52,12 @@ export default function ChatStack({navigation}) {
               icon="message-plus"
               color={tintColor}
               size={22}
-              onPress={async () => { await dispatch(searchUsers('')); navigation.navigate('AddChat') } }
+              onPress={async () => { 
+                await dispatch(searchUsers('')); 
+                navigation.navigate('AddChat', { 
+                  showState, setShowState 
+                })} 
+              }
             />
           </View>
         ),
@@ -68,7 +78,23 @@ export default function ChatStack({navigation}) {
       <Stack.Screen name="AddChat"
           component={AddChat}
           options={{ 
-            headerTitle: 'Nouvelle discussion'
+            headerTitle: 'Nouvelle discussion',
+            headerRight: ({ tintColor }) => 
+              { return !showState ?
+              <>
+                <TouchableWithoutFeedback onPress={() => console.log('Pressed')}>
+                  <View style={{marginRight: 10}}>
+                    <Text style={{fontSize: 14, color: tintColor}}></Text>
+                  </View>
+                </TouchableWithoutFeedback>
+              </>
+              :
+              <TouchableWithoutFeedback onPress={() => console.log('Pressed')}>
+                  <View style={{marginRight: 10}}>
+                    <Text style={{fontSize: 14, color: tintColor}}>Ajouter</Text>
+                  </View>
+                </TouchableWithoutFeedback>
+            }
       }}/>
     </Stack.Navigator> 
   )

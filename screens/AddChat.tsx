@@ -1,21 +1,40 @@
-import React, { useEffect, useState }  from 'react'
+import React, { useEffect, useState, useCallback }  from 'react'
 import { Text, TouchableOpacity, StyleSheet, StatusBar, View } from 'react-native'
-import { Searchbar, Avatar } from 'react-native-paper'
+import { Searchbar, Avatar, RadioButton } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
-//import { users } from '../store/testChatStore'
 import { selectCurrentUser } from '../store/userSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { searchUsers } from '../store/chatSlice'
-import store from '../store'
+import { capitalize } from '../utils/ChatFunctions'
 import { ScrollView } from 'react-native-gesture-handler'
 
-function AddChatScreen() {
+export default function AddChat({route}) {
   const [searchQuery, setSearchQuery] = useState('')
   const dispatch = useDispatch()
 
   const searchedUsers = useSelector((state) => state.chat.searchedUsers)  
   const displayUser = useSelector(selectCurrentUser)
+  const noResults = 'No results.'
+
+  const [toggleBtn, setToggleBtn] = useState(null)
+
+  const { showState, setShowState } = route.params
+
+  const toggleButton = (buttonId: number) => {
+    if (toggleBtn == buttonId)
+    {
+      setShowState(false)
+      setToggleBtn(null)
+    } else {
+      setShowState(true)
+      setToggleBtn(buttonId)
+    }      
+  }
   
+
+
+  //const [count, setCount] = useState(0)
+
   const { photoURL, username } = displayUser  
 
   return (<View>
@@ -23,37 +42,47 @@ function AddChatScreen() {
         <Searchbar inputStyle={{color: "#000"}}
         placeholder="Recherche" iconColor="#000" onChangeText={async (query) => { 
           setSearchQuery(query);
-          await dispatch(searchUsers(query))
+          await dispatch(searchUsers(capitalize(query)))
         }}
         value={searchQuery}
         />
       </View>
+      { searchedUsers.length == 0 ?
+      <>
+      <Text style={{marginStart: 10, marginTop: 10, fontSize: 16}}>{noResults}</Text>
+      </>
+      :
+      <>
       <ScrollView>
         {searchedUsers.map((u: any, i: any) => { 
+          const radioBtn = "radioBtn"+i
+          const isToggled = i === toggleBtn;
+
           return(<TouchableOpacity
             key={i}
             style={styles.containerProfile}
-            onPress={() =>
-              {alert('create chat')} 
-            }>
-            <Avatar.Image size={40} source={{ uri: u.photoURL }} />
-            <View style={{
-                        marginStart: 10,
-                        marginTop: 10,
-                        backgroundColor: 'rgba(0, 0, 0, 0)',
-                      }}>
-              <Text>{u.username}</Text>
+            onPress={() => toggleButton(i)} 
+            >
+            <Avatar.Image size={48} source={{ uri: u.photoURL }} />
+            <View style={styles.containerView}>
+              <Text style={{marginTop: 7}}>{u.username}</Text>
+              <View >
+                <RadioButton
+                  value={radioBtn}
+                  color="#000"
+                  uncheckedColor="grey"
+                  status={ isToggled ? 'checked' : 'unchecked' }
+                  onPress={() => toggleButton(i)}
+                />
+              </View>
+              
             </View>
           </TouchableOpacity>)})}
       </ScrollView>
-      </View>
+      </>
+      }
+    </View>
     );
-}
-
-export default function AddChat() {
-    return (
-      <AddChatScreen/>
-    )
 }
 
 const styles = StyleSheet.create({
@@ -70,6 +99,14 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
       fontSize: 14,
       color: '#fff',
+    },
+    containerView: {
+      flexDirection: 'row',
+      marginStart: 10,
+      marginTop: 8,
+      backgroundColor: 'rgba(0, 0, 0, 0)',
+      flex: 1,
+      justifyContent: 'space-between'
     },
     containerProfile: {
       flexDirection: 'row',
