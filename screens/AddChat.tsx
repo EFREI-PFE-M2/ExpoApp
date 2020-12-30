@@ -20,7 +20,7 @@ export default function AddChat({route}) {
 
   const { showState, setShowState } = route.params
 
-  const toggleButton = (buttonId: number) => {
+  const toggleButton = (buttonId: string) => {
     if (toggleBtn == buttonId)
     {
       setShowState(false)
@@ -30,8 +30,6 @@ export default function AddChat({route}) {
       setToggleBtn(buttonId)
     }      
   }
-  
-
 
   //const [count, setCount] = useState(0)
 
@@ -42,7 +40,7 @@ export default function AddChat({route}) {
         <Searchbar inputStyle={{color: "#000"}}
         placeholder="Recherche" iconColor="#000" onChangeText={async (query) => { 
           setSearchQuery(query);
-          await dispatch(searchUsers(capitalize(query)))
+          await dispatch(searchUsers(query))
         }}
         value={searchQuery}
         />
@@ -55,24 +53,24 @@ export default function AddChat({route}) {
       <>
       <ScrollView>
         {searchedUsers.map((u: any, i: any) => { 
-          const radioBtn = "radioBtn"+i
-          const isToggled = i === toggleBtn;
+          const btnId = u.uid
+          const isToggled = btnId === toggleBtn;
 
           return(<TouchableOpacity
-            key={i}
+            key={btnId}
             style={styles.containerProfile}
-            onPress={() => toggleButton(i)} 
+            onPress={() => toggleButton(btnId)} 
             >
             <Avatar.Image size={48} source={{ uri: u.photoURL }} />
             <View style={styles.containerView}>
               <Text style={{marginTop: 7}}>{u.username}</Text>
               <View >
                 <RadioButton
-                  value={radioBtn}
+                  value={btnId}
                   color="#000"
                   uncheckedColor="grey"
                   status={ isToggled ? 'checked' : 'unchecked' }
-                  onPress={() => toggleButton(i)}
+                  onPress={() => toggleButton(btnId)}
                 />
               </View>
               
