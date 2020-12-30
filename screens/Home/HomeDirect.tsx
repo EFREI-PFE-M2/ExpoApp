@@ -17,10 +17,6 @@ export default function HomeDirect() {
   const races = useSelector(({ race }) => race.races)
   const dispatch = useDispatch()
 
-  useEffect(() => {
-    dispatch(getInitRaces(new Date().toDateString()))
-  }, [])
-  
   return (
     <ScrollView style={styles.container}>
       <DatePicker />

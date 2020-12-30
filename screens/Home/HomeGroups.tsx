@@ -1,11 +1,18 @@
 import React from 'react'
+import { useSelector } from 'react-redux'
 import GroupCard from '../../components/GroupCards'
 import { View } from '../../components/Themed'
+import { getUserGroup } from '../../store/groupSlice'
+import { selectCurrentUser } from '../../store/userSlice'
 
 export default function HomeGroups() {
+  const groups = useSelector(({ group }) => group.groups)
+
   return (
     <View>
-      <GroupCard groupID={1} />
+      {Object.keys(groups)?.map((group, key) => (
+        <GroupCard key={key} groupID={group} />
+      ))}
     </View>
   )
 }

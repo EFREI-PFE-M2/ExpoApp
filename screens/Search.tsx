@@ -84,6 +84,7 @@ function GroupTab() {
   const [visible, setVisible] = useState(false)
   const results = useSelector(selectGroupResults)
   const dispatch = useDispatch()
+  const { navigate } = useNavigation()
 
   const searchInputOnChange = (value) => setSearch(value)
   const createGroupPress = () => setVisible(true)
@@ -92,7 +93,9 @@ function GroupTab() {
   const submit = () => dispatch(searchGroups(search))
 
   const RenderGroups = () =>
-    results?.map((group, key) => <GroupCard key={key} group={group} />)
+    results?.map((group, key) => (
+      <GroupCard key={key} group={group} navigate={navigate} />
+    ))
 
   useEffect(() => {
     !search && dispatch(resetGroups())

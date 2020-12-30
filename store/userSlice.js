@@ -3,6 +3,8 @@ import {
   FirebaseAuth as auth,
   FirebaseFirestore as firestore,
 } from '../firebase'
+import { getUserGroup } from './groupSlice'
+import { getInitRaces } from './raceSlice'
 import { setFirebaseAuthError } from './sessionSlice'
 
 export const userSlice = createSlice({
@@ -222,6 +224,8 @@ export const autoAuth = () => async (dispatch) => {
 
       dispatch(updateUser(newUser))
       retrieveUserData(user.uid, dispatch)
+      dispatch(getInitRaces(new Date().toDateString()))
+      dispatch(getUserGroup(user.uid))
     }
   })
 }

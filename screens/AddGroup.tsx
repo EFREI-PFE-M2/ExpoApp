@@ -9,13 +9,25 @@ import {
   TouchableRipple,
 } from 'react-native-paper'
 import { TouchableOpacity } from 'react-native-gesture-handler'
+import { createGroup } from '../store/groupSlice'
+import { useDispatch } from 'react-redux'
 
-export default function AddGroup({ goBack }) {
+
+export default function AddGroup({ goBack, goToGroup }) {
   const [name, setName] = useState('')
   const [switchState, setSwitchState] = useState(false)
+  const dispatch = useDispatch()
+  
 
   const nameOnChange = (value) => setName(value)
   const switchOnChange = () => setSwitchState((prev) => !prev)
+
+  const submit = () => {
+    dispatch(createGroup(name, switchState, '')).then(result => {
+      result && alert('Groupe a été crée!')
+    })
+    goBack()
+  }
   return (
     <View style={styles.container}>
       <TopBar goBack={goBack} />
@@ -57,7 +69,8 @@ export default function AddGroup({ goBack }) {
         mode="contained"
         color="#194A4C"
         labelStyle={{ fontSize: 18, fontWeight: 'bold' }}
-        style={{ marginHorizontal: 15 }}>
+        style={{ marginHorizontal: 15 }}
+        onPress={submit}>
         Créer le groupe
       </Button>
     </View>
