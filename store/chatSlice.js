@@ -9,12 +9,16 @@ export const chatSlice = createSlice({
   initialState: {
     privateConversations: {},
     groupConversations: {},
-    searchedUsers: [],
+    usersToSearch: [],
+    usersToAdd: [],
     error: '',
   },
   reducers: {
-    updateSearchedUsers: (state, action) => {
-      state.searchedUsers = action.payload
+    updateUsersToSearch: (state, action) => {
+      state.usersToSearch = action.payload
+    },
+    updateUsersToAdd: (state, action) => {
+      state.usersToAdd = action.payload
     },
     addToPrivate: (state, action) => {
       // Action.payload is a snapshot!
@@ -32,15 +36,6 @@ export const chatSlice = createSlice({
     },
   },
 })
-
-/*
-searched user object format:
-let user = {
-  userID: '',
-  username: '',
-  profilePicture: '',
-}
-*/
 
 export const searchUsers = (query) => async (dispatch) => {
   let users = []
@@ -74,8 +69,27 @@ export const searchUsers = (query) => async (dispatch) => {
 
   const message = users.length != 0 ? 'OK' : 'No results'
   console.log(message)
-  dispatch(updateSearchedUsers(users))
+  dispatch(updateUsersToSearch(users))
 }
+
+// test for one user
+export const selectUsers = (uid) => async (dispatch, getState) => {
+  const { chat } = getState()
+
+  let users = []
+  if (typeof uid == 'string') users.push(uid)
+  console.log(users)
+  dispatch(updateUsersToAdd(users))
+}
+
+/*
+searched user object format:
+let user = {
+  userID: '',
+  username: '',
+  profilePicture: '',
+}
+*/
 
 /*
 privateConversation object format:
@@ -118,7 +132,8 @@ let message = {
 //actions imports
 
 export const {
-  updateSearchedUsers,
+  updateUsersToSearch,
+  updateUsersToAdd,
   addToPrivate,
   setError,
   addMessagesToConversation,
@@ -176,33 +191,46 @@ export const createConversation = (senderID, receiverID) => async (
   try {
     const snapshot = await firestore
       .collection('PrivateConversation')
-      .where('users', 'array-contains-any', [senderID, receiverID])
+      .where('users', 'array-contains', senderID)
       .get()
 
-    if (snapshot.size) return dispatch(setError('Conversation already exists.'))
+    let array = [...snapshot.docs]
+    array = array.filter((doc) => {
+      const chat = doc.data()
+      const conditionFirst = chat.senderID == receiverID
+      const conditionSecond = chat.receiverID == receiverID
+      if (conditionFirst || conditionSecond) return true
+      else return false
+    })
 
-    let data = {
-      senderID,
-      receiverID,
-      users: [senderID, receiverID],
+    if (array.length != 0) {
+      await dispatch(setError('Conversation already exists.'))
+    } else {
+      let data = {
+        senderID,
+        receiverID,
+        users: [senderID, receiverID],
+      }
+      console.log(JSON.stringify(data))
+      // Create new conversation on the database
+      const querySnapshot = await firestore
+        .collection('PrivateConversation')
+        .add(data)
+
+      console.log('new doc: ' + querySnapshot.id)
+
+      // Add to local
+      dispatch(
+        addToPrivate([
+          {
+            id: querySnapshot.id,
+            data,
+          },
+        ])
+      )
     }
-
-    // Create new conversation on the database
-    const querySnapshot = await firestore
-      .collection('PrivateConversation')
-      .add(data)
-
-    // Add to local
-    dispatch(
-      addToPrivate([
-        {
-          id: querySnapshot.id,
-          data,
-        },
-      ])
-    )
-  } catch (err) {
-    console.error(err)
+  } catch (error) {
+    console.log(error)
   }
 }
 
@@ -258,6 +286,9 @@ export const sendTextMessage = (conversationID, content) => async (
 }
 
 // selectors
-export const selectSearchedUsers = (state) => state.searchedUsers
+export const selectPrivateChats = (state) => state.chat.privateConversations
+export const selectUsersToSearch = (state) => state.chat.usersToSearch
+export const selectUsersToAdd = (state) => state.chat.usersToAdd
+export const selectError = (state) => state.chat.error
 
 export const chatReducer = chatSlice.reducer

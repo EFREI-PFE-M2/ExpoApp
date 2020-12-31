@@ -9,81 +9,133 @@ import {
 } from '../utils/ChatFunctions'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/userSlice'
-import { getConversation, searchUsers } from '../store/chatSlice'
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
+import { selectPrivateChats } from '../store/chatSlice'
 
-export default function ChatList({ navigation }) {
+function PrivateChatList({ navigation }) {
   const displayUser = useSelector(selectCurrentUser)
   const { uid } = displayUser
 
-  const privateChats = useSelector((state) => state.chat.privateConversations)
+  const noPrivateChats = 'No private conversations.'
 
-  let chats = []
-  for (let i in privateChats) chats.push(privateChats[i])
+  const privateChats = useSelector(selectPrivateChats)
 
-  let chatInfo = chats.find(
-    (c) =>
-      (c.senderID = 'Yv4ZvUNErYhEc5l7uJ7ZzhiIyw32') &&
-      (c.receiverID = 'MD3IFJBvLQbKkR3Z8g2BEGJ2Lht2')
-  )
-
-  chats = chats.filter((c) => (c.senderID = uid))
+  let pChats = []
+  for (let i in privateChats) pChats.push(privateChats[i])
 
   return (
     <ScrollView>
-      {chats.map((c, i) => {
-        const chatInfo = chats.find(
-          (ch) => (ch.senderID = c.senderID) && (ch.receiverID = c.receiverID)
-        )
+      {pChats.length == 0 ? (
+        <Text style={{ marginTop: 10, marginStart: 10, fontSize: 16 }}>
+          {noPrivateChats}
+        </Text>
+      ) : (
+        pChats.map((c, i) => {
+          const chatInfo = c
 
-        const displayName = c.receiverDisplayName
-        const photoURL = c.receiverPhotoURL
-        const comment = chatInfo.messages.pop().text
-        const createdAt = chatInfo.messages.pop().createdAt
+          const displayName = c.receiverDisplayName
+          const photoURL = c.receiverPhotoURL
+          const comment = 'comment' //chatInfo.messages.pop().text
+          const createdAt = new Date().getTime() //chatInfo.messages.pop().createdAt
 
-        return (
-          <TouchableOpacity
-            key={i}
-            style={styles.containerChatRoomItem}
-            onPress={() =>
-              navigation.navigate('ChatRoom', {
-                chatInfo,
-                title: (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      backgroundColor: 'rgba(0, 0, 0, 0)',
-                    }}>
-                    <Avatar.Image size={45} source={{ uri: photoURL }} />
+          return (
+            <TouchableOpacity
+              key={i}
+              style={styles.containerChatRoomItem}
+              onPress={() =>
+                navigation.navigate('ChatRoom', {
+                  chatInfo,
+                  title: (
                     <View
                       style={{
-                        marginStart: 10,
-                        flexDirection: 'column',
+                        flexDirection: 'row',
                         backgroundColor: 'rgba(0, 0, 0, 0)',
                       }}>
-                      <Text style={styles.titleStyle}>
-                        {GetRoomTitleShort(displayName)}
-                      </Text>
+                      <Avatar.Image size={45} source={{ uri: photoURL }} />
+                      <View
+                        style={{
+                          marginStart: 10,
+                          flexDirection: 'column',
+                          backgroundColor: 'rgba(0, 0, 0, 0)',
+                        }}>
+                        <Text style={styles.titleStyle}>
+                          {GetRoomTitleShort(displayName)}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                ),
-              })
-            }>
-            <Avatar.Image size={60} source={{ uri: photoURL }} />
-            <View style={{ marginStart: 10, ...styles.viewStyle }}>
-              <Text style={styles.nameStyle}>{displayName}</Text>
-              <View style={styles.viewStyle}>
-                <Text style={styles.lastMessageStyle}>
-                  {GetMessageShort(comment)}
-                </Text>
-                <Text style={styles.publishedDateStyle}>
-                  - {GetPublishedDate(createdAt)}
-                </Text>
+                  ),
+                })
+              }>
+              <Avatar.Image size={60} source={{ uri: photoURL }} />
+              <View style={{ marginStart: 10, ...styles.viewStyle }}>
+                <Text style={styles.nameStyle}>{displayName}</Text>
+                <View style={styles.viewStyle}>
+                  <Text style={styles.lastMessageStyle}>
+                    {GetMessageShort(comment)}
+                  </Text>
+                  <Text style={styles.publishedDateStyle}>
+                    - {GetPublishedDate(createdAt)}
+                  </Text>
+                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        )
-      })}
+            </TouchableOpacity>
+          )
+        })
+      )}
     </ScrollView>
+  )
+}
+
+function GroupChatList({ navigation }) {
+  const noGroupChats = 'No group conversations.'
+  return (
+    <ScrollView>
+      {[].length == 0 ? (
+        <Text style={{ marginTop: 10, marginStart: 10, fontSize: 16 }}>
+          {noGroupChats}
+        </Text>
+      ) : (
+        <ScrollView></ScrollView>
+      )}
+    </ScrollView>
+  )
+}
+
+const Tab = createMaterialTopTabNavigator()
+
+export default function ChatListStack({ navigation }) {
+  return (
+    <>
+      <Tab.Navigator
+        tabBarOptions={{
+          labelStyle: {
+            fontSize: 12,
+            fontWeight: 'bold',
+            color: '#194A4C',
+          },
+          indicatorStyle: {
+            backgroundColor: '#194A4C',
+          },
+          showLabel: true,
+          showIcon: true,
+          tabStyle: {
+            flexDirection: 'row',
+          },
+        }}>
+        <Tab.Screen
+          name="Privés"
+          component={PrivateChatList}
+          options={{
+            title: 'Privés',
+          }}
+        />
+        <Tab.Screen
+          name="Groupes"
+          component={GroupChatList}
+          options={{ title: 'Groupes' }}
+        />
+      </Tab.Navigator>
+    </>
   )
 }
 
