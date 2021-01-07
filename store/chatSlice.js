@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { exp } from 'react-native-reanimated'
 import {
   FirebaseAuth as auth,
   FirebaseFirestore as firestore,
@@ -7,6 +8,7 @@ import {
 export const chatSlice = createSlice({
   name: 'chat',
   initialState: {
+    messages: [],
     privateConversations: {},
     groupConversations: {},
     usersToSearch: [],
@@ -14,6 +16,9 @@ export const chatSlice = createSlice({
     error: '',
   },
   reducers: {
+    updateMessages: (state, action) => {
+      state.messages = action.payload
+    },
     updateUsersToSearch: (state, action) => {
       state.usersToSearch = action.payload
     },
@@ -24,6 +29,7 @@ export const chatSlice = createSlice({
       // Action.payload is a snapshot!
       action.payload?.forEach((element) => {
         state.privateConversations[element.id] = element.data
+        state.privateConversations[element.id].messages = {}
       })
     },
     setError: (state, action) => {
@@ -82,56 +88,35 @@ export const selectUsers = (uid) => async (dispatch, getState) => {
   dispatch(updateUsersToAdd(users))
 }
 
-/*
-searched user object format:
-let user = {
-  userID: '',
-  username: '',
-  profilePicture: '',
-}
-*/
+export const getMessagesFromPrivateConversation = (conversationID) => async (
+  dispatch
+) => {
+  let messages = []
+  const snapshot = await firestore
+    .collection('PrivateConversation')
+    .doc(conversationID)
+    .collection('Messages')
+    .orderBy('createdAt')
+    .get()
 
-/*
-privateConversation object format:
-let privateConversation = {
-  interlocutorID
-  interlocutorUsername
-  interlocutorProfilePicture
-  messages: []
-}
-*/
+  snapshot.docs.map((doc) => {
+    const message = doc.data()
+    console.log(JSON.stringify(message))
+    messages.push({
+      messageID: doc.id,
+      ...message,
+    })
+  })
 
-/*
-privateConversation object format:
-let groupConversation = {
-  groupName: ''
-  groupPicture: '',
-  groupID: '',
-  messages: []
-}
-*/
+  console.log(messages.length)
 
-/*
-message object format:
-let message = {
-  type: '',
-  datetime: '',
-  username: '',
-  profilePicture: '',
-  userID: '',
-  ---
-  text: '',
-  ---
-  imageCaption: '',
-  image: '',
-  ---
-  audio: ''
+  dispatch(updateMessages(messages))
 }
-*/
 
 //actions imports
 
 export const {
+  updateMessages,
   updateUsersToSearch,
   updateUsersToAdd,
   addToPrivate,
@@ -203,15 +188,15 @@ export const createConversation = (senderID, receiverID) => async (
       else return false
     })
 
-    if (array.length != 0) {
-      await dispatch(setError('Conversation already exists.'))
-    } else {
+    if (array.length != 0)
+      return await dispatch(setError('Conversation already exists.'))
+    else {
       let data = {
         senderID,
         receiverID,
         users: [senderID, receiverID],
       }
-      console.log(JSON.stringify(data))
+
       // Create new conversation on the database
       const querySnapshot = await firestore
         .collection('PrivateConversation')
@@ -239,11 +224,12 @@ export const startMessagesListening = (conversationID) => async (dispatch) => {
     const unsubscribe = await firestore
       .collection('PrivateConversation')
       .doc(conversationID)
-      .collection('messages')
+      .collection('Messages')
       .onSnapshot((snapshot) => {
-        snapshot.docChanges()?.forEach((change) => {
+        snapshot.docChanges()?.forEach(async (change) => {
           if (change.type === 'added') {
-            dispatch(
+            console.log('ok')
+            await dispatch(
               addMessagesToConversation({
                 conversationID,
                 messageID: change.doc.id,
@@ -260,13 +246,13 @@ export const startMessagesListening = (conversationID) => async (dispatch) => {
   }
 }
 
-export const sendTextMessage = (conversationID, content) => async (
+export const sendTextMessage = (conversationID, message) => async (
   dispatch,
   getState
 ) => {
   const { chat } = getState()
   try {
-    if (!content || !conversationID) return
+    if (!message || !conversationID) return
 
     // Check locally if conversation ID exists
     if (!chat.privateConversations.hasOwnProperty(conversationID))
@@ -275,17 +261,16 @@ export const sendTextMessage = (conversationID, content) => async (
     await firestore
       .collection('PrivateConversation')
       .doc(conversationID)
-      .collection('messages')
-      .add({
-        type: 'text',
-        text: content,
-      })
+      .collection('Messages')
+      .add(message)
   } catch (err) {
+    console.log('nope')
     console.error(err)
   }
 }
 
 // selectors
+export const selectMessages = (state) => state.chat.messages
 export const selectPrivateChats = (state) => state.chat.privateConversations
 export const selectUsersToSearch = (state) => state.chat.usersToSearch
 export const selectUsersToAdd = (state) => state.chat.usersToAdd

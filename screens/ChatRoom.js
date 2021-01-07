@@ -8,6 +8,11 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { GetPublishedDate } from '../utils/ChatFunctions'
 import { Avatar } from 'react-native-paper'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
+import {
+  selectMessages,
+  sendTextMessage,
+  startMessagesListening,
+} from '../store/chatSlice'
 
 function showExtraInfo(check, sameItem) {
   if (!(check && sameItem)) {
@@ -25,11 +30,22 @@ export default function ChatRoom({ route }) {
 
   const { chatInfo } = route.params
 
-  const [chatHistory, setChatHistory] = useState(chatInfo.messages)
+  const messages = useSelector(
+    (state) => state.chat.privateConversations[chatInfo.chatID]?.messages
+  )
+  const msgs = useSelector(selectMessages)
+  const dispatch = useDispatch()
+
+  let messagesArray = []
+  for (let i in messages) {
+    messagesArray.push(messages[i])
+  }
+
+  const [chatHistory, setChatHistory] = useState(msgs)
   const [content, setContent] = useState('')
 
   const sendMessage = () => {
-    const datetime = new Date().getTime()
+    const datetime = new Date()
 
     if (content.trim() != '') {
       const message = {
@@ -39,19 +55,45 @@ export default function ChatRoom({ route }) {
         photoURL,
         uid,
         text: content.trim(),
+        audio: '',
+        image: '',
+        imageCaption: '',
       }
 
-      let messages = chatHistory
-      messages.push(message)
       setContent('')
-      setChatHistory(messages)
+
+      setChatHistory([...chatHistory, message])
+      dispatch(sendTextMessage(chatInfo.chatID, message))
     }
+  }
+
+  function isCloseToBottom({ layoutMeasurement, contentOffset, contentSize }) {
+    return layoutMeasurement.height + contentOffset.y >= contentSize.height - 20
+  }
+
+  function isCloseToTop({ layoutMeasurement, contentOffset, contentSize }) {
+    return contentOffset.y == 0
   }
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView
+        onScroll={({ nativeEvent }) => {
+          if (isCloseToTop(nativeEvent)) {
+            console.log('top')
+          }
+          if (isCloseToBottom(nativeEvent)) {
+            console.log('bottom')
+          }
+        }}
+        ref={(ref) => {
+          this.scrollView = ref
+        }}
+        onContentSizeChange={() =>
+          this.scrollView.scrollToEnd({ animated: true })
+        }>
         {chatHistory.map((m, i) => {
+          const dt = new Date(m.createdAt['seconds'] * 1000)
           if (m.uid == chatInfo.senderID) {
             return (
               <View style={{ backgroundColor: 'rgba(0,0,0,0)', padding: 10 }}>
@@ -60,7 +102,7 @@ export default function ChatRoom({ route }) {
                     display: showExtraInfo(showState, i == currentItem),
                     ...styles.publishedDateStyle,
                   }}>
-                  {GetPublishedDate(m.createdAt)}
+                  {GetPublishedDate(dt)}
                 </Text>
                 <Text
                   style={{
@@ -102,7 +144,7 @@ export default function ChatRoom({ route }) {
                     display: showExtraInfo(showState, i == currentItem),
                     ...styles.publishedDateStyle,
                   }}>
-                  {GetPublishedDate(m.createdAt)}
+                  {GetPublishedDate(dt)}
                 </Text>
                 <Text style={{ paddingLeft: 60, paddingTop: 15 }}>
                   {m.displayName}

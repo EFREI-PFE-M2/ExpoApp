@@ -8,8 +8,7 @@ export function GetMessageShort(comment: string) {
   else return comment
 }
 
-export function GetPublishedDate(timestamp: number) {
-  let dt = new Date(timestamp)
+export function GetPublishedDate(dt: Date) {
   let now = new Date()
   let secondByMs = 1000
   let minuteByMs = 60 * secondByMs

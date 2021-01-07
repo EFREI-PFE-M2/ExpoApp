@@ -48,7 +48,7 @@ export default function ChatStack({navigation}) {
   const createChat = async () => {
     await dispatch(createConversation(uid, selectUser[0]))
 
-    if (error.length != 0)
+    if (await error.length != 0)
       Alert.alert("Error", error, [{text: 'OK', onPress: goBackToChatList}])
     else
       Alert.alert("Confirmation", "Conversation created.", [{text: 'OK', onPress: goBackToChatList}])
@@ -91,7 +91,8 @@ export default function ChatStack({navigation}) {
       <Stack.Screen name="ChatRoom"
         component={ChatRoom}
         options={({ route }) => ({
-          headerTitle: route.params.title,
+          title: route.params.title,
+          headerTitleAlign: 'left',
           headerRight: ({ tintColor }) => (
             <View style={styles.iconRight}>
               <PrivateChatMenuOptions />

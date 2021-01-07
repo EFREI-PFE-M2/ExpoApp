@@ -10,7 +10,11 @@ import {
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/userSlice'
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
-import { selectPrivateChats } from '../store/chatSlice'
+import {
+  selectPrivateChats,
+  startMessagesListening,
+  getMessagesFromPrivateConversation,
+} from '../store/chatSlice'
 
 function PrivateChatList({ navigation }) {
   const displayUser = useSelector(selectCurrentUser)
@@ -18,10 +22,19 @@ function PrivateChatList({ navigation }) {
 
   const noPrivateChats = 'No private conversations.'
 
-  const privateChats = useSelector(selectPrivateChats)
+  let privateChats = useSelector(selectPrivateChats)
 
   let pChats = []
-  for (let i in privateChats) pChats.push(privateChats[i])
+
+  for (let i in privateChats) {
+    let privateChat = {
+      ...privateChats[i],
+      chatID: i,
+    }
+    pChats.push(privateChat)
+  }
+
+  const dispatch = useDispatch()
 
   return (
     <ScrollView>
@@ -36,13 +49,15 @@ function PrivateChatList({ navigation }) {
           const displayName = c.receiverDisplayName
           const photoURL = c.receiverPhotoURL
           const comment = 'comment' //chatInfo.messages.pop().text
-          const createdAt = new Date().getTime() //chatInfo.messages.pop().createdAt
+          const createdAt = new Date() //chatInfo.messages.pop().createdAt
 
           return (
             <TouchableOpacity
               key={i}
               style={styles.containerChatRoomItem}
-              onPress={() =>
+              onPress={async () => {
+                //await dispatch(startMessagesListening(c.chatID))
+                await dispatch(getMessagesFromPrivateConversation(c.chatID))
                 navigation.navigate('ChatRoom', {
                   chatInfo,
                   title: (
@@ -54,8 +69,9 @@ function PrivateChatList({ navigation }) {
                       <Avatar.Image size={45} source={{ uri: photoURL }} />
                       <View
                         style={{
-                          marginStart: 10,
                           flexDirection: 'column',
+                          justifyContent: 'center',
+                          marginBottom: 5,
                           backgroundColor: 'rgba(0, 0, 0, 0)',
                         }}>
                         <Text style={styles.titleStyle}>
@@ -65,7 +81,7 @@ function PrivateChatList({ navigation }) {
                     </View>
                   ),
                 })
-              }>
+              }}>
               <Avatar.Image size={60} source={{ uri: photoURL }} />
               <View style={{ marginStart: 10, ...styles.viewStyle }}>
                 <Text style={styles.nameStyle}>{displayName}</Text>
@@ -164,6 +180,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   titleStyle: {
+    marginStart: 15,
     fontWeight: 'bold',
     fontSize: 14,
     color: '#fff',
