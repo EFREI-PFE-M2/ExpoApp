@@ -35,8 +35,7 @@ export default function ChatStack({navigation}) {
 
   const displayUser = useSelector(selectCurrentUser)
   const selectUser = useSelector(selectUsersToAdd)
-  const error = useSelector(selectError)
-
+  
   const { uid } = displayUser              
   const dispatch = useDispatch()
   dispatch(getConversationFromID(uid))
@@ -45,14 +44,24 @@ export default function ChatStack({navigation}) {
     setShowState(false)
     navigation.navigate('ChatList')
   }
-  const createChat = async () => {
-    await dispatch(createConversation(uid, selectUser[0]))
 
-    if (await error.length != 0)
+  const error = useSelector(selectError)
+  const createChat = () => {
+    dispatch(createConversation(uid, selectUser[0]))
+    goBackToChatList()
+    //setTimeout(() => { console.log(error); Alert.alert("Error", error, [{text: 'OK', onPress: goBackToChatList}])}, 1000); 
+  }
+
+  /*
+  const notifyAlert = () =>  
+  {
+    const error = useSelector(selectError)
+    console.log(error)
+    if (error.length != 0)
       Alert.alert("Error", error, [{text: 'OK', onPress: goBackToChatList}])
     else
       Alert.alert("Confirmation", "Conversation created.", [{text: 'OK', onPress: goBackToChatList}])
-  }
+  }*/
 
   return (
     <Stack.Navigator screenOptions={defaultScreenOptions}>

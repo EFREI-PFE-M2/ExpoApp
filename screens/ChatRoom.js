@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { StyleSheet, ScrollView, TextInput } from 'react-native'
 import { Text, View } from '../components/Themed'
-import { chatHistory } from '../store/testChatStore'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/userSlice'
 import { TouchableOpacity } from 'react-native-gesture-handler'
@@ -9,6 +8,7 @@ import { GetPublishedDate } from '../utils/ChatFunctions'
 import { Avatar } from 'react-native-paper'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 import {
+  getMessagesFromPrivateConversation,
   selectMessages,
   sendTextMessage,
   startMessagesListening,
@@ -30,19 +30,13 @@ export default function ChatRoom({ route }) {
 
   const { chatInfo } = route.params
 
-  const messages = useSelector(
-    (state) => state.chat.privateConversations[chatInfo.chatID]?.messages
-  )
-  const msgs = useSelector(selectMessages)
+  const messages = useSelector(selectMessages)
   const dispatch = useDispatch()
 
-  let messagesArray = []
-  for (let i in messages) {
-    messagesArray.push(messages[i])
-  }
-
-  const [chatHistory, setChatHistory] = useState(msgs)
+  const [chatHistory, setChatHistory] = useState(messages)
   const [content, setContent] = useState('')
+
+  messages.map((c) => console.log(JSON.stringify(c.text)))
 
   const sendMessage = () => {
     const datetime = new Date()
@@ -80,10 +74,17 @@ export default function ChatRoom({ route }) {
       <ScrollView
         onScroll={({ nativeEvent }) => {
           if (isCloseToTop(nativeEvent)) {
-            console.log('top')
+            const earliestMessageID = chatHistory[0].messageID
+            dispatch(
+              getMessagesFromPrivateConversation(
+                chatInfo.chatID,
+                earliestMessageID
+              )
+            )
+            setChatHistory(messages)
           }
           if (isCloseToBottom(nativeEvent)) {
-            console.log('bottom')
+            //console.log('bottom')
           }
         }}
         ref={(ref) => {

@@ -73,9 +73,7 @@ export const searchUsers = (query) => async (dispatch) => {
     })
   })
 
-  const message = users.length != 0 ? 'OK' : 'No results'
-  console.log(message)
-  dispatch(updateUsersToSearch(users))
+  await dispatch(updateUsersToSearch(users))
 }
 
 // test for one user
@@ -84,37 +82,72 @@ export const selectUsers = (uid) => async (dispatch, getState) => {
 
   let users = []
   if (typeof uid == 'string') users.push(uid)
-  console.log(users)
-  dispatch(updateUsersToAdd(users))
+
+  await dispatch(updateUsersToAdd(users))
 }
 
-export const getMessagesFromPrivateConversation = (conversationID) => async (
-  dispatch
-) => {
+export const getMessagesFromPrivateConversation = (
+  conversationID,
+  earliestMessageID = undefined
+) => async (dispatch, getState) => {
+  const { chat } = getState()
+
   let messages = []
-  const snapshot = await firestore
-    .collection('PrivateConversation')
-    .doc(conversationID)
-    .collection('Messages')
-    .orderBy('createdAt')
-    .get()
 
-  snapshot.docs.map((doc) => {
-    const message = doc.data()
-    console.log(JSON.stringify(message))
-    messages.push({
-      messageID: doc.id,
-      ...message,
+  const sp =
+    typeof earliestMessageID == 'string'
+      ? await firestore
+          .collection('PrivateConversation')
+          .doc(conversationID)
+          .collection('Messages')
+          .doc(earliestMessageID)
+          .get()
+      : undefined
+
+  const snapshot =
+    typeof earliestMessageID == 'undefined'
+      ? await firestore
+          .collection('PrivateConversation')
+          .doc(conversationID)
+          .collection('Messages')
+          .orderBy('createdAt')
+          .limitToLast(10)
+          .get()
+      : await firestore
+          .collection('PrivateConversation')
+          .doc(conversationID)
+          .collection('Messages')
+          .where('createdAt', '<', sp.data().createdAt)
+          .orderBy('createdAt', 'desc')
+          .limitToLast(10)
+          .get()
+
+  if (typeof earliestMessageID == 'undefined') {
+    snapshot.docs.map((doc) => {
+      const message = doc.data()
+      messages.push({
+        messageID: doc.id,
+        ...message,
+      })
     })
-  })
+  } else {
+    snapshot.docs.map((doc) => {
+      //console.log(doc.data() + ' ' + doc.data().id)
+      const message = doc.data()
+      messages.unshift({
+        messageID: doc.id,
+        ...message,
+      })
+    })
 
-  console.log(messages.length)
+    if (messages[0].messageID == chat.messages[0].messageID) return
+    else messages = [...messages, ...chat.messages]
+  }
 
-  dispatch(updateMessages(messages))
+  await dispatch(updateMessages(messages))
 }
 
 //actions imports
-
 export const {
   updateMessages,
   updateUsersToSearch,
@@ -189,7 +222,7 @@ export const createConversation = (senderID, receiverID) => async (
     })
 
     if (array.length != 0)
-      return await dispatch(setError('Conversation already exists.'))
+      return dispatch(setError('Conversation already exists.'))
     else {
       let data = {
         senderID,
@@ -214,8 +247,8 @@ export const createConversation = (senderID, receiverID) => async (
         ])
       )
     }
-  } catch (error) {
-    console.log(error)
+  } catch (err) {
+    console.error(err)
   }
 }
 
@@ -228,7 +261,6 @@ export const startMessagesListening = (conversationID) => async (dispatch) => {
       .onSnapshot((snapshot) => {
         snapshot.docChanges()?.forEach(async (change) => {
           if (change.type === 'added') {
-            console.log('ok')
             await dispatch(
               addMessagesToConversation({
                 conversationID,
@@ -264,7 +296,6 @@ export const sendTextMessage = (conversationID, message) => async (
       .collection('Messages')
       .add(message)
   } catch (err) {
-    console.log('nope')
     console.error(err)
   }
 }

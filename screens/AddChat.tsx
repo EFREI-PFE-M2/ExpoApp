@@ -36,6 +36,12 @@ export default function AddChat({route}) {
 
   const { photoURL, username } = displayUser  
 
+  const functionWithPromise = (u: any) => { return Promise.resolve('ok') }
+  const asyncFunction = async (u: any) => functionWithPromise(u)
+  const getUsers = async() => {
+    return Promise.all(sUsers.map((u: any) => asyncFunction(u)))
+  }
+
   return (<View>
       <View style={styles.searchBar}>
         <Searchbar inputStyle={{color: "#000"}}
@@ -53,7 +59,7 @@ export default function AddChat({route}) {
       :
       <>
       <ScrollView>
-        { sUsers.map((u: any, i: any) => { 
+        { sUsers.map((u: any) => { 
           const btnId = u.uid
           const isToggled = btnId === toggleBtn;
 

@@ -56,7 +56,6 @@ function PrivateChatList({ navigation }) {
               key={i}
               style={styles.containerChatRoomItem}
               onPress={async () => {
-                //await dispatch(startMessagesListening(c.chatID))
                 await dispatch(getMessagesFromPrivateConversation(c.chatID))
                 navigation.navigate('ChatRoom', {
                   chatInfo,

@@ -58,7 +58,7 @@ export var users = [
   // more users here
 ]
 
-export var chatHistory = [
+export const chatHistory = [
   {
     chatId: 1,
     owners: ['Test1', 'Joe Biden'],
