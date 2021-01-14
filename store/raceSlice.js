@@ -1,41 +1,17 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { FirebaseApp as firebase } from '../firebase'
 
 export const raceSlice = createSlice({
   name: 'race',
   initialState: {
-    races: [
-      {
-        id: 1,
-        datetime: new Date().toISOString(),
-        locationCode: '1',
-        location: 'Feurs',
-        raceCode: 'R3 C1',
-        raceTitle: 'Prix Citeos',
-        category: 'Plat',
-        distance: 400,
-        nbContenders: 9,
-        allocation: 18000,
-        direction: 'Droite',
-        field: 'Herbe',
-        equidiaPronostic: [1, 6, 8, 3, 5],
-        betTypesAuthorized: ['simple', 'couple', 'quinte'],
-        horses: {
-          1: 'Horse 1',
-          2: 'Horse 2',
-          3: 'Horse 3',
-          4: 'Horse 4',
-          5: 'Horse 5',
-          6: 'Horse 6',
-          7: 'Horse 7',
-          8: 'Horse 8',
-          9: 'Horse 9',
-        },
-        results: [1, 9, 4, 2, 5],
-      },
-    ],
-    specificRace: '', //done this way because we can view a race page even if it's not in our race list
+    races: [],
+    specificRace: '', //done this way because we can view a race page even if it's not in our race list,
   },
-  reducers: {},
+  reducers: {
+    setRaces: (state, action) => {
+      state.races = action.payload
+    },
+  },
 })
 
 /*
@@ -127,9 +103,23 @@ let bet ={
 */
 
 //actions imports
+const { setRaces } = raceSlice.actions
 
 // thunks
+export const updateRaces = (date) => async (dispatch) => {
+  try {
+    const getRacesFunction = firebase.functions('europe-west1').httpsCallable('races')
+    date = date.toDateString()
+    const result = await getRacesFunction({date})
+    console.log(result)
+
+    dispatch(setRaces(result.data))
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 // selectors
+export const selectRaces = state => state.races;
 
 export const raceReducer = raceSlice.reducer

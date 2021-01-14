@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { StyleSheet, Image } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Text, View } from '../components/Themed'
 import { Badge, IconButton } from 'react-native-paper'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { getInitRaces } from '../store/raceSlice'
 
 export default function Race({ route, navigation }) {
   const { raceID } = route.params
@@ -18,6 +19,7 @@ export default function Race({ route, navigation }) {
     direction,
     field,
     equidiaPronostic,
+    locationCode,
   } = useSelector((state) =>
     state.race.races.find((element) => element.id === raceID)
   )
@@ -36,13 +38,15 @@ export default function Race({ route, navigation }) {
     ),
   })
 
-  const raceCodeSplit = raceCode.split(' ')
-
   return (
     <ScrollView>
       <View>
-        <Text style={styles.title}>{`${raceCodeSplit[0]} ${location}`}</Text>
-        <Text style={styles.title}>{`${raceCodeSplit[1]} ${raceTitle}`}</Text>
+        <Text
+          style={[
+            styles.title,
+            { color: '#757575' },
+          ]}>{`${raceCode} ${location}`}</Text>
+        <Text style={styles.title}>{`${locationCode} ${raceTitle}`}</Text>
       </View>
 
       <Container>
@@ -76,8 +80,8 @@ export default function Race({ route, navigation }) {
       <View style={styles.prono}>
         <Image source={require('./../assets/images/equidia.png')} />
         <View style={{ flexDirection: 'row' }}>
-          {equidiaPronostic.map((element) => (
-            <Badge size={24} style={styles.badge}>
+          {equidiaPronostic.map((element, key) => (
+            <Badge size={24} style={styles.badge} key={key}>
               {element}
             </Badge>
           ))}
