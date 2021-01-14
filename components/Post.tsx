@@ -2,7 +2,7 @@ import React, {useRef, useEffect} from 'react'
 import { View, Text, Image} from './Themed'
 import { StyleSheet, TouchableOpacity, FlatList } from 'react-native'
 import { Avatar, Divider, Button, Card } from 'react-native-paper'
-import Pronostics from './Pronostics'
+import Bet from './Post/Pronostic'
 import {
   MaterialIcons,
 } from '@expo/vector-icons'
@@ -49,7 +49,7 @@ export default function Post(props) {
               <FlatList
                 data={responseObjectList}
                 renderItem={({item}) => (
-                  <View style={{backgroundColor: "#7D7D7D", width: `${item.percentage}%`, 
+                  <View style={{backgroundColor: "#E0E0E0", width: `${item.percentage}%`, 
                   marginTop: 2, marginBottom: 2,padding: 4, flexDirection: 'row', borderRadius: 15}} >
                       <View numberOfLines={1} style={{position: 'relative', flexDirection: 'row', backgroundColor: '#1fe0'}}>
                         <Text style={{fontWeight: 'bold'}}>{`${item.percentage}%`} </Text>
@@ -65,7 +65,7 @@ export default function Post(props) {
         }
         {
           type === "bet" && (
-            <Pronostics/>
+            <Bet betID={1} userID={1}/>
           )
         }
         {

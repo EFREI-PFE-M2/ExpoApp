@@ -1,7 +1,7 @@
 import React from 'react'
 import { View} from '../../components/Themed'
 import Post from '../../components/Post'
-import { StyleSheet, SafeAreaView, ScrollView, RefreshControl } from 'react-native'
+import { StyleSheet, SafeAreaView, ScrollView, RefreshControl, Image } from 'react-native'
 
 
 

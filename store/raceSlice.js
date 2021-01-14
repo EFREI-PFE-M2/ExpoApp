@@ -6,6 +6,7 @@ export const raceSlice = createSlice({
     races: [
       {
         id: 1,
+        datetime: new Date().toISOString(),
         locationCode: '1',
         location: 'Feurs',
         raceCode: 'R3 C1',

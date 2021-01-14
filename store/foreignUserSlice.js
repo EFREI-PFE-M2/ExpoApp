@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit'
 export const foreignUserSlice = createSlice({
   name: 'foreignUser',
   initialState: {
-    specificUser: {
+    1: {
       users: [],
       username: '',
       winPercentage: 0,
@@ -15,6 +15,18 @@ export const foreignUserSlice = createSlice({
       nbFollowing: 0,
       posts: [],
       cards: [],
+      userBets: {
+        1: {
+          datetime: new Date().toISOString(),
+          betText: 'Default',
+          betType: 'simple',
+          betCategory: 'gagant',
+          bet: [1, 9, 4, 2, 5],
+          betRaceID: 1,
+          betActionUrl: '',
+          betResults: [1, 9, 4, 2, 5],
+        },
+      },
     },
   },
   reducers: {},
