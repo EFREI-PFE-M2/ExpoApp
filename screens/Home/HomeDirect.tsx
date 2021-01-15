@@ -24,10 +24,8 @@ export default function HomeDirect() {
 
   useEffect(() => {
     if(date){
-      console.log(date)
       dispatch(updateRaces(date))
     }
-      
   }, [date])
   
   return (
@@ -36,7 +34,7 @@ export default function HomeDirect() {
       <ScrollView style={styles.container}>
         <View>
           {races?.map((race, key) => (
-            <RaceCard raceID={race.id} key={key} />
+            <RaceCard race={race} key={key} />
           ))}
         </View>
     </ScrollView>

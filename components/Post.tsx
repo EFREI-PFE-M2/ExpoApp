@@ -10,8 +10,8 @@ import {
 
 export default function Post(props) {
 
-  const { postID, username, photoURL, date, text, nbLikes, nbComments, type, content } = props
-  
+  const { postID, username, photoURL, date, text, nbLikes, nbComments, type, content} = props
+
   let responseObjectList = [];
   let totalVotes = 0;
   if(type === "survey"){

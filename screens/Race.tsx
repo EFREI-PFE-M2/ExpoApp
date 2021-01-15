@@ -1,12 +1,19 @@
 import React, { useEffect } from 'react'
-import { StyleSheet, Image } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Text, View } from '../components/Themed'
 import { Badge, IconButton } from 'react-native-paper'
 import { useDispatch, useSelector } from 'react-redux'
-import { getInitRaces } from '../store/raceSlice'
+import { selectSpecificRace, updateSpecificRacePosts } from '../store/raceSlice'
+import { FlatList, StyleSheet, Image } from 'react-native';
+import Post from '../components/Post'
+
 
 export default function Race({ route, navigation }) {
+
+  const race = useSelector(selectSpecificRace);
+  const dispatch = useDispatch()
+
+
   const { raceID } = route.params
   const {
     allocation,
@@ -20,9 +27,11 @@ export default function Race({ route, navigation }) {
     field,
     equidiaPronostic,
     locationCode,
-  } = useSelector((state) =>
-    state.race.races.find((element) => element.id === raceID)
-  )
+  } = race
+
+  useEffect(() => {
+    dispatch(updateSpecificRacePosts(raceID))
+  }, [])
 
   const goBack = () => navigation.goBack()
 
@@ -90,6 +99,22 @@ export default function Race({ route, navigation }) {
 
       <View style={styles.pubs}>
         <Text>Publications</Text>
+        <Text>Actualiser</Text>        
+      </View>
+      <View>
+        {
+          race.posts && race.posts.length > 0 &&
+          <FlatList
+            data={race.posts}
+            renderItem={({item}) => 
+              <Post 
+                photoURL={item.profilePicture}
+                username={item.displayName} date={item.datetime} nbLikes={item.nbLikes} nbComments={item.nbComments}
+                text={item.text}
+              />
+            }
+          />
+        }
       </View>
     </ScrollView>
   )
@@ -149,6 +174,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
+    justifyContent: 'space-between'
   },
   ViewColumn: {
     flexDirection: 'column',

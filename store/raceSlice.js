@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { FirebaseApp as firebase } from '../firebase'
+import { FirebaseFirestore as firestore } from './../firebase'
 
 export const raceSlice = createSlice({
   name: 'race',
@@ -10,6 +11,13 @@ export const raceSlice = createSlice({
   reducers: {
     setRaces: (state, action) => {
       state.races = action.payload
+    },
+    setSpecificRace: (state, action) => {
+      state.specificRace = action.payload
+    },
+    setSpecificRacePosts: (state, action) => {
+      console.log(action.payload)
+      state.specificRace.posts = action.payload
     },
   },
 })
@@ -103,7 +111,7 @@ let bet ={
 */
 
 //actions imports
-const { setRaces } = raceSlice.actions
+export const { setRaces, setSpecificRace, setSpecificRacePosts } = raceSlice.actions
 
 // thunks
 export const updateRaces = (date) => async (dispatch) => {
@@ -111,7 +119,6 @@ export const updateRaces = (date) => async (dispatch) => {
     const getRacesFunction = firebase.functions('europe-west1').httpsCallable('races')
     date = date.toDateString()
     const result = await getRacesFunction({date})
-    console.log(result)
 
     dispatch(setRaces(result.data))
   } catch (err) {
@@ -119,7 +126,30 @@ export const updateRaces = (date) => async (dispatch) => {
   }
 }
 
+export const updateSpecificRacePosts = (raceID) => async (dispatch) => {
+  try {
+    const snapshot  = await firestore
+      .collection('RacePosts')
+      .where('raceID', '==', raceID)
+      .get()
+
+      if (snapshot.empty) {
+        console.log('No matching documents.');
+        return;
+      } 
+      let posts = []
+      snapshot.forEach(doc => {
+        let formattedData = {...doc.data(), datetime: doc.data().datetime.toDate().toDateString()} 
+        posts.push({id: doc.id, ...formattedData})
+      });
+      dispatch(setSpecificRacePosts(posts))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 // selectors
-export const selectRaces = state => state.races;
+export const selectRaces = state => state.race.races;
+export const selectSpecificRace = state => state.race.specificRace;
 
 export const raceReducer = raceSlice.reducer
