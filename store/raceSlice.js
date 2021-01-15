@@ -6,7 +6,10 @@ export const raceSlice = createSlice({
   name: 'race',
   initialState: {
     races: [],
+    racesLoading: false,
     specificRace: '', //done this way because we can view a race page even if it's not in our race list,
+    specificRaceLoading: false,
+    specificRacePostsLoading: false
   },
   reducers: {
     setRaces: (state, action) => {
@@ -16,8 +19,10 @@ export const raceSlice = createSlice({
       state.specificRace = action.payload
     },
     setSpecificRacePosts: (state, action) => {
-      console.log(action.payload)
       state.specificRace.posts = action.payload
+    },
+    addSpecificRacePosts: (state, action) => {
+      state.specificRace.posts =  [...state.specificRace.posts, ...action.payload]
     },
   },
 })
@@ -126,7 +131,29 @@ export const updateRaces = (date) => async (dispatch) => {
   }
 }
 
-export const updateSpecificRacePosts = (raceID) => async (dispatch) => {
+export const updateSpecificRaceRecentPosts = (raceID) => async (dispatch) => {
+  try {
+    const snapshot  = await firestore
+      .collection('RacePosts')
+      .where('raceID', '==', raceID)
+      .get()
+
+      if (snapshot.empty) {
+        console.log('No matching documents.');
+        return;
+      } 
+      let posts = []
+      snapshot.forEach(doc => {
+        let formattedData = {...doc.data(), datetime: doc.data().datetime.toDate().getTime()} 
+        posts.push({id: doc.id, ...formattedData})
+      });
+      dispatch(setSpecificRacePosts(posts))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const addSpecificRaceNextPosts = (raceID) => async (dispatch) => {
   try {
     const snapshot  = await firestore
       .collection('RacePosts')

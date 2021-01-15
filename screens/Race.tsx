@@ -3,8 +3,8 @@ import { ScrollView } from 'react-native-gesture-handler'
 import { Text, View } from '../components/Themed'
 import { Badge, IconButton } from 'react-native-paper'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectSpecificRace, updateSpecificRacePosts } from '../store/raceSlice'
-import { FlatList, StyleSheet, Image } from 'react-native';
+import { selectSpecificRace, updateSpecificRaceRecentPosts } from '../store/raceSlice'
+import { FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Post from '../components/Post'
 
 
@@ -21,7 +21,7 @@ export default function Race({ route, navigation }) {
     distance,
     location,
     raceCode,
-    nbContenders,
+    horses,
     raceTitle,
     direction,
     field,
@@ -30,7 +30,7 @@ export default function Race({ route, navigation }) {
   } = race
 
   useEffect(() => {
-    dispatch(updateSpecificRacePosts(raceID))
+    dispatch(updateSpecificRaceRecentPosts(raceID))
   }, [])
 
   const goBack = () => navigation.goBack()
@@ -69,7 +69,7 @@ export default function Race({ route, navigation }) {
         </Column>
         <Column>
           <TitleText>Partans</TitleText>
-          <BaseText>{nbContenders}</BaseText>
+          <BaseText>{horses.length}</BaseText>
         </Column>
         <Column>
           <TitleText>Allocation</TitleText>
@@ -99,7 +99,9 @@ export default function Race({ route, navigation }) {
 
       <View style={styles.pubs}>
         <Text>Publications</Text>
-        <Text>Actualiser</Text>        
+        <TouchableOpacity onPress={null}>
+            <Text style={{color: '#757575'}}>Actualiser</Text>
+        </TouchableOpacity>  
       </View>
       <View>
         {

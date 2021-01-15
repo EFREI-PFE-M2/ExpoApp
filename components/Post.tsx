@@ -6,6 +6,7 @@ import Bet from './Post/Pronostic'
 import {
   MaterialIcons,
 } from '@expo/vector-icons'
+import timeAgoFormat from '../utils/timeAgoFormatter'
 
 
 export default function Post(props) {
@@ -31,8 +32,10 @@ export default function Post(props) {
         <View style={{flexDirection: 'row'}}>
           <Avatar.Image source={{  uri: photoURL  }} size={48}/>
           <View style={{margin: 5}}>
-            <Text style={{ fontWeight: 'bold' }}>{username}</Text>
-            <Text style={styles.date}>{date}</Text>
+            <TouchableOpacity onPress={null}>
+              <Text style={{ fontWeight: 'bold' }}>{username}</Text>
+            </TouchableOpacity>
+            <Text style={styles.date}>{timeAgoFormat(date)}</Text>
           </View>
         </View>
         <Text style={styles.postText}>{text}</Text>
