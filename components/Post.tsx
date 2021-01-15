@@ -11,7 +11,10 @@ import timeAgoFormat from '../utils/timeAgoFormatter'
 
 export default function Post(props) {
 
-  const { postID, username, photoURL, date, text, nbLikes, nbComments, type, content} = props
+  const { postID, username, photoURL, date, text, nbLikes, nbComments, type, 
+  image, content} = props
+
+  console.log(image)
 
   let responseObjectList = [];
   let totalVotes = 0;
@@ -42,7 +45,7 @@ export default function Post(props) {
         {
           type === "image" && (
             <Card>
-              <Card.Cover source={{ uri: content.image }} />
+              <Card.Cover source={{ uri: image }} />
             </Card>
           )
         }

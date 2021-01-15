@@ -2,6 +2,8 @@ import { createSlice } from '@reduxjs/toolkit'
 import { FirebaseApp as firebase } from '../firebase'
 import { FirebaseFirestore as firestore } from './../firebase'
 
+const PAGINATION = 2;
+
 export const raceSlice = createSlice({
   name: 'race',
   initialState: {
@@ -136,7 +138,9 @@ export const updateSpecificRaceRecentPosts = (raceID) => async (dispatch) => {
     const snapshot  = await firestore
       .collection('RacePosts')
       .where('raceID', '==', raceID)
-      .get()
+      .orderBy('datetime','desc')
+      .limit(PAGINATION)
+      .get();
 
       if (snapshot.empty) {
         console.log('No matching documents.');
@@ -158,7 +162,10 @@ export const addSpecificRaceNextPosts = (raceID) => async (dispatch) => {
     const snapshot  = await firestore
       .collection('RacePosts')
       .where('raceID', '==', raceID)
-      .get()
+      .orderBy('datetime','desc')
+      .startAfter(last.data().population)
+      .limit(PAGINATION)
+      .get();
 
       if (snapshot.empty) {
         console.log('No matching documents.');
