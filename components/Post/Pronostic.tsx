@@ -2,8 +2,8 @@ import React from 'react'
 import { StyleSheet } from 'react-native'
 import { Badge, IconButton } from 'react-native-paper'
 import { useSelector } from 'react-redux'
-import useRaceType from '../hooks/useRaceType'
-import { View, Text } from './Themed'
+import useRaceType from '../../hooks/useRaceType'
+import { View, Text } from '../Themed'
 import moment from 'moment'
 
 const BACKGROUND_COLOR = '#194A4C'
@@ -24,13 +24,16 @@ const resultState = {
 }
 
 export default function Pronostics({ betID, userID, edit }) {
+  /*
   // Those selectors should be replaced as a hook
   const { betRaceID, bet, betType } = useSelector(
     (state) => state.foreignUser[userID]?.userBets[betID]
   )
+  
   const { raceTitle, category, results, datetime } = useSelector((state) =>
     state.race.races?.find((race) => race.id === betRaceID)
   )
+  
 
   const compareBet = bet?.filter((element) => !results.includes(element))
   const betResult =
@@ -66,9 +69,12 @@ export default function Pronostics({ betID, userID, edit }) {
       )}
     </View>
   )
+  */
+ return (<></>)
 }
 
 function RaceCodeRender({ code }) {
+  /*
   const codeParts = code?.split(' ')
   return (
     <View style={raceCodeStyles.container}>
@@ -76,9 +82,11 @@ function RaceCodeRender({ code }) {
       <Text style={raceCodeStyles.code}>{codeParts[1]}</Text>
     </View>
   )
+  */
 }
 
 function PronoSection({ type, result, list }) {
+  /*
   const Logo = useRaceType(type)
   return (
     <View style={pronoStyles.container}>
@@ -98,6 +106,7 @@ function PronoSection({ type, result, list }) {
       })}
     </View>
   )
+  */
 }
 
 const styles = StyleSheet.create({

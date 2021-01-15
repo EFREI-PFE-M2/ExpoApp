@@ -1,12 +1,19 @@
 import React, { useEffect } from 'react'
-import { StyleSheet, Image } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Text, View } from '../components/Themed'
-import { Badge, IconButton } from 'react-native-paper'
+import { Badge, IconButton, FAB } from 'react-native-paper'
 import { useDispatch, useSelector } from 'react-redux'
-import { getInitRaces } from '../store/raceSlice'
+import { selectSpecificRace, updateSpecificRaceRecentPosts } from '../store/raceSlice'
+import { FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import Post from '../components/Post'
+
 
 export default function Race({ route, navigation }) {
+
+  const race = useSelector(selectSpecificRace);
+  const dispatch = useDispatch()
+
+
   const { raceID } = route.params
   const {
     allocation,
@@ -14,15 +21,17 @@ export default function Race({ route, navigation }) {
     distance,
     location,
     raceCode,
-    nbContenders,
+    horses,
     raceTitle,
     direction,
     field,
     equidiaPronostic,
     locationCode,
-  } = useSelector((state) =>
-    state.race.races.find((element) => element.id === raceID)
-  )
+  } = race
+
+  useEffect(() => {
+    dispatch(updateSpecificRaceRecentPosts(raceID))
+  }, [])
 
   const goBack = () => navigation.goBack()
 
@@ -39,6 +48,7 @@ export default function Race({ route, navigation }) {
   })
 
   return (
+    <>
     <ScrollView>
       <View>
         <Text
@@ -60,7 +70,7 @@ export default function Race({ route, navigation }) {
         </Column>
         <Column>
           <TitleText>Partans</TitleText>
-          <BaseText>{nbContenders}</BaseText>
+          <BaseText>{horses.length}</BaseText>
         </Column>
         <Column>
           <TitleText>Allocation</TitleText>
@@ -90,8 +100,37 @@ export default function Race({ route, navigation }) {
 
       <View style={styles.pubs}>
         <Text>Publications</Text>
+        <TouchableOpacity onPress={null}>
+            <Text style={{color: '#757575'}}>Actualiser</Text>
+        </TouchableOpacity>  
+      </View>
+      <View style={{backgroundColor: 'transparent'}}>
+        {
+          race.posts && race.posts.length > 0 &&
+          <FlatList
+            data={race.posts}
+            renderItem={({item}) => 
+              <Post 
+                type={item.type}
+                photoURL={item.profilePicture}
+                username={item.displayName} 
+                date={item.datetime} 
+                nbLikes={item.nbLikes} 
+                nbComments={item.nbComments}
+                text={item.text}
+                image={item.image}
+              />
+            }
+          />
+        }
       </View>
     </ScrollView>
+    <FAB
+        style={styles.fab}
+        icon="pen"
+        onPress={null}
+    />
+    </>
   )
 }
 
@@ -149,6 +188,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
+    justifyContent: 'space-between'
   },
   ViewColumn: {
     flexDirection: 'column',
@@ -172,4 +212,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontWeight: 'bold',
   },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+  }
 })

@@ -7,94 +7,91 @@ import { MaterialIcons } from '@expo/vector-icons'
 import RaceCard from '../../components/RaceCard'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useDispatch, useSelector } from 'react-redux'
-import { getInitRaces } from '../../store/raceSlice'
+import { selectRaces, updateRaces } from '../../store/raceSlice'
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { setStatusBarNetworkActivityIndicatorVisible } from 'expo-status-bar'
 
-const TODAY = `Aujourd'hui`
-const TOMORROW = 'Demain'
-const WEEK = 'Cette semaine'
+const WEEKDAYS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']
 
 export default function HomeDirect() {
-  const races = useSelector(({ race }) => race.races)
+  const races = useSelector(selectRaces);
+  const [date, setDate] = useState();
   const dispatch = useDispatch()
 
+  useEffect(() => {
+    setDate(new Date())
+  }, [])
+
+  useEffect(() => {
+    if(date){
+      dispatch(updateRaces(date))
+    }
+  }, [date])
+  
   return (
-    <ScrollView style={styles.container}>
-      <DatePicker />
-      <View>
-        {races?.map((race, key) => (
-          <RaceCard raceID={race.id} key={key} />
-        ))}
-      </View>
+    <>
+      <DatePicker date={date} setDate={setDate}/>
+      <ScrollView style={styles.container}>
+        <View>
+          {races?.map((race, key) => (
+            <RaceCard race={race} key={key} />
+          ))}
+        </View>
     </ScrollView>
+  </>
   )
 }
 
-function DatePicker() {
+function DatePicker(props) {
+
+  const {setDate, date } = props
+
   const [visible, setVisible] = useState(false)
-  const [choice, setChoice] = useState(TODAY)
+
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
   const dispatch = useDispatch()
 
-  const today = new Date()
-  const tomorrow = new Date()
-  tomorrow.setDate(today.getDate() + 1)
 
-  const onDismiss = () => setVisible(false)
-  const onSelectToday = () => {
-    setChoice(TODAY)
-    dispatch(getInitRaces(today.toLocaleString()))
-    onDismiss()
-  }
-  const onSelectTomorrow = () => {
-    setChoice(TOMORROW)
-    dispatch(getInitRaces(tomorrow.toDateString()))
-    onDismiss()
-  }
-  const onSelectWeek = () => {
-    setChoice(WEEK)
-    onDismiss()
-  }
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+ 
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+ 
+  const handleConfirm = (date) => {
+    setDate(date);
+    hideDatePicker();
+  };
 
-  const anchor = (
-    <TouchableRipple onPress={() => setVisible(true)}>
-      <View style={styles.dateContainer}>
-        <Text style={styles.date}>{choice}</Text>
-        <IconButton icon="chevron-down" size={24} color="#BEC2C4" />
-      </View>
-    </TouchableRipple>
-  )
+
 
   return (
     <View style={styles.datePickerContainer}>
-      <Menu visible={visible} onDismiss={onDismiss} anchor={anchor}>
-        <MenuItem
-          title={TODAY}
-          onPress={onSelectToday}
-          titleStyle={styles.titleStyle}
-          selected={choice === TODAY}
-        />
-        <MenuItem
-          title={TOMORROW}
-          onPress={onSelectTomorrow}
-          titleStyle={styles.titleStyle}
-          selected={choice === TOMORROW}
-        />
-        <MenuItem
-          title={WEEK}
-          onPress={onSelectWeek}
-          titleStyle={styles.titleStyle}
-          selected={choice === WEEK}
-        />
-      </Menu>
+      <View style={styles.dateContainer}>
+        <View style={{flexDirection: 'row', flexGrow: 1, alignItems: 'center'}}>
+          <Text style={styles.date}>
+            {date && date.getDay() == new Date().getDay() ? `Aujourd'hui` : (date && WEEKDAYS[date.getDay()])}
+          </Text>
+          <Text>{date && `${date.getDate()}/${date.getMonth()}/${date.getYear()}`}</Text>
+        </View>
+        <View>
+          <IconButton icon="chevron-down" size={24} color="#BEC2C4" onPress={showDatePicker}/>
+          <DateTimePickerModal
+            date={date}
+            isVisible={isDatePickerVisible}
+            mode="date"
+            onConfirm={handleConfirm}
+            onCancel={hideDatePicker}
+          />
+        </View>
+      </View>
     </View>
   )
 }
 
-function MenuItem(props) {
-  const style = {
-    backgroundColor: props.selected ? '#194A4C' : null,
-  }
-  return <Menu.Item style={style} {...props} />
-}
 
 const styles = StyleSheet.create({
   container: {},
@@ -103,17 +100,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#D6D6D6',
     borderStyle: 'solid',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
   },
   date: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginRight: 10
   },
   dateContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     height: '100%',
     flexGrow: 1,

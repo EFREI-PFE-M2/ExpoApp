@@ -3,17 +3,17 @@ import { useNavigation } from '@react-navigation/native'
 import React from 'react'
 import { StyleSheet } from 'react-native'
 import { IconButton, TouchableRipple } from 'react-native-paper'
-import { useSelector } from 'react-redux'
 import { Text, View } from './Themed'
+import { useDispatch, useSelector } from 'react-redux'
+
+import {  setSpecificRace } from '../store/raceSlice'
 
 export default function RaceCard(props) {
-  const { raceID } = props
-  const race = useSelector((state) =>
-    state.race.races.find((element) => element.id === raceID)
-  )
-  const navigation = useNavigation()
-  const onPress = () => navigation.navigate('Home_Race', { raceID })
+  const { race } = props
 
+  const navigation = useNavigation()
+  const dispatch = useDispatch()
+  
   const {
     allocation,
     category,
@@ -26,6 +26,11 @@ export default function RaceCard(props) {
     locationCode,
     hour,
   } = race
+
+  const onPress = () => {
+    dispatch(setSpecificRace(race))
+    navigation.navigate('Home_Race', { raceID: race.id })
+  }
 
   const description = `${category} - ${distance}m - ${
     horses?.length || 0

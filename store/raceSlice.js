@@ -1,15 +1,30 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { FirebaseApp as firebase } from '../firebase'
+import { FirebaseFirestore as firestore } from './../firebase'
+
+const PAGINATION = 2;
 
 export const raceSlice = createSlice({
   name: 'race',
   initialState: {
     races: [],
-    specificRace: '', //done this way because we can view a race page even if it's not in our race list
+    racesLoading: false,
+    specificRace: '', //done this way because we can view a race page even if it's not in our race list,
+    specificRaceLoading: false,
+    specificRacePostsLoading: false
   },
   reducers: {
-    init: (state, action) => {
+    setRaces: (state, action) => {
       state.races = action.payload
+    },
+    setSpecificRace: (state, action) => {
+      state.specificRace = action.payload
+    },
+    setSpecificRacePosts: (state, action) => {
+      state.specificRace.posts = action.payload
+    },
+    addSpecificRacePosts: (state, action) => {
+      state.specificRace.posts =  [...state.specificRace.posts, ...action.payload]
     },
   },
 })
@@ -103,20 +118,72 @@ let bet ={
 */
 
 //actions imports
-const { init } = raceSlice.actions
+export const { setRaces, setSpecificRace, setSpecificRacePosts } = raceSlice.actions
 
 // thunks
-export const getInitRaces = (date) => async (dispatch) => {
+export const updateRaces = (date) => async (dispatch) => {
   try {
-    const getRaces = firebase.functions('europe-west1').httpsCallable('races')
-    const result = await getRaces({ date })
+    const getRacesFunction = firebase.functions('europe-west1').httpsCallable('races')
+    date = date.toDateString()
+    const result = await getRacesFunction({date})
 
-    dispatch(init(result.data))
+    dispatch(setRaces(result.data))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const updateSpecificRaceRecentPosts = (raceID) => async (dispatch) => {
+  try {
+    const snapshot  = await firestore
+      .collection('RacePosts')
+      .where('raceID', '==', raceID)
+      .orderBy('datetime','desc')
+      .limit(PAGINATION)
+      .get();
+
+      if (snapshot.empty) {
+        console.log('No matching documents.');
+        return;
+      } 
+      let posts = []
+      snapshot.forEach(doc => {
+        let formattedData = {...doc.data(), datetime: doc.data().datetime.toDate().getTime()} 
+        posts.push({id: doc.id, ...formattedData})
+      });
+      dispatch(setSpecificRacePosts(posts))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const addSpecificRaceNextPosts = (raceID) => async (dispatch) => {
+  try {
+    const snapshot  = await firestore
+      .collection('RacePosts')
+      .where('raceID', '==', raceID)
+      .orderBy('datetime','desc')
+      .startAfter(last.data().population)
+      .limit(PAGINATION)
+      .get();
+
+      if (snapshot.empty) {
+        console.log('No matching documents.');
+        return;
+      } 
+      let posts = []
+      snapshot.forEach(doc => {
+        let formattedData = {...doc.data(), datetime: doc.data().datetime.toDate().toDateString()} 
+        posts.push({id: doc.id, ...formattedData})
+      });
+      dispatch(setSpecificRacePosts(posts))
   } catch (err) {
     console.error(err)
   }
 }
 
 // selectors
+export const selectRaces = state => state.race.races;
+export const selectSpecificRace = state => state.race.specificRace;
 
 export const raceReducer = raceSlice.reducer
