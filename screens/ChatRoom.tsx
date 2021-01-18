@@ -6,6 +6,7 @@ import { selectCurrentUser } from '../store/userSlice'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { GetPublishedDate } from '../utils/ChatFunctions'
 import { Avatar } from 'react-native-paper'
+import ImagePicker from '../components/ImagePicker'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 import {
   getMessagesFromPrivateConversation,
@@ -178,11 +179,7 @@ export default function ChatRoom({ route }) {
 
       <View style={styles.containerChatFooter}>
         <View style={styles.chatFooterLeftPart}>
-          <MaterialCommunityIcons
-            name="image"
-            size={30}
-            onPress={() => alert('Include image picker')}
-          />
+        <ImagePicker params={displayUser} />
           <MaterialCommunityIcons
             name="microphone"
             size={30}
