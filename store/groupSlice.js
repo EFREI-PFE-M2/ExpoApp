@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import firebase, { FirebaseFirestore as firestore } from './../firebase'
+import { addUser } from './foreignUserSlice'
 
 export const groupSlice = createSlice({
   name: 'group',
@@ -21,7 +22,19 @@ export const groupSlice = createSlice({
     addUsersToGroup: (state, action) => {
       const { users, groupID } = action.payload
       users?.forEach((user) => {
-        state.groups[groupID].users[user.id] = user
+        state.groups[groupID].users[user.uid] = user
+      })
+    },
+    addPostsToGroup: (state, action) => {
+      const { posts, groupID } = action.payload
+      posts?.forEach((post) => {
+        state.groups[groupID].posts[post.id] = post
+      })
+    },
+    addRequestsToGroup: (state, action) => {
+      const { requests, groupID } = action.payload
+      requests?.forEach((request) => {
+        state.groups[groupID].requests[request.id] = request
       })
     },
   },
@@ -124,7 +137,13 @@ let bet ={
 */
 
 //actions imports
-export const { addGroup, addAll, addUsersToGroup } = groupSlice.actions
+export const {
+  addGroup,
+  addAll,
+  addUsersToGroup,
+  addPostsToGroup,
+  addRequestsToGroup,
+} = groupSlice.actions
 
 // thunks
 export const getGroup = (groupID) => async (dispatch) => {
@@ -154,7 +173,15 @@ export const getUserGroup = (userID) => async (dispatch) => {
       groups.map((groupID) => firestore.collection('Groups').doc(groupID).get())
     )
 
-    const groupData = groupPromise.map((group) => group.data())
+    const groupData = groupPromise.map((group) => {
+      return {
+        id: group.id,
+        users: {},
+        posts: {},
+        requests: {},
+        ...group.data(),
+      }
+    })
 
     await dispatch(addAll(groupData))
   } catch (err) {
@@ -185,6 +212,86 @@ export const createGroup = (name, isPrivate, photo) => async (
   }
   return null
 }
+
+export const getMembers = (groupID) => async (dispatch) => {
+  if (!groupID) return
+
+  let userArray = []
+
+  try {
+    const result = await firestore
+      .collection('Groups')
+      .doc(groupID)
+      .collection('GroupMembers')
+      .limit(10)
+      .get()
+
+    if (!result.size) return
+
+    result.forEach((doc) => {
+      // dispatch(addUser(doc.id, doc.data()))
+      userArray.push(doc.data())
+    })
+
+    dispatch(addUsersToGroup({ users: userArray, groupID }))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const getGroupPosts = (groupID) => async (dispatch) => {
+  if (!groupID) return
+
+  let groupPosts = []
+
+  try {
+    const result = await firestore
+      .collection('Groups')
+      .doc(groupID)
+      .collection('GroupPosts')
+      .limit(10)
+      .get()
+
+    if (!result.size) return
+
+    result.forEach((doc) => {
+      groupPosts.push({ id: doc.id, ...doc.data() })
+    })
+
+    dispatch(addPostsToGroup({ posts: groupPosts, groupID }))
+  } catch (err) {
+    console.erro(err)
+  }
+}
+
+export const getPendingRequests = (groupID) => async (dispatch) => {
+  if (!groupID) return
+
+  let groupRequests = []
+
+  try {
+    const result = await firestore
+      .collection('Groups')
+      .doc(groupID)
+      .collection('GroupJoinPendingRequests')
+      .limit(10)
+      .get()
+
+    if (!result.size) return
+
+    result.forEach((doc) => {
+      groupRequests.push({ id: doc.id, ...doc.data() })
+    })
+
+    dispatch(addRequestsToGroup({ requests: groupRequests, groupID }))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const acceptRequest = (requestID) => async (dispatch) => {}
+
+export const refuseRequest = (requestID) => async (dispatch) => {}
 
 // selectors
 

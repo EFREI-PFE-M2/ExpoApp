@@ -10,8 +10,8 @@ export default function HomeGroups() {
 
   return (
     <View>
-      {Object.keys(groups)?.map((group, key) => (
-        <GroupCard key={key} groupID={group} />
+      {Object.keys(groups)?.map((id, key) => (
+        <GroupCard key={key} groupID={id} />
       ))}
     </View>
   )

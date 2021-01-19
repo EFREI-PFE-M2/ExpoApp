@@ -224,7 +224,7 @@ export const autoAuth = () => async (dispatch) => {
 
       dispatch(updateUser(newUser))
       retrieveUserData(user.uid, dispatch)
-      dispatch(getInitRaces(new Date().toDateString()))
+      // dispatch(getInitRaces(new Date().toDateString()))
       dispatch(getUserGroup(user.uid))
     }
   })

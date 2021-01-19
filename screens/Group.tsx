@@ -1,9 +1,17 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import { useNavigation } from '@react-navigation/native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { StyleSheet, Image } from 'react-native'
 import { IconButton } from 'react-native-paper'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import Post from '../components/Post'
+import UserCard from '../components/UserCard_Small'
+import UserRequestCard from '../components/UserRequestCard'
+import {
+  getGroupPosts,
+  getMembers,
+  getPendingRequests,
+} from '../store/groupSlice'
 import { Text, View } from './../components/Themed'
 
 const PUBLIC = 'public'
@@ -16,8 +24,15 @@ export default function Group({ route, navigation }) {
   const { name, photoURL, private: isPrivate, nbMembers } = useSelector(
     (state) => state.group?.groups[groupID]
   )
+  const dispatch = useDispatch()
 
   const goBack = () => navigation.goBack()
+
+  useEffect(() => {
+    dispatch(getPendingRequests(groupID))
+    dispatch(getMembers(groupID))
+    dispatch(getGroupPosts(groupID))
+  }, [])
 
   navigation.setOptions({
     headerLeft: ({ tintColor }) => (
@@ -62,34 +77,75 @@ export default function Group({ route, navigation }) {
             flexDirection: 'row',
           },
         }}>
-        <Tab.Screen name="Posts" component={Posts} />
-        <Tab.Screen name="Membres" component={Members} />
-        <Tab.Screen name="Requêtes" component={Request} />
+        <Tab.Screen
+          name="Posts"
+          component={Posts}
+          initialParams={{ groupID }}
+        />
+        <Tab.Screen
+          name="Membres"
+          component={Members}
+          initialParams={{ groupID }}
+        />
+        {isPrivate && (
+          <Tab.Screen
+            name="Requêtes"
+            component={Request}
+            initialParams={{ groupID }}
+          />
+        )}
       </Tab.Navigator>
     </View>
   )
 }
 
-function Posts() {
+function Posts({ route }) {
+  const { groupID } = route.params
+  const postList = useSelector(({ group }) => group?.groups[groupID].posts)
+
+  // Render posts from groupeID
+  const renderPosts = Object.keys(postList)?.map((element, key) => <Post />)
+
+  return <View>{renderPosts}</View>
+}
+
+function Members({ route }) {
+  const { groupID } = route.params
+  const userList = useSelector(({ group }) => group?.groups[groupID].users)
+
   return (
     <View>
-      <Text>POSTS</Text>
+      {Object.keys(userList)?.map((element, key) => (
+        <UserCard user={userList[element]} key={key} />
+      ))}
     </View>
   )
 }
 
-function Members() {
-  return (
-    <View>
-      <Text>Members</Text>
-    </View>
+function Request({ route }) {
+  const { groupID } = route.params
+  const requestList = useSelector(
+    ({ group }) => group?.groups[groupID].requests
   )
-}
+  const currentUser = useSelector(({ user }) => user.uid)
+  const adminID = useSelector(({ group }) => group.groups[groupID]?.masterID)
 
-function Request() {
+  const isAdmin = adminID ? currentUser && adminID : false
+
+  const RenderUserCards = () => Object.keys(requestList)?.map((element, key) => (
+    <UserCard user={requestList[element]} key={key} />
+  ))
+
+  const RenderAdminUserCards = () => Object.keys(requestList)?.map((element, key) => (
+    <UserRequestCard user={requestList[element]} key={key} />
+  ))
+
   return (
     <View>
-      <Text>Requetes</Text>
+      {isAdmin 
+        ? <RenderAdminUserCards />
+        : <RenderUserCards />
+      }
     </View>
   )
 }
