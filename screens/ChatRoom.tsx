@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { StyleSheet, ScrollView, TextInput } from 'react-native'
+import { StyleSheet, ScrollView, TextInput, Image } from 'react-native'
 import { Text, View } from '../components/Themed'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/userSlice'
@@ -11,7 +11,7 @@ import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 import {
   getMessagesFromPrivateConversation,
   selectMessages,
-  sendTextMessage,
+  sendChatMessage,
   startMessagesListening,
 } from '../store/chatSlice'
 
@@ -37,8 +37,6 @@ export default function ChatRoom({ route }) {
   const [chatHistory, setChatHistory] = useState(messages)
   const [content, setContent] = useState('')
 
-  messages.map((c) => console.log(JSON.stringify(c.text)))
-
   const sendMessage = () => {
     const datetime = new Date()
 
@@ -49,16 +47,13 @@ export default function ChatRoom({ route }) {
         displayName: username,
         photoURL,
         uid,
-        text: content.trim(),
-        audio: '',
-        image: '',
-        imageCaption: '',
+        text: content.trim()
       }
 
       setContent('')
 
       setChatHistory([...chatHistory, message])
-      dispatch(sendTextMessage(chatInfo.chatID, message))
+      dispatch(sendChatMessage(chatInfo.chatID, message))
     }
   }
 
@@ -69,6 +64,8 @@ export default function ChatRoom({ route }) {
   function isCloseToTop({ layoutMeasurement, contentOffset, contentSize }) {
     return contentOffset.y == 0
   }
+
+  const scrollViewRef = React.createRef<ScrollView>()
 
   return (
     <View style={styles.container}>
@@ -88,13 +85,11 @@ export default function ChatRoom({ route }) {
             //console.log('bottom')
           }
         }}
-        ref={(ref) => {
-          this.scrollView = ref
-        }}
+        ref={scrollViewRef}
         onContentSizeChange={() =>
-          this.scrollView.scrollToEnd({ animated: true })
+          scrollViewRef.current?.scrollToEnd({ animated: true })
         }>
-        {chatHistory.map((m, i) => {
+        {chatHistory.map((m: any, i: number) => {
           const dt = new Date(m.createdAt['seconds'] * 1000)
           if (m.uid == chatInfo.senderID) {
             return (
@@ -126,9 +121,10 @@ export default function ChatRoom({ route }) {
                       setShowState(!showState)
                       setCurrentItem(i)
                     }}>
-                    <View style={{ backgroundColor: 'rgba(0,0,0,0)' }}>
-                      <Text style={{ color: '#fff' }}>{m.text}</Text>
-                    </View>
+                    { m.type == 'text' ? <Text style={{ color: '#fff' }}>{m.text}</Text> :
+                      (m.type == 'image' ? <Image source={{ uri: m.image.uri }} style={{ width: 200, height: 200 }}/> : 
+                      <Text>audio part</Text>
+                      )} 
                   </TouchableOpacity>
                   <Avatar.Image
                     size={48}
@@ -168,7 +164,10 @@ export default function ChatRoom({ route }) {
                       setShowState(!showState)
                       setCurrentItem(i)
                     }}>
-                    <Text>{m.text}</Text>
+                    { m.type == 'text' ? <Text>{m.text}</Text> :
+                      (m.type == 'image' ? <Image source={{ uri: m.image.uri }} style={{ width: 200, height: 200 }}/> : 
+                      <Text>audio part</Text>
+                      )}                    
                   </TouchableOpacity>
                 </View>
               </View>
@@ -179,7 +178,7 @@ export default function ChatRoom({ route }) {
 
       <View style={styles.containerChatFooter}>
         <View style={styles.chatFooterLeftPart}>
-        <ImagePicker params={displayUser} />
+        <ImagePicker params={{uid, username, photoURL, chatID: chatInfo.chatID}} />
           <MaterialCommunityIcons
             name="microphone"
             size={30}

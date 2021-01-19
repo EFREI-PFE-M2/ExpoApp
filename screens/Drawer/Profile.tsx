@@ -24,7 +24,7 @@ const Stack = createStackNavigator()
 
 export default function Profile(props) {
   const { user, route, navigation } = props
-  const displayUser = route.params.self ? useSelector(selectCurrentUser) : user
+  const displayUser = route.params.self ? useSelector(selectCurrentUser) : route.params.user
   const {
     uid,
     photoURL,
@@ -36,6 +36,8 @@ export default function Profile(props) {
     nbFollowing,
     currentSeries,
   } = displayUser
+
+  const profileHeader = route.params.self ? 'Mon Profil' : username
 
   const renderXPCard = () => (
     <View style={XPCardStyles.container}>
@@ -161,18 +163,22 @@ export default function Profile(props) {
         size={30}
         color="#fff"
       />
-      <Text style={{fontSize:24, fontWeight:'bold',color:"#fff"}}>Mon Profil</Text>
-      <IconButton 
-        icon="account-edit" 
+      <Text style={{fontSize:24, fontWeight:'bold', color:"#fff"}}>{profileHeader}</Text>
+      {(route.params.self ? 
+      <IconButton icon="account-edit" 
         onPress={edit}
         size={30}
-        color="#fff"
-      />
+        color="#fff"/> 
+        : <IconButton icon="account-plus" 
+        onPress={follow}
+        size={30}
+        color="#fff"/>)}
     </View>
   )
 
-  const goBack = () => navigation.navigate('Home')
+  const goBack = () => { navigation.setParams({self: true }); navigation.goBack(); }
   const edit = () => console.log('editing')
+  const follow = () => console.log('follow')
 
   return (
     <View style={styles.container}>

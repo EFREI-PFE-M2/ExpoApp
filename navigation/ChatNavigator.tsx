@@ -10,7 +10,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { createConversation, getConversationFromID, searchUsers, selectError, selectUsersToAdd } from '../store/chatSlice'
 import { selectCurrentUser } from '../store/userSlice'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-//import { TouchableWithoutFeedback } from 'react-native-gesture-handler'
 
 const Stack = createStackNavigator()
 
@@ -49,19 +48,7 @@ export default function ChatStack({navigation}) {
   const createChat = () => {
     dispatch(createConversation(uid, selectUser[0]))
     goBackToChatList()
-    //setTimeout(() => { console.log(error); Alert.alert("Error", error, [{text: 'OK', onPress: goBackToChatList}])}, 1000); 
   }
-
-  /*
-  const notifyAlert = () =>  
-  {
-    const error = useSelector(selectError)
-    console.log(error)
-    if (error.length != 0)
-      Alert.alert("Error", error, [{text: 'OK', onPress: goBackToChatList}])
-    else
-      Alert.alert("Confirmation", "Conversation created.", [{text: 'OK', onPress: goBackToChatList}])
-  }*/
 
   return (
     <Stack.Navigator screenOptions={defaultScreenOptions}>
@@ -100,11 +87,11 @@ export default function ChatStack({navigation}) {
       <Stack.Screen name="ChatRoom"
         component={ChatRoom}
         options={({ route }) => ({
-          title: route.params.title,
+          title: route.params?.title,
           headerTitleAlign: 'left',
           headerRight: ({ tintColor }) => (
             <View style={styles.iconRight}>
-              <PrivateChatMenuOptions />
+              <PrivateChatMenuOptions params={{chatInfo: route.params?.chatInfo}}/>
             </View>
           )})}/>
       <Stack.Screen name="AddChat"

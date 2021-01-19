@@ -3,9 +3,11 @@ import { View } from 'react-native'
 import { Menu, Divider } from 'react-native-paper'
 import { ReactReduxContext } from 'react-redux'
 import { MaterialIcons } from '@expo/vector-icons'
+import { useNavigation } from '@react-navigation/native'
 
-export default function PrivateChatMenuOptions() {
+export default function PrivateChatMenuOptions(props) {
   const [visible, setVisible] = React.useState(false)
+  const navigation = useNavigation()
 
   const openMenu = () => setVisible(true)
   const closeMenu = () => setVisible(false)
@@ -23,7 +25,22 @@ export default function PrivateChatMenuOptions() {
           />
         }>
         <Menu.Item
-          onPress={() => alert('Redirect to user profile')}
+          onPress={() => {
+            setVisible(false)
+            navigation.navigate('Profil', {
+              self: false,
+              user: {
+                username: props.params.chatInfo.receiverDisplayName,
+                photoURL: props.params.chatInfo.receiverPhotoURL,
+                level: 0,
+                experience: 0,
+                winPercentage: 0,
+                nbFollowers: 0,
+                nbFollowing: 0,
+                currentSeries: [],
+              },
+            })
+          }}
           titleStyle={{ color: 'black' }}
           title="Voir le profil"
         />

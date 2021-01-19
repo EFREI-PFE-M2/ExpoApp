@@ -278,7 +278,7 @@ export const startMessagesListening = (conversationID) => async (dispatch) => {
   }
 }
 
-export const sendTextMessage = (conversationID, message) => async (
+export const sendChatMessage = (conversationID, message) => async (
   dispatch,
   getState
 ) => {

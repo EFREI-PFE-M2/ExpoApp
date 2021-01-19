@@ -3,17 +3,19 @@ import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { View } from './Themed';
+import { sendChatMessage } from '../store/chatSlice';
+import { useDispatch } from 'react-redux';
 
-export default function ImagePickerBtn({params}) {
-     
-      const pickImage = async () => {
+export default function ImagePickerBtn(props) {
+    const dispatch = useDispatch()
+    const pickImage = async () => {
         if (Platform.OS !== 'web') {
             const { status } = await ImagePicker.requestCameraRollPermissionsAsync();
             if (status !== 'granted') {
               alert('Sorry, we need camera roll permissions to make this work!');
               return
             }
-          }
+        }
 
         let result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -21,24 +23,26 @@ export default function ImagePickerBtn({params}) {
           quality: 1,
         });
     
-        console.log(result);
-    
         if (!result.cancelled) {
             const datetime = new Date()
             const message = {
                 type: result.type,
                 createdAt: datetime,
-                displayName: params.username,
-                photoURL: params.photoURL,
-                uid: params.uid,
+                displayName: props.params.username,
+                photoURL: props.params.photoURL,
+                uid: props.params.uid,
                 text: '',
                 audio: '',
-                image: result.uri,
-                imageCaption: result.uri.substring(result.uri.lastIndexOf('/') + 1, result.uri.length)
+                image: {
+                    uri: result.uri,
+                    name: result.uri.substring(result.uri.lastIndexOf('/') + 1, result.uri.length),
+                    height: result.height,
+                    width: result.width
+                }
             }
-            console.log(message)
+            dispatch(sendChatMessage(props.params.chatID, message))
         }
-      };
+    };  
 
     return (<View>
         <MaterialCommunityIcons
