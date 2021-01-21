@@ -69,7 +69,10 @@ export const searchUsers = (query) => async (dispatch) => {
     users.push({
       uid: doc.id,
       username: user.displayName,
-      photoURL: user.photoURL,
+      photoURL:
+        user.photoURL != undefined
+          ? user.photoURL
+          : 'https://st.depositphotos.com/2101611/3925/v/600/depositphotos_39258143-stock-illustration-businessman-avatar-profile-picture.jpg',
     })
   })
 
@@ -132,7 +135,6 @@ export const getMessagesFromPrivateConversation = (
     })
   } else {
     snapshot.docs.map((doc) => {
-      //console.log(doc.data() + ' ' + doc.data().id)
       const message = doc.data()
       messages.unshift({
         messageID: doc.id,
@@ -194,10 +196,30 @@ export const getConversationFromID = (userID) => async (dispatch) => {
       .get()
 
     let data = []
-    snapshot.forEach((doc) => {
-      data.push({ id: doc.id, data: doc.data() })
+
+    let count = snapshot.size
+
+    snapshot.forEach(async (doc) => {
+      const lastMessage = await firestore
+        .collection('PrivateConversation')
+        .doc(doc.id)
+        .collection('Messages')
+        .orderBy('createdAt')
+        .limitToLast(1)
+        .get()
+
+      if (lastMessage.size) {
+        lastMessage.docs.forEach((_doc) => {
+          const lastMessage = _doc.data()
+          data.push({ id: doc.id, data: { ...doc.data(), lastMessage } })
+        })
+      } else {
+        data.push({ id: doc.id, data: { ...doc.data(), lastMessage: {} } })
+      }
+
+      count--
+      if (count == 0) dispatch(addToPrivate(data))
     })
-    dispatch(addToPrivate(data))
   } catch (err) {
     console.error(err)
   }
@@ -224,9 +246,27 @@ export const createConversation = (senderID, receiverID) => async (
     if (array.length != 0)
       return dispatch(setError('Conversation already exists.'))
     else {
+      const senderDoc = await firestore.collection('Users').doc(senderID).get()
+      const sender = senderDoc.data()
+      const receiverDoc = await firestore
+        .collection('Users')
+        .doc(receiverID)
+        .get()
+      const receiver = receiverDoc.data()
+
       let data = {
         senderID,
+        senderDisplayName: sender.displayName,
+        senderPhotoURL:
+          sender.photoURL != undefined
+            ? sender.photoURL
+            : 'https://st.depositphotos.com/2101611/3925/v/600/depositphotos_39258143-stock-illustration-businessman-avatar-profile-picture.jpg',
         receiverID,
+        receiverDisplayName: receiver.displayName,
+        receiverPhotoURL:
+          receiver.photoURL != undefined
+            ? receiver.photoURL
+            : 'https://st.depositphotos.com/2101611/3925/v/600/depositphotos_39258143-stock-illustration-businessman-avatar-profile-picture.jpg',
         users: [senderID, receiverID],
       }
 

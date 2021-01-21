@@ -10,25 +10,25 @@ export function GetMessageShort(comment: string) {
 
 export function GetPublishedDate(dt: Date) {
   let now = new Date()
-  let secondByMs = 1000
-  let minuteByMs = 60 * secondByMs
-  let hourByMs = 60 * minuteByMs
+  let yesterday = new Date()
+  yesterday.setDate(now.getDate()-1)
 
-  let duration = (now.getTime() - dt.getTime()) / hourByMs
   let hours = dt.getHours() < 10 ? '0' + dt.getHours() : dt.getHours()
   let mins = dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes()
   let oclock = hours + 'h' + mins
-  if (duration < 24) return `Aujourd'hui, à ${oclock}`
-  else if (24 <= duration && duration < 48) return `Hier, à ${oclock}`
+
+  if (dt.getFullYear() == now.getFullYear() && dt.getMonth() == now.getMonth() && dt.getDate() == now.getDate()) 
+    return `Aujourd'hui, à ${oclock}`
+  else if (yesterday.getDate() == dt.getDate()) return `Hier, à ${oclock}`
   else {
     let weekdays = [
+      'Dimanche',
       'Lundi',
       'Mardi',
       'Mercredi',
       'Jeudi',
       'Vendredi',
       'Samedi',
-      'Dimanche',
     ]
     let months = [
       'Jan',

@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { StyleSheet, ScrollView, TextInput, Image } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { StyleSheet, ScrollView, TextInput, Image, RefreshControl } from 'react-native'
 import { Text, View } from '../components/Themed'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/userSlice'
@@ -57,34 +57,55 @@ export default function ChatRoom({ route }) {
     }
   }
 
+  useEffect(() => {
+    setChatHistory(messages)
+  })
+
+  /*
   function isCloseToBottom({ layoutMeasurement, contentOffset, contentSize }) {
     return layoutMeasurement.height + contentOffset.y >= contentSize.height - 20
   }
 
   function isCloseToTop({ layoutMeasurement, contentOffset, contentSize }) {
     return contentOffset.y == 0
+  }*/
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const wait = (timeout: number) => {
+    return new Promise(resolve => {
+      setTimeout(resolve, timeout);
+    });
   }
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+
+    //console.log('ok')
+    const earliestMessageID = chatHistory[0].messageID
+    dispatch(getMessagesFromPrivateConversation(
+      chatInfo.chatID,
+      earliestMessageID
+    ))
+    //setChatHistory(messages)
+
+    wait(2000).then(() => setRefreshing(false));
+  }, []);
 
   const scrollViewRef = React.createRef<ScrollView>()
 
   return (
     <View style={styles.container}>
       <ScrollView
-        onScroll={({ nativeEvent }) => {
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}
+        /*onScroll={({ nativeEvent }) => {
           if (isCloseToTop(nativeEvent)) {
-            const earliestMessageID = chatHistory[0].messageID
-            dispatch(
-              getMessagesFromPrivateConversation(
-                chatInfo.chatID,
-                earliestMessageID
-              )
-            )
-            setChatHistory(messages)
+            
           }
           if (isCloseToBottom(nativeEvent)) {
             //console.log('bottom')
           }
-        }}
+        }}*/
         ref={scrollViewRef}
         onContentSizeChange={() =>
           scrollViewRef.current?.scrollToEnd({ animated: true })

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View } from '../components/Themed'
 import { StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native'
 import { Avatar } from 'react-native-paper'
@@ -23,80 +23,79 @@ function PrivateChatList({ navigation }) {
   const noPrivateChats = 'No private conversations.'
 
   let privateChats = useSelector(selectPrivateChats)
+  const [privateConversations, setPrivateConversations] = useState(privateChats)
 
-  let pChats = []
-
-  for (let i in privateChats) {
-    let privateChat = {
-      ...privateChats[i],
-      chatID: i,
-    }
-    pChats.push(privateChat)
-  }
+  useEffect(() => {
+    setPrivateConversations(privateChats)
+  })
 
   const dispatch = useDispatch()
 
   return (
     <ScrollView>
-      {pChats.length == 0 ? (
+      {Object.keys(privateConversations).length == 0 ? 
+      (
         <Text style={{ marginTop: 10, marginStart: 10, fontSize: 16 }}>
           {noPrivateChats}
         </Text>
-      ) : (
-        pChats.map((c, i) => {
-          const chatInfo = c
-
-          const displayName = c.receiverDisplayName
-          const photoURL = c.receiverPhotoURL
-          const comment = 'comment' //chatInfo.messages.pop().text
-          const createdAt = new Date() //chatInfo.messages.pop().createdAt
-
-          return (
+      ) : 
+      <View style={{backgroundColor: 'rgba(0,0,0,0)'}}>
+        {Object.keys(privateConversations).map((key) => {
+          const chatInfo = { ...privateConversations[key], chatID: key }
+ 
+          const displayName = GetRoomTitleShort(chatInfo.receiverDisplayName)
+          const photoURL = chatInfo.receiverPhotoURL
+          const lastMessage = GetMessageShort(chatInfo.lastMessage ? (chatInfo.lastMessage.type == 'text' ? chatInfo.lastMessage.text : (chatInfo.lastMessage.type == 'image' ?
+          '[New image has been sent]' : '[New audio has been sent]')) : '[Be the first to send message]')
+          const createdOrPublishedAt = chatInfo.lastMessage ? GetPublishedDate(new Date(chatInfo.lastMessage.createdAt['seconds'] * 1000)) : 
+          GetPublishedDate(new Date(chatInfo.createdAt['seconds'] * 1000)) 
+          
+          return(
             <TouchableOpacity
-              key={i}
-              style={styles.containerChatRoomItem}
-              onPress={async () => {
-                await dispatch(getMessagesFromPrivateConversation(c.chatID))
-                navigation.navigate('ChatRoom', {
-                  chatInfo,
-                  title: (
+            key={key}
+            style={styles.containerChatRoomItem}
+            onPress={async () => {
+              await dispatch(getMessagesFromPrivateConversation(key))
+              navigation.navigate('ChatRoom', {
+                chatInfo,
+                title: (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      backgroundColor: 'rgba(0, 0, 0, 0)',
+                    }}>
+                    <Avatar.Image size={45} source={{ uri: photoURL }} />
                     <View
                       style={{
-                        flexDirection: 'row',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        marginBottom: 5,
                         backgroundColor: 'rgba(0, 0, 0, 0)',
                       }}>
-                      <Avatar.Image size={45} source={{ uri: photoURL }} />
-                      <View
-                        style={{
-                          flexDirection: 'column',
-                          justifyContent: 'center',
-                          marginBottom: 5,
-                          backgroundColor: 'rgba(0, 0, 0, 0)',
-                        }}>
-                        <Text style={styles.titleStyle}>
-                          {GetRoomTitleShort(displayName)}
-                        </Text>
-                      </View>
+                      <Text style={styles.titleStyle}>
+                        {displayName}
+                      </Text>
                     </View>
-                  ),
-                })
-              }}>
-              <Avatar.Image size={60} source={{ uri: photoURL }} />
-              <View style={{ marginStart: 10, ...styles.viewStyle }}>
+                  </View>
+                ),
+              })
+            }}>
+            <Avatar.Image size={60} source={{ uri: photoURL }} />
+            <View style={{ marginStart: 10, ...styles.viewStyle }}>
                 <Text style={styles.nameStyle}>{displayName}</Text>
                 <View style={styles.viewStyle}>
                   <Text style={styles.lastMessageStyle}>
-                    {GetMessageShort(comment)}
+                    {lastMessage}
                   </Text>
                   <Text style={styles.publishedDateStyle}>
-                    - {GetPublishedDate(createdAt)}
+                    - {createdOrPublishedAt}
                   </Text>
                 </View>
               </View>
-            </TouchableOpacity>
-          )
-        })
-      )}
+            </TouchableOpacity>)      
+        })}
+      </View>
+      }
     </ScrollView>
   )
 }
