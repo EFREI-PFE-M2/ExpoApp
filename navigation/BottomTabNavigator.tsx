@@ -27,6 +27,7 @@ import { useNavigation } from '@react-navigation/native'
 import Navigation from '.'
 import Race from '../screens/Race'
 import Group from '../screens/Group'
+import GroupParameters from '../screens/GroupParameters'
 
 const BottomTab = createBottomTabNavigator()
 
@@ -155,6 +156,11 @@ function TabHomeNavigator() {
         name="Home_Group"
         component={Group}
         options={{ headerTitle: 'Groupe' }}
+      />
+      <HomeStack.Screen
+        name="Home_Group_setting"
+        component={GroupParameters}
+        options={{ headerTitle: 'Paramètres' }}
       />
     </HomeStack.Navigator>
   )

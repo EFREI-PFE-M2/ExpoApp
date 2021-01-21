@@ -13,6 +13,13 @@ export const groupSlice = createSlice({
       const { id, data } = action.payload
       state.groups[id] = data
     },
+    removeGroup: (state, action) => {
+      delete state.groups[action.payload]
+    },
+    updateGroup: (state, action) => {
+      const { groupID, name } = action.payload
+      state.groups[groupID].name = name
+    },
     addAll: (state, action) => {
       action.payload?.forEach((obj) => {
         const { id, ...rest } = obj
@@ -36,6 +43,10 @@ export const groupSlice = createSlice({
       requests?.forEach((request) => {
         state.groups[groupID].requests[request.id] = request
       })
+    },
+    removeRequestsFromGroup: (state, action) => {
+      const { userID, groupID } = action.payload
+      delete state.groups[groupID].requests[userID]
     },
   },
 })
@@ -139,10 +150,13 @@ let bet ={
 //actions imports
 export const {
   addGroup,
+  removeGroup,
+  updateGroup,
   addAll,
   addUsersToGroup,
   addPostsToGroup,
   addRequestsToGroup,
+  removeRequestsFromGroup,
 } = groupSlice.actions
 
 // thunks
@@ -261,7 +275,7 @@ export const getGroupPosts = (groupID) => async (dispatch) => {
 
     dispatch(addPostsToGroup({ posts: groupPosts, groupID }))
   } catch (err) {
-    console.erro(err)
+    console.error(err)
   }
 }
 
@@ -315,6 +329,8 @@ export const acceptRequest = (groupID, requestID) => async (dispatch) => {
         .collection('GroupJoinPendingRequests')
         .doc(requestID)
         .delete()
+      alert('Requête accepté!')
+      dispatch(removeRequestsFromGroup({ userID: userData.id, groupID }))
     }
   } catch (err) {
     console.error(err)
@@ -331,6 +347,8 @@ export const refuseRequest = (requestID) => async (dispatch) => {
       .collection('GroupJoinPendingRequests')
       .doc(requestID)
       .delete()
+    alert('Requête refusé!')
+    dispatch(removeRequestsFromGroup({ userID: requestID, groupID }))
   } catch (err) {
     console.error(err)
   }
@@ -359,6 +377,56 @@ export const requestJoinGroup = (userID, groupID) => async (
       .collection('GroupJoinPendingRequests')
       .doc(uid)
       .set({ uid, displayName, photoURL })
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const deleteGroupRequest = (userID, groupID) => async (dispatch) => {
+  if (!userID || !groupID) return
+
+  try {
+    const group = await firestore.collection('Groups').doc(groupID).get()
+
+    if (!group.exists || group.data().masterID === userID)
+      throw new Error('Operation not allowed.')
+
+    await firestore.collection('Groups').doc(groupID).delete()
+
+    dispatch(removeGroup(groupID))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const leaveGroupRequest = (userID, groupID) => async (dispatch) => {
+  if (!userID || !groupID) return
+
+  try {
+    const group = await firestore
+      .collection('Groups')
+      .doc(groupID)
+      .collection('GroupMembers')
+      .doc(userID)
+      .get()
+
+    if (!group.exists) return
+
+    await group.ref.delete()
+
+    dispatch(removeGroup(groupID))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const updateGroupInfo = (name, groupID) => async (dispatch) => {
+  if (!name || !groupID) return
+
+  try {
+    await firestore.collection('Groups').doc(groupID).set({ name })
+
+    dispatch(updateGroup({ groupID, name }))
   } catch (err) {
     console.error(err)
   }

@@ -33,7 +33,8 @@ export default function Group({ route, navigation }) {
   )
 
   const goBack = () => navigation.goBack()
-
+  const onPressParameters = () =>
+    navigation.navigate('Home_Group_setting', { groupID })
   const onPressJoin = () => dispatch(requestJoinGroup(uid, groupID))
 
   useEffect(() => {
@@ -52,7 +53,12 @@ export default function Group({ route, navigation }) {
       />
     ),
     headerRight: ({ tintColor }) => (
-      <IconButton icon="dots-horizontal" size={24} color={tintColor} />
+      <IconButton
+        icon="dots-horizontal"
+        size={24}
+        color={tintColor}
+        onPress={onPressParameters}
+      />
     ),
   })
 
@@ -78,40 +84,42 @@ export default function Group({ route, navigation }) {
           </Button>
         )}
       </View>
-      <Tab.Navigator
-        tabBarOptions={{
-          labelStyle: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: '#194A4C',
-          },
-          indicatorStyle: {
-            backgroundColor: '#194A4C',
-          },
-          showLabel: true,
-          showIcon: true,
-          tabStyle: {
-            flexDirection: 'row',
-          },
-        }}>
-        <Tab.Screen
-          name="Posts"
-          component={Posts}
-          initialParams={{ groupID }}
-        />
-        <Tab.Screen
-          name="Membres"
-          component={Members}
-          initialParams={{ groupID }}
-        />
-        {isPrivate && (
+      {isMember && (
+        <Tab.Navigator
+          tabBarOptions={{
+            labelStyle: {
+              fontSize: 18,
+              fontWeight: 'bold',
+              color: '#194A4C',
+            },
+            indicatorStyle: {
+              backgroundColor: '#194A4C',
+            },
+            showLabel: true,
+            showIcon: true,
+            tabStyle: {
+              flexDirection: 'row',
+            },
+          }}>
           <Tab.Screen
-            name="Requêtes"
-            component={Request}
+            name="Posts"
+            component={Posts}
             initialParams={{ groupID }}
           />
-        )}
-      </Tab.Navigator>
+          <Tab.Screen
+            name="Membres"
+            component={Members}
+            initialParams={{ groupID }}
+          />
+          {isPrivate && (
+            <Tab.Screen
+              name="Requêtes"
+              component={Request}
+              initialParams={{ groupID }}
+            />
+          )}
+        </Tab.Navigator>
+      )}
     </View>
   )
 }
@@ -147,11 +155,12 @@ function Request({ route }) {
   const currentUser = useSelector(({ user }) => user.uid)
   const adminID = useSelector(({ group }) => group.groups[groupID]?.masterID)
 
-  const isAdmin = adminID ? currentUser && adminID : false
+  const isAdmin = adminID ? currentUser === adminID : false
 
-  const RenderUserCards = () => Object.keys(requestList)?.map((element, key) => (
-    <UserCard user={requestList[element]} key={key} />
-  ))
+  const RenderUserCards = () =>
+    Object.keys(requestList)?.map((element, key) => (
+      <UserCard user={requestList[element]} key={key} />
+    ))
 
   const RenderAdminUserCards = () =>
     Object.keys(requestList)?.map((element, key) => (
@@ -162,14 +171,7 @@ function Request({ route }) {
       />
     ))
 
-  return (
-    <View>
-      {isAdmin 
-        ? <RenderAdminUserCards />
-        : <RenderUserCards />
-      }
-    </View>
-  )
+  return <View>{isAdmin ? <RenderAdminUserCards /> : <RenderUserCards />}</View>
 }
 
 const styles = StyleSheet.create({
