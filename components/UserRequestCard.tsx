@@ -3,14 +3,15 @@ import { Image, StyleSheet } from 'react-native'
 import { IconButton } from 'react-native-paper'
 import { useDispatch } from 'react-redux'
 import { View, Text } from './Themed'
+import { acceptRequest, refuseRequest } from './../store/groupSlice'
 
-export default function UserRequestCard({ user }) {
+export default function UserRequestCard({ user, groupID }) {
   const { photoURL, displayName, id } = user
   const dispatch = useDispatch()
 
-  const acceptRequest = () => dispatch(acceptRequest(id))
+  const onPressAcceptRequest = () => dispatch(acceptRequest(groupID, id))
 
-  const rejectRequest = () => dispatch(rejectRequest(id))
+  const onPressRejectRequest = () => dispatch(refuseRequest(groupID, id))
 
   return (
     <View style={styles.container}>
@@ -19,10 +20,14 @@ export default function UserRequestCard({ user }) {
       <View style={styles.buttonGroup}>
         <IconButton
           icon="account-check"
-          onPress={acceptRequest}
+          onPress={onPressAcceptRequest}
           color="#194A4C"
         />
-        <IconButton icon="cancel" onPress={rejectRequest} color="#ff3333" />
+        <IconButton
+          icon="cancel"
+          onPress={onPressRejectRequest}
+          color="#ff3333"
+        />
       </View>
     </View>
   )

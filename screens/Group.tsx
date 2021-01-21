@@ -2,7 +2,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { useNavigation } from '@react-navigation/native'
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, Image } from 'react-native'
-import { IconButton } from 'react-native-paper'
+import { Button, IconButton } from 'react-native-paper'
 import { useDispatch, useSelector } from 'react-redux'
 import Post from '../components/Post'
 import UserCard from '../components/UserCard_Small'
@@ -11,7 +11,9 @@ import {
   getGroupPosts,
   getMembers,
   getPendingRequests,
+  requestJoinGroup,
 } from '../store/groupSlice'
+import { selectCurrent, selectCurrentUser } from '../store/userSlice'
 import { Text, View } from './../components/Themed'
 
 const PUBLIC = 'public'
@@ -25,8 +27,14 @@ export default function Group({ route, navigation }) {
     (state) => state.group?.groups[groupID]
   )
   const dispatch = useDispatch()
+  const uid = useSelector(selectCurrent)
+  const isMember = useSelector(
+    ({ group }) => group.groups[groupID]?.currentUserIsMember
+  )
 
   const goBack = () => navigation.goBack()
+
+  const onPressJoin = () => dispatch(requestJoinGroup(uid, groupID))
 
   useEffect(() => {
     dispatch(getPendingRequests(groupID))
@@ -60,6 +68,15 @@ export default function Group({ route, navigation }) {
         <Text style={styles.content}>{`Groupe ${
           isPrivate ? PRIVE : PUBLIC
         } - ${nbMembers} membres`}</Text>
+        {!isMember && (
+          <Button
+            mode="contained"
+            color="#194A4C"
+            style={styles.joinButton}
+            onPress={onPressJoin}>
+            Rejoindre
+          </Button>
+        )}
       </View>
       <Tab.Navigator
         tabBarOptions={{
@@ -136,9 +153,14 @@ function Request({ route }) {
     <UserCard user={requestList[element]} key={key} />
   ))
 
-  const RenderAdminUserCards = () => Object.keys(requestList)?.map((element, key) => (
-    <UserRequestCard user={requestList[element]} key={key} />
-  ))
+  const RenderAdminUserCards = () =>
+    Object.keys(requestList)?.map((element, key) => (
+      <UserRequestCard
+        user={requestList[element]}
+        key={key}
+        groupID={groupID}
+      />
+    ))
 
   return (
     <View>
@@ -171,5 +193,10 @@ const styles = StyleSheet.create({
   content: {
     fontSize: 16,
     fontWeight: '500',
+  },
+  joinButton: {
+    position: 'absolute',
+    right: 0,
+    bottom: 10,
   },
 })

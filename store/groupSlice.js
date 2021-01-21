@@ -179,6 +179,7 @@ export const getUserGroup = (userID) => async (dispatch) => {
         users: {},
         posts: {},
         requests: {},
+        currentUserIsMember: true,
         ...group.data(),
       }
     })
@@ -289,9 +290,79 @@ export const getPendingRequests = (groupID) => async (dispatch) => {
   }
 }
 
-export const acceptRequest = (requestID) => async (dispatch) => {}
+export const acceptRequest = (groupID, requestID) => async (dispatch) => {
+  if (!requestID) return
 
-export const refuseRequest = (requestID) => async (dispatch) => {}
+  try {
+    const userData = await firestore
+      .collection('Groups')
+      .doc(groupID)
+      .collection('GroupJoinPendingRequests')
+      .doc(requestID)
+      .get()
+
+    if (userData.exists) {
+      await firestore
+        .collection('Groups')
+        .doc(groupID)
+        .collection('GroupMembers')
+        .doc(userData.id)
+        .set(userData.data())
+
+      await firestore
+        .collection('Groups')
+        .doc(groupID)
+        .collection('GroupJoinPendingRequests')
+        .doc(requestID)
+        .delete()
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const refuseRequest = (requestID) => async (dispatch) => {
+  if (!requestID) return
+
+  try {
+    await firestore
+      .collection('Groups')
+      .doc(groupID)
+      .collection('GroupJoinPendingRequests')
+      .doc(requestID)
+      .delete()
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const requestJoinGroup = (userID, groupID) => async (
+  dispatch,
+  getState
+) => {
+  if (!groupID || !userID) return
+  const { uid, displayName, photoURL } = getState().user
+
+  try {
+    const user = await firestore
+      .collection('Groups')
+      .doc(groupID)
+      .collection('GroupMembers')
+      .doc(uid)
+      .get()
+
+    if (user.exists) throw new Error('User is part of the group.')
+
+    await firestore
+      .collection('Groups')
+      .doc(groupID)
+      .collection('GroupJoinPendingRequests')
+      .doc(uid)
+      .set({ uid, displayName, photoURL })
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 // selectors
 
