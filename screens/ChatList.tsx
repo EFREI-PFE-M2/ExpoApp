@@ -42,14 +42,15 @@ function PrivateChatList({ navigation }) {
       <View style={{backgroundColor: 'rgba(0,0,0,0)'}}>
         {Object.keys(privateConversations).map((key) => {
           const chatInfo = { ...privateConversations[key], chatID: key }
- 
+
           const displayName = GetRoomTitleShort(chatInfo.receiverDisplayName)
           const photoURL = chatInfo.receiverPhotoURL
-          const lastMessage = GetMessageShort(chatInfo.lastMessage ? (chatInfo.lastMessage.type == 'text' ? chatInfo.lastMessage.text : (chatInfo.lastMessage.type == 'image' ?
+          const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
+          (chatInfo.lastMessage['type'] == 'text' ? chatInfo.lastMessage.text : (chatInfo.lastMessage['type']== 'image' ?
           '[New image has been sent]' : '[New audio has been sent]')) : '[Be the first to send message]')
-          const createdOrPublishedAt = chatInfo.lastMessage ? GetPublishedDate(new Date(chatInfo.lastMessage.createdAt['seconds'] * 1000)) : 
-          GetPublishedDate(new Date(chatInfo.createdAt['seconds'] * 1000)) 
-          
+          const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length  ? GetPublishedDate(new Date(chatInfo.lastMessage.createdAt['seconds'] * 1000)) : 
+          GetPublishedDate(new Date(typeof chatInfo.createdAt['seconds'] == 'undefined' ? chatInfo.createdAt : chatInfo.createdAt['seconds'] * 1000)) 
+
           return(
             <TouchableOpacity
             key={key}

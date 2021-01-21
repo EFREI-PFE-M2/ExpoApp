@@ -58,7 +58,9 @@ export default function ChatRoom({ route }) {
   }
 
   useEffect(() => {
-    setChatHistory(messages)
+    if (refreshing) {
+      setChatHistory(messages)
+    }     
   })
 
   /*
@@ -81,13 +83,11 @@ export default function ChatRoom({ route }) {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
 
-    //console.log('ok')
     const earliestMessageID = chatHistory[0].messageID
     dispatch(getMessagesFromPrivateConversation(
       chatInfo.chatID,
       earliestMessageID
     ))
-    //setChatHistory(messages)
 
     wait(2000).then(() => setRefreshing(false));
   }, []);
@@ -111,7 +111,8 @@ export default function ChatRoom({ route }) {
           scrollViewRef.current?.scrollToEnd({ animated: true })
         }>
         {chatHistory.map((m: any, i: number) => {
-          const dt = new Date(m.createdAt['seconds'] * 1000)
+          const dt = typeof m.createdAt['seconds'] == 'undefined' ? new Date(m.createdAt) : new Date(m.createdAt['seconds'] * 1000)
+
           if (m.uid == chatInfo.senderID) {
             return (
               <View style={{ backgroundColor: 'rgba(0,0,0,0)', padding: 10 }}>

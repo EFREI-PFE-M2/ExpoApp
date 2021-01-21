@@ -1,5 +1,5 @@
 import { createStackNavigator, StackNavigationOptions } from '@react-navigation/stack'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import AddChat from '../screens/AddChat'
 import ChatList from '../screens/ChatList'
 import ChatRoom from '../screens/ChatRoom'
@@ -37,6 +37,7 @@ export default function ChatStack({navigation}) {
   
   const { uid } = displayUser              
   const dispatch = useDispatch()
+
   dispatch(getConversationFromID(uid))
 
   const goBackToChatList = () => {

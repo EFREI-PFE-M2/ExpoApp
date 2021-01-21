@@ -27,10 +27,23 @@ export const chatSlice = createSlice({
     },
     addToPrivate: (state, action) => {
       // Action.payload is a snapshot!
+      let updatedPrivateConversations = Object.entries(
+        state.privateConversations
+      )
+
       action.payload?.forEach((element) => {
-        state.privateConversations[element.id] = element.data
-        state.privateConversations[element.id].messages = {}
+        updatedPrivateConversations.unshift([
+          element.id,
+          { ...element.data, messages: {} },
+        ])
+        //state.privateConversations[element.id] = element.data
+        //state.privateConversations[element.id].messages = {}
       })
+
+      state.privateConversations = updatedPrivateConversations.reduce(
+        (r, [k, v]) => ({ ...r, [k]: v }),
+        {}
+      )
     },
     setError: (state, action) => {
       state.error = action.payload
@@ -109,14 +122,16 @@ export const getMessagesFromPrivateConversation = (
 
   const snapshot =
     typeof earliestMessageID == 'undefined'
-      ? await firestore
+      ? // 10 most recent messages in the chat
+        await firestore
           .collection('PrivateConversation')
           .doc(conversationID)
           .collection('Messages')
           .orderBy('createdAt')
           .limitToLast(10)
           .get()
-      : await firestore
+      : // <= 10 older messages than the referenced message
+        await firestore
           .collection('PrivateConversation')
           .doc(conversationID)
           .collection('Messages')
@@ -193,6 +208,7 @@ export const getConversationFromID = (userID) => async (dispatch) => {
     const snapshot = await firestore
       .collection('PrivateConversation')
       .where('users', 'array-contains', userID)
+      .orderBy('createdAt', 'desc')
       .get()
 
     let data = []
@@ -218,7 +234,23 @@ export const getConversationFromID = (userID) => async (dispatch) => {
       }
 
       count--
-      if (count == 0) dispatch(addToPrivate(data))
+      if (count == 0) {
+        let sortedData = data.sort((a, b) => {
+          if (a.lastMessage && b.lastMessage) {
+            return a.lastMessage.createdAt - b.lastMessage.createdAt
+          } else {
+            if (b.lastMessage) {
+              return a.createdAt - b.lastMessage.createdAt
+            } else if (a.lastMessage) {
+              return a.lastMessage.createdAt - b.createdAt
+            } else {
+              return a.createdAt - b.createdAt
+            }
+          }
+        })
+
+        dispatch(addToPrivate(sortedData))
+      }
     })
   } catch (err) {
     console.error(err)
@@ -275,14 +307,12 @@ export const createConversation = (senderID, receiverID) => async (
         .collection('PrivateConversation')
         .add(data)
 
-      console.log('new doc: ' + querySnapshot.id)
-
       // Add to local
       dispatch(
         addToPrivate([
           {
             id: querySnapshot.id,
-            data,
+            data: { ...data, createdAt: new Date(), lastMessage: {} },
           },
         ])
       )
@@ -335,6 +365,8 @@ export const sendChatMessage = (conversationID, message) => async (
       .doc(conversationID)
       .collection('Messages')
       .add(message)
+
+    dispatch(updateMessages([...chat.messages, message]))
   } catch (err) {
     console.error(err)
   }
