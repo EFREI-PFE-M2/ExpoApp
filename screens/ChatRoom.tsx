@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, ScrollView, TextInput, Image, RefreshControl } from 'react-native'
+import { Animated, StyleSheet, ScrollView, TextInput, Image, RefreshControl } from 'react-native'
 import { Text, View } from '../components/Themed'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../store/userSlice'
-import { TouchableOpacity } from 'react-native-gesture-handler'
+import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler'
 import { GetPublishedDate } from '../utils/ChatFunctions'
 import { Avatar } from 'react-native-paper'
 import ImagePicker from '../components/ImagePicker'
@@ -26,6 +26,7 @@ function showExtraInfo(check, sameItem) {
 export default function ChatRoom({ route }) {
   const [showState, setShowState] = useState(false)
   const [currentItem, setCurrentItem] = useState(0)
+
   const displayUser = useSelector(selectCurrentUser)
   const { username, photoURL, uid } = displayUser
 
@@ -63,16 +64,36 @@ export default function ChatRoom({ route }) {
     }     
   })
 
-  /*
   function isCloseToBottom({ layoutMeasurement, contentOffset, contentSize }) {
     return layoutMeasurement.height + contentOffset.y >= contentSize.height - 20
   }
 
   function isCloseToTop({ layoutMeasurement, contentOffset, contentSize }) {
     return contentOffset.y == 0
-  }*/
+  }
 
   const [refreshing, setRefreshing] = React.useState(false);
+  const [showScrollToTopMessage, setShowScrollToTopMessage] = React.useState(false)
+
+  const fadeAnimation = React.useRef(new Animated.Value(0)).current;
+
+  const fadeIn = () => {
+    // Will change fadeAnimation value to 1 in 500 ms
+    Animated.timing(fadeAnimation, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true
+    }).start();
+  };
+
+  const fadeOut = () => {
+    // Will change fadeAnimation value to 0 in 500 ms
+    Animated.timing(fadeAnimation, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true
+    }).start();
+  };
 
   const wait = (timeout: number) => {
     return new Promise(resolve => {
@@ -98,18 +119,35 @@ export default function ChatRoom({ route }) {
     <View style={styles.container}>
       <ScrollView
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}
-        /*onScroll={({ nativeEvent }) => {
+        onScroll={({ nativeEvent }) => {
           if (isCloseToTop(nativeEvent)) {
-            
+            fadeIn()
+          } else {
+            fadeOut()
           }
-          if (isCloseToBottom(nativeEvent)) {
+          /*if (isCloseToBottom(nativeEvent)) {
             //console.log('bottom')
-          }
-        }}*/
+          }*/
+        }}
         ref={scrollViewRef}
         onContentSizeChange={() =>
           scrollViewRef.current?.scrollToEnd({ animated: true })
         }>
+
+        <Animated.View
+          style={[
+            styles.containerScrollToTopMessage,
+            {
+              opacity: fadeAnimation // Bind opacity to animated value
+            }
+          ]}
+        >
+          <TouchableOpacity onPress={onRefresh}>
+            <Text style={{fontSize: 12}}>Click or scroll up to display older messages</Text>
+          </TouchableOpacity>
+        </Animated.View> 
+        
+
         {chatHistory.map((m: any, i: number) => {
           const dt = typeof m.createdAt['seconds'] == 'undefined' ? new Date(m.createdAt) : new Date(m.createdAt['seconds'] * 1000)
 
@@ -237,6 +275,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#E5E5E5',
     justifyContent: 'flex-end',
+  },
+  containerScrollToTopMessage: {
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    marginStart: 50,
+    marginTop: 10,
+    marginEnd: 50,
+    padding: 15,
+    borderTopStartRadius: 20,
+    borderTopEndRadius: 20,
+    borderBottomStartRadius: 20,
+    borderBottomEndRadius: 20,
   },
   containerMessageRight: {
     backgroundColor: '#194A4C',
