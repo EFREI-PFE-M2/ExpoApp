@@ -1,18 +1,23 @@
 import React from 'react'
 import { Image, StyleSheet } from 'react-native'
+import { TouchableRipple } from 'react-native-paper'
 import { useSelector } from 'react-redux'
 import { View, Text } from './Themed'
 
-export default function GroupCard({ group }) {
-  const { picture, name, nbMembers } = group
+export default function GroupCard({ group, navigate }) {
+  const { picture, name, nbMembers, id } = group
+
+  const redirect = () => navigate('Home_Group', { groupID: id })
   return (
-    <View style={styles.container}>
-      <Image source={{ uri: picture || '' }} style={styles.image} />
-      <View>
-        <Text style={styles.title}>{name}</Text>
-        <Text style={styles.members}>{nbMembers} members</Text>
-      </View>
-    </View>
+    <TouchableRipple style={styles.container} onPress={redirect}>
+      <>
+        <Image source={{ uri: picture || '' }} style={styles.image} />
+        <View>
+          <Text style={styles.title}>{name}</Text>
+          <Text style={styles.members}>{nbMembers} members</Text>
+        </View>
+      </>
+    </TouchableRipple>
   )
 }
 

@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit'
+import AddGroup from '../screens/AddGroup'
 import { FirebaseFirestore as firestore } from './../firebase'
 import { retrieveUsers } from './foreignUserSlice'
+import { addAll } from './groupSlice'
 
 export const searchSlice = createSlice({
   name: 'search',
@@ -91,7 +93,8 @@ export const searchGroups = (keyword) => async (dispatch) => {
   } catch (err) {
     console.log(err)
   }
-
+  
+  await dispatch(addAll(groups))
   await dispatch(addToGroups(groups))
 }
 
