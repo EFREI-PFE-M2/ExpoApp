@@ -41,7 +41,7 @@ function PrivateChatList({ navigation }) {
       ) : 
       <View style={{backgroundColor: 'rgba(0,0,0,0)'}}>
         {Object.keys(privateConversations).map((key) => {
-          const chatInfo = { ...privateConversations[key], chatID: key }
+          const chatInfo = { ...privateConversations[key], chatID: key }        
 
           const displayName = GetRoomTitleShort(chatInfo.receiverDisplayName)
           const photoURL = chatInfo.receiverPhotoURL

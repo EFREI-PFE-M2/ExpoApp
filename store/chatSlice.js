@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { exp } from 'react-native-reanimated'
 import {
   FirebaseAuth as auth,
   FirebaseFirestore as firestore,
@@ -18,24 +17,28 @@ export const chatSlice = createSlice({
   reducers: {
     putAtTopLastUpToDatePrivateChat: (state, action) => {
       const referencedID = action.payload.id
-      const updatedPrivateConversations =
-        action.payload.updatedPrivateConversations
-      const privateChatToTop = state.privateConversations[referencedID]
+      const lastMessage = action.payload.lastMessage
+      state.privateConversations[referencedID].lastMessage = lastMessage
 
-      updatedPrivateConversations.unshift(privateChatToTop)
+      let privateChatToTop = Object.assign(
+        {},
+        { [referencedID]: state.privateConversations[referencedID] }
+      )
 
-      console.log(updatedPrivateConversations)
+      privateChatToTop = Object.entries(privateChatToTop)
+
+      let privateConversations = Object.assign({}, state.privateConversations)
+
+      delete privateConversations[referencedID]
+
+      let updatedPrivateConversations = Object.entries(privateConversations)
+
+      updatedPrivateConversations.unshift(...privateChatToTop)
 
       state.privateConversations = updatedPrivateConversations.reduce(
         (r, [k, v]) => ({ ...r, [k]: v }),
         {}
       )
-    },
-    updateLastMessage: (state, action) => {
-      const referencedID = action.payload.id
-      const lastMessage = action.payload.lastMessage
-      const privateChatToTop = state.privateConversations[referencedID]
-      privateChatToTop.lastMessage = lastMessage
     },
     updateMessages: (state, action) => {
       state.messages = action.payload
@@ -389,20 +392,8 @@ export const sendChatMessage = (conversationID, message) => async (
 
     await dispatch(updateMessages([...chat.messages, message]))
 
-    /*let updatedPrivateConversations = chat.privateConversations
-
-    delete updatedPrivateConversations[conversationID]
-
-    updatedPrivateConversations = Object.entries(updatedPrivateConversations)
-
     await dispatch(
       putAtTopLastUpToDatePrivateChat({
-        id: conversationID,
-        updatedPrivateConversations,
-      })
-    )*/
-    await dispatch(
-      updateLastMessage({
         id: conversationID,
         lastMessage: { ...message, createdAt: new Date() },
       })
@@ -415,7 +406,6 @@ export const sendChatMessage = (conversationID, message) => async (
 //actions imports
 export const {
   putAtTopLastUpToDatePrivateChat,
-  updateLastMessage,
   updateMessages,
   updateUsersToSearch,
   updateUsersToAdd,

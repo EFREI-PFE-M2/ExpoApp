@@ -38,11 +38,11 @@ export default function ChatStack({navigation}) {
   const { uid } = displayUser              
   const dispatch = useDispatch()
 
-  useEffect(() => {
-      dispatch(getConversationFromID(uid))
+  /*useEffect(() => {
+      
     }
-  )
-  
+  )*/
+  dispatch(getConversationFromID(uid))
 
   const goBackToChatList = () => {
     setShowState(false)
