@@ -31,8 +31,6 @@ export default function ImagePickerBtn(props) {
                 displayName: props.params.username,
                 photoURL: props.params.photoURL,
                 uid: props.params.uid,
-                text: '',
-                audio: '',
                 image: {
                     uri: result.uri,
                     name: result.uri.substring(result.uri.lastIndexOf('/') + 1, result.uri.length),
@@ -40,7 +38,7 @@ export default function ImagePickerBtn(props) {
                     width: result.width
                 }
             }
-            dispatch(sendChatMessage(props.params.chatID, message))
+            await dispatch(sendChatMessage(props.params.chatID, message))
         }
     };  
 

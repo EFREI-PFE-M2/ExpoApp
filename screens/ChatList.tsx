@@ -45,10 +45,12 @@ function PrivateChatList({ navigation }) {
 
           const displayName = GetRoomTitleShort(chatInfo.receiverDisplayName)
           const photoURL = chatInfo.receiverPhotoURL
+
           const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
           (chatInfo.lastMessage['type'] == 'text' ? chatInfo.lastMessage.text : (chatInfo.lastMessage['type']== 'image' ?
           '[New image has been sent]' : '[New audio has been sent]')) : '[Be the first to send message]')
-          const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length  ? GetPublishedDate(new Date(chatInfo.lastMessage.createdAt['seconds'] * 1000)) : 
+
+          const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length  ? GetPublishedDate(new Date(typeof chatInfo.lastMessage.createdAt['seconds'] == 'undefined' ? chatInfo.lastMessage.createdAt : chatInfo.lastMessage.createdAt['seconds'] * 1000)) : 
           GetPublishedDate(new Date(typeof chatInfo.createdAt['seconds'] == 'undefined' ? chatInfo.createdAt : chatInfo.createdAt['seconds'] * 1000)) 
 
           return(

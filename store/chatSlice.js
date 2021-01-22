@@ -16,6 +16,27 @@ export const chatSlice = createSlice({
     error: '',
   },
   reducers: {
+    putAtTopLastUpToDatePrivateChat: (state, action) => {
+      const referencedID = action.payload.id
+      const updatedPrivateConversations =
+        action.payload.updatedPrivateConversations
+      const privateChatToTop = state.privateConversations[referencedID]
+
+      updatedPrivateConversations.unshift(privateChatToTop)
+
+      console.log(updatedPrivateConversations)
+
+      state.privateConversations = updatedPrivateConversations.reduce(
+        (r, [k, v]) => ({ ...r, [k]: v }),
+        {}
+      )
+    },
+    updateLastMessage: (state, action) => {
+      const referencedID = action.payload.id
+      const lastMessage = action.payload.lastMessage
+      const privateChatToTop = state.privateConversations[referencedID]
+      privateChatToTop.lastMessage = lastMessage
+    },
     updateMessages: (state, action) => {
       state.messages = action.payload
     },
@@ -164,16 +185,6 @@ export const getMessagesFromPrivateConversation = (
   await dispatch(updateMessages(messages))
 }
 
-//actions imports
-export const {
-  updateMessages,
-  updateUsersToSearch,
-  updateUsersToAdd,
-  addToPrivate,
-  setError,
-  addMessagesToConversation,
-} = chatSlice.actions
-
 // thunks
 export const getConversationList = (conversationID) => async (dispatch) => {
   try {
@@ -236,15 +247,25 @@ export const getConversationFromID = (userID) => async (dispatch) => {
       count--
       if (count == 0) {
         let sortedData = data.sort((a, b) => {
-          if (a.lastMessage && b.lastMessage) {
-            return a.lastMessage.createdAt - b.lastMessage.createdAt
+          const aLastMessage = a.data.lastMessage
+          const aLength = Object.keys(aLastMessage).length
+          const bLastMessage = b.data.lastMessage
+          const bLength = Object.keys(bLastMessage).length
+
+          if (aLength && bLength) {
+            return (
+              aLastMessage.createdAt['seconds'] -
+              bLastMessage.createdAt['seconds']
+            )
           } else {
-            if (b.lastMessage) {
-              return a.createdAt - b.lastMessage.createdAt
-            } else if (a.lastMessage) {
-              return a.lastMessage.createdAt - b.createdAt
+            const aCreatedAt = a.data.createdAt
+            const bCreatedAt = b.data.createdAt
+            if (bLength) {
+              return aCreatedAt['seconds'] - bLastMessage.createdAt['seconds']
+            } else if (aLength) {
+              return aLastMessage.createdAt['seconds'] - bCreatedAt['seconds']
             } else {
-              return a.createdAt - b.createdAt
+              return aCreatedAt['seconds'] - bCreatedAt['seconds']
             }
           }
         })
@@ -366,11 +387,42 @@ export const sendChatMessage = (conversationID, message) => async (
       .collection('Messages')
       .add(message)
 
-    dispatch(updateMessages([...chat.messages, message]))
+    await dispatch(updateMessages([...chat.messages, message]))
+
+    /*let updatedPrivateConversations = chat.privateConversations
+
+    delete updatedPrivateConversations[conversationID]
+
+    updatedPrivateConversations = Object.entries(updatedPrivateConversations)
+
+    await dispatch(
+      putAtTopLastUpToDatePrivateChat({
+        id: conversationID,
+        updatedPrivateConversations,
+      })
+    )*/
+    await dispatch(
+      updateLastMessage({
+        id: conversationID,
+        lastMessage: { ...message, createdAt: new Date() },
+      })
+    )
   } catch (err) {
     console.error(err)
   }
 }
+
+//actions imports
+export const {
+  putAtTopLastUpToDatePrivateChat,
+  updateLastMessage,
+  updateMessages,
+  updateUsersToSearch,
+  updateUsersToAdd,
+  addToPrivate,
+  setError,
+  addMessagesToConversation,
+} = chatSlice.actions
 
 // selectors
 export const selectMessages = (state) => state.chat.messages
