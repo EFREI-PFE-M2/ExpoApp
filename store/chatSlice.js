@@ -7,6 +7,7 @@ import {
 export const chatSlice = createSlice({
   name: 'chat',
   initialState: {
+    reachFirstMessageState: false,
     messages: [],
     privateConversations: {},
     groupConversations: {},
@@ -15,6 +16,9 @@ export const chatSlice = createSlice({
     error: '',
   },
   reducers: {
+    setReachFirstMessageState: (state, action) => {
+      state.reachFirstMessageState = action.payload
+    },
     putAtTopLastUpToDatePrivateChat: (state, action) => {
       const referencedID = action.payload.id
       const lastMessage = action.payload.lastMessage
@@ -181,7 +185,8 @@ export const getMessagesFromPrivateConversation = (
       })
     })
 
-    if (messages[0].messageID == chat.messages[0].messageID) return
+    if (messages[0].messageID == chat.messages[0].messageID)
+      return dispatch(setReachFirstMessageState(true))
     else messages = [...messages, ...chat.messages]
   }
 
@@ -405,6 +410,7 @@ export const sendChatMessage = (conversationID, message) => async (
 
 //actions imports
 export const {
+  setReachFirstMessageState,
   putAtTopLastUpToDatePrivateChat,
   updateMessages,
   updateUsersToSearch,
@@ -420,5 +426,7 @@ export const selectPrivateChats = (state) => state.chat.privateConversations
 export const selectUsersToSearch = (state) => state.chat.usersToSearch
 export const selectUsersToAdd = (state) => state.chat.usersToAdd
 export const selectError = (state) => state.chat.error
+export const selectReachFirstMessageState = (state) =>
+  state.chat.reachFirstMessageState
 
 export const chatReducer = chatSlice.reducer

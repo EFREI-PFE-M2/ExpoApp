@@ -11,6 +11,7 @@ import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 import {
   getMessagesFromPrivateConversation,
   selectMessages,
+  selectReachFirstMessageState,
   sendChatMessage,
   startMessagesListening,
 } from '../store/chatSlice'
@@ -73,7 +74,7 @@ export default function ChatRoom({ route }) {
   }
 
   const [refreshing, setRefreshing] = React.useState(false);
-  const [showScrollToTopMessage, setShowScrollToTopMessage] = React.useState(false)
+  const reachFirstMessageState = useSelector(selectReachFirstMessageState)
 
   const fadeAnimation = React.useRef(new Animated.Value(0)).current;
 
@@ -102,18 +103,19 @@ export default function ChatRoom({ route }) {
   }
 
   const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
+      setRefreshing(true);
 
-    const earliestMessageID = chatHistory[0].messageID
-    dispatch(getMessagesFromPrivateConversation(
-      chatInfo.chatID,
-      earliestMessageID
-    ))
+      const earliestMessageID = chatHistory[0].messageID
+      dispatch(getMessagesFromPrivateConversation(
+        chatInfo.chatID,
+        earliestMessageID
+      ))
 
-    wait(2000).then(() => setRefreshing(false));
+      wait(2000).then(() => setRefreshing(false));  
   }, []);
 
   const scrollViewRef = React.createRef<ScrollView>()
+  let scrollToTopMessage = reachFirstMessageState ? 'You already reached the top of the messages' : 'Click or scroll up to display older messages'
 
   return (
     <View style={styles.container}>
@@ -125,9 +127,6 @@ export default function ChatRoom({ route }) {
           } else {
             fadeOut()
           }
-          /*if (isCloseToBottom(nativeEvent)) {
-            //console.log('bottom')
-          }*/
         }}
         ref={scrollViewRef}
         onContentSizeChange={() =>
@@ -142,8 +141,8 @@ export default function ChatRoom({ route }) {
             }
           ]}
         >
-          <TouchableOpacity onPress={onRefresh}>
-            <Text style={{fontSize: 12}}>Click or scroll up to display older messages</Text>
+          <TouchableOpacity onPress={() => {reachFirstMessageState ? null : onRefresh()}}>
+            <Text style={{fontSize: 12}}>{scrollToTopMessage}</Text>
           </TouchableOpacity>
         </Animated.View> 
         

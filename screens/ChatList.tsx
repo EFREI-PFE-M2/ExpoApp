@@ -12,14 +12,11 @@ import { selectCurrentUser } from '../store/userSlice'
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import {
   selectPrivateChats,
-  startMessagesListening,
   getMessagesFromPrivateConversation,
+  setReachFirstMessageState,
 } from '../store/chatSlice'
 
 function PrivateChatList({ navigation }) {
-  const displayUser = useSelector(selectCurrentUser)
-  const { uid } = displayUser
-
   const noPrivateChats = 'No private conversations.'
 
   let privateChats = useSelector(selectPrivateChats)
@@ -30,6 +27,7 @@ function PrivateChatList({ navigation }) {
   })
 
   const dispatch = useDispatch()
+  dispatch(setReachFirstMessageState(false))
 
   return (
     <ScrollView>
