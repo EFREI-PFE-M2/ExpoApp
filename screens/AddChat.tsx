@@ -1,11 +1,9 @@
-import React, { useEffect, useState, useCallback }  from 'react'
-import { Text, TouchableOpacity, StyleSheet, StatusBar, View } from 'react-native'
+import React, { useEffect, useState }  from 'react'
+import { Text, TouchableOpacity, StyleSheet, View } from 'react-native'
 import { Searchbar, Avatar, RadioButton } from 'react-native-paper'
-import { useNavigation } from '@react-navigation/native'
 import { selectCurrentUser } from '../store/userSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { searchUsers, selectUsers, selectUsersToSearch } from '../store/chatSlice'
-import { capitalize } from '../utils/ChatFunctions'
 import { ScrollView } from 'react-native-gesture-handler'
 
 export default function AddChat({route}) {
@@ -13,14 +11,35 @@ export default function AddChat({route}) {
   const dispatch = useDispatch()
 
   const sUsers = useSelector(selectUsersToSearch)  
-  const displayUser = useSelector(selectCurrentUser)
+  //const displayUser = useSelector(selectCurrentUser)
   const noResults = 'No results.'
 
-  const [toggleBtn, setToggleBtn] = useState(null)
+  //const [toggleBtn, setToggleBtn] = useState(null)
+  const [usersToAdd, setUsersToAdd] = useState({})
 
   const { showState, setShowState } = route.params
 
   const toggleButton = async (buttonId: string) => {
+    let aUsers = Object.assign({}, usersToAdd)
+      // click on the same user twice
+    if (Object.keys(aUsers).includes(buttonId)) {
+      delete aUsers[buttonId]
+      
+    } else { // first time
+      aUsers[buttonId] = buttonId // uid
+      
+    }
+
+    if (Object.keys(aUsers).length == 0) {
+      setShowState(false)
+    } else {
+      setShowState(true)
+    }
+
+    setUsersToAdd(aUsers) 
+    dispatch(selectUsers(aUsers))
+  
+    /*
     if (toggleBtn == buttonId)
     {
       setShowState(false)
@@ -30,10 +49,9 @@ export default function AddChat({route}) {
       setShowState(true)
       setToggleBtn(buttonId)
       await dispatch(selectUsers(buttonId))
-    }      
+    } 
+    */     
   }
-
-  const { photoURL, username } = displayUser  
 
   return (<View>
       <View style={styles.searchBar}>
@@ -47,14 +65,14 @@ export default function AddChat({route}) {
       </View>
       { sUsers.length == 0 ?
       <>
-      <Text style={{marginStart: 10, marginTop: 10, fontSize: 16}}>{noResults}</Text>
+        <Text style={{marginStart: 10, marginTop: 10, fontSize: 16}}>{noResults}</Text>
       </>
       :
       <>
       <ScrollView>
         { sUsers.map((u: any) => { 
           const btnId = u.uid
-          const isToggled = btnId === toggleBtn;
+          const isToggled = Object.keys(usersToAdd).includes(btnId) //btnId === toggleBtn;
 
           return(<TouchableOpacity
             key={btnId}

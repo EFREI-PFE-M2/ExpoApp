@@ -1,15 +1,15 @@
 import { createStackNavigator, StackNavigationOptions } from '@react-navigation/stack'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import AddChat from '../screens/AddChat'
+import AddGroupChat from '../screens/AddGroupChat'
 import ChatList from '../screens/ChatList'
 import ChatRoom from '../screens/ChatRoom'
 import { View, Text, StatusBar, StyleSheet, Alert } from 'react-native'
-import { Button, IconButton } from 'react-native-paper'
+import { IconButton } from 'react-native-paper'
 import PrivateChatMenuOptions from '../components/Custom/PrivateChatMenuOptions'
 import { useDispatch, useSelector } from 'react-redux'
-import { createConversation, getConversationFromID, searchUsers, selectError, selectUsersToAdd } from '../store/chatSlice'
+import { getConversationFromID, searchUsers, selectUsers, selectUsersToAdd } from '../store/chatSlice'
 import { selectCurrentUser } from '../store/userSlice'
-import { TouchableOpacity } from 'react-native-gesture-handler'
 
 const Stack = createStackNavigator()
 
@@ -33,25 +33,31 @@ export default function ChatStack({navigation}) {
   const [showState, setShowState] = useState(false)
 
   const displayUser = useSelector(selectCurrentUser)
-  const selectUser = useSelector(selectUsersToAdd)
+  const selectUsersIn = useSelector(selectUsersToAdd)
   
   const { uid } = displayUser              
   const dispatch = useDispatch()
 
-  /*useEffect(() => {
-      
-    }
-  )*/
   dispatch(getConversationFromID(uid))
 
   const goBackToChatList = () => {
     setShowState(false)
     navigation.navigate('ChatList')
+    dispatch(selectUsers(null)) 
   }
 
-  const error = useSelector(selectError)
   const createChat = () => {
-    dispatch(createConversation(uid, selectUser[0]))
+    if (selectUsersIn.length > 1) {
+      navigation.navigate('AddGroupChat')
+      //dispatch(createGroupConversation(uid, selectUsers))
+    } else {
+      //dispatch(createConversation(uid, selectUsers[0]))
+      goBackToChatList()
+    }
+  }
+
+  const createGroupChat = () => {
+    alert('group chat created')
     goBackToChatList()
   }
 
@@ -114,19 +120,27 @@ export default function ChatStack({navigation}) {
           headerRight: ({ tintColor }) => 
             { return !showState ?
               <>
-                <TouchableOpacity>
-                  <View style={{marginRight: 10}}>
-                    <Text style={{fontSize: 14, color: tintColor}}></Text>
-                  </View>
-                </TouchableOpacity>
+                {null}
               </>
               :
-              <TouchableOpacity onPress={createChat}>
-                  <View style={{marginRight: 10}}>
-                    <Text style={{fontSize: 14, color: tintColor}}>Ajouter</Text>
-                  </View>
-                </TouchableOpacity>
+              <IconButton icon='account-plus' style={{marginRight: 7}} size={24} onPress={createChat}/>
             }
+      }}/>
+      <Stack.Screen name="AddGroupChat"
+        component={AddGroupChat}
+        options={{ 
+          headerTitleStyle: {fontSize: 20},
+          headerTitle: 'Créer un chat de groupe',
+          headerLeft: ({ tintColor }) => (
+            <IconButton 
+              icon="chevron-left"
+              onPress={goBackToChatList}
+              size={30}
+              color="#fff"
+            />
+          ),
+          headerRight: ({ tintColor }) => 
+            <IconButton icon='check' style={{marginRight: 7}} size={24} onPress={createGroupChat}/>    
       }}/>
     </Stack.Navigator> 
   )

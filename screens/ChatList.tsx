@@ -8,7 +8,6 @@ import {
   GetPublishedDate,
 } from '../utils/ChatFunctions'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectCurrentUser } from '../store/userSlice'
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import {
   selectPrivateChats,

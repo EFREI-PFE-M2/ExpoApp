@@ -120,12 +120,10 @@ export const searchUsers = (query) => async (dispatch) => {
   await dispatch(updateUsersToSearch(users))
 }
 
-// test for one user
 export const selectUsers = (uid) => async (dispatch, getState) => {
-  const { chat } = getState()
-
   let users = []
   if (typeof uid == 'string') users.push(uid)
+  if (typeof uid == 'object') users = [...users, ...Object.keys(uid)]
 
   await dispatch(updateUsersToAdd(users))
 }
@@ -346,6 +344,19 @@ export const createConversation = (senderID, receiverID) => async (
         ])
       )
     }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const createGroupConversation = (senderID, ...receiverIDs) => async (
+  dispatch
+) => {
+  try {
+    let data = {}
+    const querySnapshot = await firestore
+      .collection('GroupConversation')
+      .add(data)
   } catch (err) {
     console.error(err)
   }

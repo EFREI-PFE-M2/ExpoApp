@@ -13,7 +13,6 @@ import {
   selectMessages,
   selectReachFirstMessageState,
   sendChatMessage,
-  startMessagesListening,
 } from '../store/chatSlice'
 
 function showExtraInfo(check, sameItem) {
