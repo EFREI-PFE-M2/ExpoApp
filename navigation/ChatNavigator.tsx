@@ -8,7 +8,7 @@ import { View, Text, StatusBar, StyleSheet, Alert } from 'react-native'
 import { IconButton } from 'react-native-paper'
 import PrivateChatMenuOptions from '../components/Custom/PrivateChatMenuOptions'
 import { useDispatch, useSelector } from 'react-redux'
-import { createConversation, createGroupConversation, getConversationFromID, searchUsers, selectGroupChatInfo, selectUsers, selectUsersToAdd } from '../store/chatSlice'
+import { createConversation, createGroupConversation, getConversationFromID, getGroupConversationFromID, searchUsers, selectGroupChatInfo, selectUsers, selectUsersToAdd } from '../store/chatSlice'
 import { selectCurrentUser } from '../store/userSlice'
 
 const Stack = createStackNavigator()
@@ -38,6 +38,7 @@ export default function ChatStack({navigation}) {
   const dispatch = useDispatch()
 
   dispatch(getConversationFromID(uid))
+  dispatch(getGroupConversationFromID(uid))
 
   const goBackToChatList = () => {
     setShowState(false)
@@ -110,7 +111,11 @@ export default function ChatStack({navigation}) {
           headerTitleAlign: 'left',
           headerRight: ({ tintColor }) => (
             <View style={styles.iconRight}>
-              <PrivateChatMenuOptions params={{chatInfo: route.params?.chatInfo}}/>
+              {route.params?.isPrivateChat ? 
+                <PrivateChatMenuOptions params={{chatInfo: route.params?.chatInfo}}/> 
+                :
+                null
+             }
             </View>
           )})}/>
       <Stack.Screen name="AddChat"

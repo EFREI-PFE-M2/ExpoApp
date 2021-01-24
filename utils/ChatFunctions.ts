@@ -57,3 +57,27 @@ export const capitalize = (s: string) => {
   if (typeof s !== 'string') return ''
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
+
+export function sortChatFunction(a: any, b: any) {
+  const aLastMessage = a.data.lastMessage
+  const aLength = Object.keys(aLastMessage).length
+  const bLastMessage = b.data.lastMessage
+  const bLength = Object.keys(bLastMessage).length
+
+  if (aLength && bLength) {
+    return (
+      aLastMessage.createdAt['seconds'] -
+      bLastMessage.createdAt['seconds']
+    )
+  } else {
+    const aCreatedAt = a.data.createdAt
+    const bCreatedAt = b.data.createdAt
+    if (bLength) {
+      return aCreatedAt['seconds'] - bLastMessage.createdAt['seconds']
+    } else if (aLength) {
+      return aLastMessage.createdAt['seconds'] - bCreatedAt['seconds']
+    } else {
+      return aCreatedAt['seconds'] - bCreatedAt['seconds']
+    }
+  }
+}

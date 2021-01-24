@@ -1,14 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
-import {
-  FirebaseAuth as auth,
-  FirebaseFirestore as firestore,
-} from '../firebase'
+import { FirebaseFirestore as firestore } from '../firebase'
 
 export const chatSlice = createSlice({
   name: 'chat',
   initialState: {
-    reachFirstMessageState: false,
-    messages: [],
     privateConversations: {},
     groupChatInfo: {},
     groupConversations: {},
@@ -21,7 +16,19 @@ export const chatSlice = createSlice({
       state.groupChatInfo = action.payload
     },
     setReachFirstMessageState: (state, action) => {
-      state.reachFirstMessageState = action.payload
+      const {
+        conversationID,
+        isPrivateChat,
+        reachFirstMessageState,
+      } = action.payload
+      if (isPrivateChat)
+        state.privateConversations[
+          conversationID
+        ].reachFirstMessageState = reachFirstMessageState
+      else
+        state.groupConversations[
+          conversationID
+        ].reachFirstMessageState = reachFirstMessageState
     },
     putAtTopLastUpToDatePrivateChat: (state, action) => {
       const referencedID = action.payload.id
@@ -48,9 +55,6 @@ export const chatSlice = createSlice({
         {}
       )
     },
-    updateMessages: (state, action) => {
-      state.messages = action.payload
-    },
     updateUsersToSearch: (state, action) => {
       state.usersToSearch = action.payload
     },
@@ -66,10 +70,8 @@ export const chatSlice = createSlice({
       action.payload?.forEach((element) => {
         updatedPrivateConversations.unshift([
           element.id,
-          { ...element.data, messages: {} },
+          { ...element.data, messages: [], reachFirstMessageState: false },
         ])
-        //state.privateConversations[element.id] = element.data
-        //state.privateConversations[element.id].messages = {}
       })
 
       state.privateConversations = updatedPrivateConversations.reduce(
@@ -84,7 +86,7 @@ export const chatSlice = createSlice({
       action.payload?.forEach((element) => {
         updatedGroupConversations.unshift([
           element.id,
-          { ...element.data, messages: {} },
+          { ...element.data, messages: [], reachFirstMessageState: false },
         ])
       })
 
@@ -97,9 +99,11 @@ export const chatSlice = createSlice({
       state.error = action.payload
     },
     addMessagesToConversation: (state, action) => {
-      const { conversationID, messageID, message } = action.payload
+      const { conversationID, isPrivateChat, messages } = action.payload
 
-      state.privateConversations[conversationID].messages[messageID] = message
+      if (isPrivateChat)
+        state.privateConversations[conversationID].messages = messages
+      else state.groupConversations[conversationID].messages = messages
     },
   },
 })
@@ -127,13 +131,11 @@ export const searchUsers = (query) => async (dispatch, getState) => {
           .orderBy('displayName')
           .limit(10)
           .get()
-          .catch((error) => console.log(error))
       : await firestore
           .collection('Users')
           .orderBy('displayName')
           .limit(10)
           .get()
-          .catch((error) => console.log(error))
 
   snapshot.docs.map((doc) => {
     const user = doc.data()
@@ -167,6 +169,14 @@ export const getMessagesFromPrivateConversation = (
   earliestMessageID = undefined
 ) => async (dispatch, getState) => {
   const { chat } = getState()
+  const privateChatMessages =
+    chat.privateConversations[conversationID]?.messages
+
+  if (
+    typeof earliestMessageID == 'undefined' &&
+    privateChatMessages.length != 0
+  )
+    return
 
   let messages = []
 
@@ -217,16 +227,117 @@ export const getMessagesFromPrivateConversation = (
       })
     })
 
-    if (messages[0].messageID == chat.messages[0].messageID)
-      return dispatch(setReachFirstMessageState(true))
-    else messages = [...messages, ...chat.messages]
+    if (
+      messages.length == 0 ||
+      messages[0].messageID === privateChatMessages[0].messageID
+    )
+      return dispatch(
+        setReachFirstMessageState({
+          conversationID,
+          isPrivateChat: true,
+          reachFirstMessageState: true,
+        })
+      )
+    else {
+      messages = [...messages, ...privateChatMessages]
+    }
   }
 
-  await dispatch(updateMessages(messages))
+  await dispatch(
+    addMessagesToConversation({
+      conversationID,
+      isPrivateChat: true,
+      messages,
+    })
+  )
+}
+
+export const getMessagesFromGroupConversation = (
+  conversationID,
+  earliestMessageID = undefined
+) => async (dispatch, getState) => {
+  const { chat } = getState()
+  const groupChatMessages = chat.groupConversations[conversationID]?.messages
+
+  if (typeof earliestMessageID == 'undefined' && groupChatMessages.length != 0)
+    return
+
+  let messages = []
+
+  const sp =
+    typeof earliestMessageID == 'string'
+      ? await firestore
+          .collection('GroupConversation')
+          .doc(conversationID)
+          .collection('Messages')
+          .doc(earliestMessageID)
+          .get()
+      : undefined
+
+  const snapshot =
+    typeof earliestMessageID == 'undefined'
+      ? // 10 most recent messages in the chat
+        await firestore
+          .collection('GroupConversation')
+          .doc(conversationID)
+          .collection('Messages')
+          .orderBy('createdAt')
+          .limitToLast(10)
+          .get()
+      : // <= 10 older messages than the referenced message
+        await firestore
+          .collection('GroupConversation')
+          .doc(conversationID)
+          .collection('Messages')
+          .where('createdAt', '<', sp.data().createdAt)
+          .orderBy('createdAt', 'desc')
+          .limitToLast(10)
+          .get()
+
+  if (typeof earliestMessageID == 'undefined') {
+    snapshot.docs.map((doc) => {
+      const message = doc.data()
+      messages.push({
+        messageID: doc.id,
+        ...message,
+      })
+    })
+  } else {
+    snapshot.docs.map((doc) => {
+      const message = doc.data()
+      messages.unshift({
+        messageID: doc.id,
+        ...message,
+      })
+    })
+
+    if (
+      messages.length == 0 ||
+      messages[0].messageID === groupChatMessages[0].messageID
+    )
+      return dispatch(
+        setReachFirstMessageState({
+          conversationID,
+          isPrivateChat: false,
+          reachFirstMessageState: true,
+        })
+      )
+    else {
+      messages = [...messages, ...groupChatMessages]
+    }
+  }
+
+  await dispatch(
+    addMessagesToConversation({
+      conversationID,
+      isPrivateChat: false,
+      messages,
+    })
+  )
 }
 
 // thunks
-export const getConversationList = (conversationID) => async (dispatch) => {
+/*export const getConversationList = (conversationID) => async (dispatch) => {
   try {
     // Snapshot will only contain field
     // const snapshot = await firestore
@@ -252,7 +363,7 @@ export const getConversationList = (conversationID) => async (dispatch) => {
   } catch (err) {
     console.error(err)
   }
-}
+}*/
 
 export const getConversationFromID = (userID) => async (dispatch) => {
   try {
@@ -286,31 +397,53 @@ export const getConversationFromID = (userID) => async (dispatch) => {
 
       count--
       if (count == 0) {
-        let sortedData = data.sort((a, b) => {
-          const aLastMessage = a.data.lastMessage
-          const aLength = Object.keys(aLastMessage).length
-          const bLastMessage = b.data.lastMessage
-          const bLength = Object.keys(bLastMessage).length
-
-          if (aLength && bLength) {
-            return (
-              aLastMessage.createdAt['seconds'] -
-              bLastMessage.createdAt['seconds']
-            )
-          } else {
-            const aCreatedAt = a.data.createdAt
-            const bCreatedAt = b.data.createdAt
-            if (bLength) {
-              return aCreatedAt['seconds'] - bLastMessage.createdAt['seconds']
-            } else if (aLength) {
-              return aLastMessage.createdAt['seconds'] - bCreatedAt['seconds']
-            } else {
-              return aCreatedAt['seconds'] - bCreatedAt['seconds']
-            }
-          }
-        })
+        let sortedData = data.sort((a, b) => sortChatFunction(a, b))
 
         dispatch(addToPrivate(sortedData))
+      }
+    })
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const getGroupConversationFromID = (userID) => async (dispatch) => {
+  try {
+    const snapshot = await firestore
+      .collection('GroupConversation')
+      .where('users', 'array-contains', userID)
+      .orderBy('createdAt', 'desc')
+      .get()
+
+    let data = []
+
+    let count = snapshot.size
+
+    console.log(count)
+
+    snapshot.forEach(async (doc) => {
+      const lastMessage = await firestore
+        .collection('GroupConversation')
+        .doc(doc.id)
+        .collection('Messages')
+        .orderBy('createdAt')
+        .limitToLast(1)
+        .get()
+
+      if (lastMessage.size) {
+        lastMessage.docs.forEach((_doc) => {
+          const lastMessage = _doc.data()
+          data.push({ id: doc.id, data: { ...doc.data(), lastMessage } })
+        })
+      } else {
+        data.push({ id: doc.id, data: { ...doc.data(), lastMessage: {} } })
+      }
+
+      count--
+      if (count == 0) {
+        let sortedData = data.sort((a, b) => sortChatFunction(a, b))
+
+        dispatch(addToGroup(sortedData))
       }
     })
   } catch (err) {
@@ -403,6 +536,7 @@ export const createGroupConversation = (hostID, groupChatInfo) => async (
 
     let data = { ...groupChatInfo, hostID, createdAt: new Date() }
     delete data['users']
+    data = { ...data, users: Object.keys(users) }
 
     const querySnapshot = await firestore
       .collection('GroupConversation')
@@ -431,6 +565,7 @@ export const createGroupConversation = (hostID, groupChatInfo) => async (
   }
 }
 
+/*
 export const startMessagesListening = (conversationID) => async (dispatch) => {
   try {
     const unsubscribe = await firestore
@@ -455,7 +590,7 @@ export const startMessagesListening = (conversationID) => async (dispatch) => {
   } catch (err) {
     console.error(err)
   }
-}
+}*/
 
 export const sendChatMessage = (conversationID, message) => async (
   dispatch,
@@ -475,7 +610,14 @@ export const sendChatMessage = (conversationID, message) => async (
       .collection('Messages')
       .add(message)
 
-    await dispatch(updateMessages([...chat.messages, message]))
+    let messages = [chat.privateConversations[conversationID].messages, message]
+
+    await dispatch(
+      addMessagesToConversation({
+        conversationID,
+        messages,
+      })
+    )
 
     await dispatch(
       putAtTopLastUpToDatePrivateChat({
@@ -488,12 +630,32 @@ export const sendChatMessage = (conversationID, message) => async (
   }
 }
 
+const sortChatFunction = (a, b) => {
+  const aLastMessage = a.data.lastMessage
+  const aLength = Object.keys(aLastMessage).length
+  const bLastMessage = b.data.lastMessage
+  const bLength = Object.keys(bLastMessage).length
+
+  if (aLength && bLength) {
+    return aLastMessage.createdAt['seconds'] - bLastMessage.createdAt['seconds']
+  } else {
+    const aCreatedAt = a.data.createdAt
+    const bCreatedAt = b.data.createdAt
+    if (bLength) {
+      return aCreatedAt['seconds'] - bLastMessage.createdAt['seconds']
+    } else if (aLength) {
+      return aLastMessage.createdAt['seconds'] - bCreatedAt['seconds']
+    } else {
+      return aCreatedAt['seconds'] - bCreatedAt['seconds']
+    }
+  }
+}
+
 //actions imports
 export const {
   updateGroupChatInfo,
   setReachFirstMessageState,
   putAtTopLastUpToDatePrivateChat,
-  updateMessages,
   updateUsersToSearch,
   updateUsersToAdd,
   addToPrivate,
@@ -503,13 +665,11 @@ export const {
 } = chatSlice.actions
 
 // selectors
-export const selectMessages = (state) => state.chat.messages
 export const selectGroupChatInfo = (state) => state.chat.groupChatInfo
+export const selectGroupChats = (state) => state.chat.groupConversations
 export const selectPrivateChats = (state) => state.chat.privateConversations
 export const selectUsersToSearch = (state) => state.chat.usersToSearch
 export const selectUsersToAdd = (state) => state.chat.usersToAdd
 export const selectError = (state) => state.chat.error
-export const selectReachFirstMessageState = (state) =>
-  state.chat.reachFirstMessageState
 
 export const chatReducer = chatSlice.reducer

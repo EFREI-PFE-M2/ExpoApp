@@ -9,8 +9,11 @@ import { Avatar } from 'react-native-paper'
 import ImagePicker from '../components/ImagePicker'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 import {
+  getMessagesFromGroupConversation,
   getMessagesFromPrivateConversation,
+  selectGroupChats,
   selectMessages,
+  selectPrivateChats,
   selectReachFirstMessageState,
   sendChatMessage,
 } from '../store/chatSlice'
@@ -30,12 +33,15 @@ export default function ChatRoom({ route }) {
   const displayUser = useSelector(selectCurrentUser)
   const { username, photoURL, uid } = displayUser
 
-  const { chatInfo } = route.params
+  const { chatInfo, isPrivateChat } = route.params
 
-  const messages = useSelector(selectMessages)
-  const dispatch = useDispatch()
+  const messages = isPrivateChat ? useSelector(selectPrivateChats)[chatInfo.chatID]?.messages
+  : useSelector(selectGroupChats)[chatInfo.chatID]?.messages
 
   const [chatHistory, setChatHistory] = useState(messages)
+  
+  const dispatch = useDispatch()
+  
   const [content, setContent] = useState('')
 
   const sendMessage = () => {
@@ -73,7 +79,8 @@ export default function ChatRoom({ route }) {
   }
 
   const [refreshing, setRefreshing] = React.useState(false);
-  const reachFirstMessageState = useSelector(selectReachFirstMessageState)
+  const reachFirstMessageState = isPrivateChat ? useSelector(selectPrivateChats)[chatInfo.chatID]?.reachFirstMessageState
+  : useSelector(selectGroupChats)[chatInfo.chatID]?.reachFirstMessageState
 
   const fadeAnimation = React.useRef(new Animated.Value(0)).current;
 
@@ -105,7 +112,10 @@ export default function ChatRoom({ route }) {
       setRefreshing(true);
 
       const earliestMessageID = chatHistory[0].messageID
-      dispatch(getMessagesFromPrivateConversation(
+      dispatch(isPrivateChat ? getMessagesFromPrivateConversation(
+        chatInfo.chatID,
+        earliestMessageID
+      ) : getMessagesFromGroupConversation(
         chatInfo.chatID,
         earliestMessageID
       ))
@@ -145,7 +155,6 @@ export default function ChatRoom({ route }) {
           </TouchableOpacity>
         </Animated.View> 
         
-
         {chatHistory.map((m: any, i: number) => {
           const dt = typeof m.createdAt['seconds'] == 'undefined' ? new Date(m.createdAt) : new Date(m.createdAt['seconds'] * 1000)
 

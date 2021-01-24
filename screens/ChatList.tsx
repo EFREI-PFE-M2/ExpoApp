@@ -13,6 +13,8 @@ import {
   selectPrivateChats,
   getMessagesFromPrivateConversation,
   setReachFirstMessageState,
+  selectGroupChats,
+  getMessagesFromGroupConversation,
 } from '../store/chatSlice'
 
 function PrivateChatList({ navigation }) {
@@ -26,7 +28,6 @@ function PrivateChatList({ navigation }) {
   })
 
   const dispatch = useDispatch()
-  dispatch(setReachFirstMessageState(false))
 
   return (
     <ScrollView>
@@ -57,6 +58,7 @@ function PrivateChatList({ navigation }) {
             onPress={async () => {
               await dispatch(getMessagesFromPrivateConversation(key))
               navigation.navigate('ChatRoom', {
+                isPrivateChat: true,
                 chatInfo,
                 title: (
                   <View
@@ -102,15 +104,85 @@ function PrivateChatList({ navigation }) {
 
 function GroupChatList({ navigation }) {
   const noGroupChats = 'No group conversations.'
+
+  let groupChats = useSelector(selectGroupChats)
+  const [groupConversations, setGroupConversations] = useState(groupChats)
+
+  useEffect(() => {
+    setGroupConversations(groupChats)
+  })
+
+  const dispatch = useDispatch()
+
   return (
     <ScrollView>
-      {[].length == 0 ? (
+      {Object.keys(groupConversations).length == 0 ? (
         <Text style={{ marginTop: 10, marginStart: 10, fontSize: 16 }}>
           {noGroupChats}
         </Text>
       ) : (
-        <ScrollView></ScrollView>
-      )}
+        <View style={{backgroundColor: 'rgba(0,0,0,0)'}}>
+          {Object.keys(groupConversations).map((key) => {
+            const chatInfo = { ...groupConversations[key], chatID: key }        
+
+            const groupChatName = GetRoomTitleShort(chatInfo.name)
+            const photoURL = chatInfo.photoURL
+
+            const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
+            (chatInfo.lastMessage['type'] == 'text' ? chatInfo.lastMessage.text : (chatInfo.lastMessage['type']== 'image' ?
+            '[New image has been sent]' : '[New audio has been sent]')) : '[Be the first to send message]')
+
+            const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length  ? GetPublishedDate(new Date(typeof chatInfo.lastMessage.createdAt['seconds'] == 'undefined' ? chatInfo.lastMessage.createdAt : chatInfo.lastMessage.createdAt['seconds'] * 1000)) : 
+            GetPublishedDate(new Date(typeof chatInfo.createdAt['seconds'] == 'undefined' ? chatInfo.createdAt : chatInfo.createdAt['seconds'] * 1000)) 
+
+            return(
+              <TouchableOpacity
+              key={key}
+              style={styles.containerChatRoomItem}
+              onPress={async () => {
+                await dispatch(getMessagesFromGroupConversation(key))
+                navigation.navigate('ChatRoom', {
+                  isPrivateChat: false,
+                  chatInfo,
+                  title: (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        backgroundColor: 'rgba(0, 0, 0, 0)',
+                      }}>
+                      <Avatar.Image size={45} source={{ uri: photoURL }} />
+                      <View
+                        style={{
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          marginBottom: 5,
+                          backgroundColor: 'rgba(0, 0, 0, 0)',
+                        }}>
+                        <Text style={styles.titleStyle}>
+                          {groupChatName}
+                        </Text>
+                      </View>
+                    </View>
+                  ),
+                })
+              }}>
+              <Avatar.Image size={60} source={{ uri: photoURL }} />
+              <View style={{ marginStart: 10, ...styles.viewStyle }}>
+                  <Text style={styles.nameStyle}>{groupChatName}</Text>
+                  <View style={styles.viewStyle}>
+                    <Text style={styles.lastMessageStyle}>
+                      {lastMessage}
+                    </Text>
+                    <Text style={styles.publishedDateStyle}>
+                      - {createdOrPublishedAt}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>) 
+          })} 
+        </View>
+        )
+      }
     </ScrollView>
   )
 }
