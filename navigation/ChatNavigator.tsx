@@ -8,7 +8,7 @@ import { View, Text, StatusBar, StyleSheet, Alert } from 'react-native'
 import { IconButton } from 'react-native-paper'
 import PrivateChatMenuOptions from '../components/Custom/PrivateChatMenuOptions'
 import { useDispatch, useSelector } from 'react-redux'
-import { getConversationFromID, searchUsers, selectUsers, selectUsersToAdd } from '../store/chatSlice'
+import { createConversation, createGroupConversation, getConversationFromID, searchUsers, selectGroupChatInfo, selectUsers, selectUsersToAdd } from '../store/chatSlice'
 import { selectCurrentUser } from '../store/userSlice'
 
 const Stack = createStackNavigator()
@@ -26,7 +26,6 @@ const defaultScreenOptions: StackNavigationOptions = {
   headerTintColor: '#fff',
   headerStatusBarHeight: StatusBar.currentHeight,
 }
-
 
 export default function ChatStack({navigation}) {
   
@@ -47,18 +46,27 @@ export default function ChatStack({navigation}) {
   }
 
   const createChat = () => {
-    if (selectUsersIn.length > 1) {
+    const length = Object.keys(selectUsersIn).length 
+    if (length > 1) {
       navigation.navigate('AddGroupChat')
       //dispatch(createGroupConversation(uid, selectUsers))
     } else {
-      //dispatch(createConversation(uid, selectUsers[0]))
-      goBackToChatList()
+      if (length) {
+        const receiver = Object.values(selectUsersIn)[0]
+        dispatch(createConversation(uid, receiver.uid))
+        goBackToChatList()
+      }  
     }
   }
 
+  const groupChatInfo = useSelector(selectGroupChatInfo)
   const createGroupChat = () => {
-    alert('group chat created')
-    goBackToChatList()
+    if (groupChatInfo.name.trim() != '') {
+      dispatch(createGroupConversation(uid, groupChatInfo))
+      goBackToChatList()
+    } else {
+      alert('Enter a name for your group chat')
+    }
   }
 
   return (
@@ -139,7 +147,7 @@ export default function ChatStack({navigation}) {
               color="#fff"
             />
           ),
-          headerRight: ({ tintColor }) => 
+          headerRight: ({ tintColor}) => 
             <IconButton icon='check' style={{marginRight: 7}} size={24} onPress={createGroupChat}/>    
       }}/>
     </Stack.Navigator> 

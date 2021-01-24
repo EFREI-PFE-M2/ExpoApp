@@ -1,7 +1,6 @@
-import React, { useEffect, useState }  from 'react'
+import React, { useState }  from 'react'
 import { Text, TouchableOpacity, StyleSheet, View } from 'react-native'
 import { Searchbar, Avatar, RadioButton } from 'react-native-paper'
-import { selectCurrentUser } from '../store/userSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { searchUsers, selectUsers, selectUsersToSearch } from '../store/chatSlice'
 import { ScrollView } from 'react-native-gesture-handler'
@@ -11,23 +10,24 @@ export default function AddChat({route}) {
   const dispatch = useDispatch()
 
   const sUsers = useSelector(selectUsersToSearch)  
-  //const displayUser = useSelector(selectCurrentUser)
   const noResults = 'No results.'
 
-  //const [toggleBtn, setToggleBtn] = useState(null)
   const [usersToAdd, setUsersToAdd] = useState({})
 
   const { showState, setShowState } = route.params
 
-  const toggleButton = async (buttonId: string) => {
+  const toggleButton = async (buttonId: string, user: any) => {
     let aUsers = Object.assign({}, usersToAdd)
       // click on the same user twice
     if (Object.keys(aUsers).includes(buttonId)) {
       delete aUsers[buttonId]
       
     } else { // first time
-      aUsers[buttonId] = buttonId // uid
-      
+      aUsers[buttonId] = {
+        uid: user.uid,
+        username: user.username,
+        photoURL: user.photoURL
+      } 
     }
 
     if (Object.keys(aUsers).length == 0) {
@@ -37,20 +37,7 @@ export default function AddChat({route}) {
     }
 
     setUsersToAdd(aUsers) 
-    dispatch(selectUsers(aUsers))
-  
-    /*
-    if (toggleBtn == buttonId)
-    {
-      setShowState(false)
-      setToggleBtn(null)
-      await dispatch(selectUsers(null))
-    } else {
-      setShowState(true)
-      setToggleBtn(buttonId)
-      await dispatch(selectUsers(buttonId))
-    } 
-    */     
+    dispatch(selectUsers(aUsers))    
   }
 
   return (<View>
@@ -72,12 +59,12 @@ export default function AddChat({route}) {
       <ScrollView>
         { sUsers.map((u: any) => { 
           const btnId = u.uid
-          const isToggled = Object.keys(usersToAdd).includes(btnId) //btnId === toggleBtn;
+          const isToggled = Object.keys(usersToAdd).includes(btnId) 
 
           return(<TouchableOpacity
             key={btnId}
             style={styles.containerProfile}
-            onPress={() => toggleButton(btnId)} 
+            onPress={() => toggleButton(btnId, u)} 
             >
             <Avatar.Image size={60} source={{ uri: u.photoURL }} />
             <View style={styles.containerView}>
@@ -88,10 +75,9 @@ export default function AddChat({route}) {
                   color="#000"
                   uncheckedColor="grey"
                   status={ isToggled ? 'checked' : 'unchecked' }
-                  onPress={() => toggleButton(btnId)}
+                  onPress={() => toggleButton(btnId, u)}
                 />
-              </View>
-              
+              </View>  
             </View>
           </TouchableOpacity>)})}
       </ScrollView>

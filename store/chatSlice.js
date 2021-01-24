@@ -10,12 +10,16 @@ export const chatSlice = createSlice({
     reachFirstMessageState: false,
     messages: [],
     privateConversations: {},
+    groupChatInfo: {},
     groupConversations: {},
     usersToSearch: [],
-    usersToAdd: [],
+    usersToAdd: {},
     error: '',
   },
   reducers: {
+    updateGroupChatInfo: (state, action) => {
+      state.groupChatInfo = action.payload
+    },
     setReachFirstMessageState: (state, action) => {
       state.reachFirstMessageState = action.payload
     },
@@ -73,6 +77,22 @@ export const chatSlice = createSlice({
         {}
       )
     },
+    addToGroup: (state, action) => {
+      // Action.payload is a snapshot!
+      let updatedGroupConversations = Object.entries(state.groupConversations)
+
+      action.payload?.forEach((element) => {
+        updatedGroupConversations.unshift([
+          element.id,
+          { ...element.data, messages: {} },
+        ])
+      })
+
+      state.groupConversations = updatedGroupConversations.reduce(
+        (r, [k, v]) => ({ ...r, [k]: v }),
+        {}
+      )
+    },
     setError: (state, action) => {
       state.error = action.payload
     },
@@ -84,7 +104,18 @@ export const chatSlice = createSlice({
   },
 })
 
-export const searchUsers = (query) => async (dispatch) => {
+export const changeGroupChatInfo = (groupChatInfo) => async (dispatch) => {
+  try {
+    if (typeof groupChatInfo == 'object')
+      return dispatch(updateGroupChatInfo(groupChatInfo))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const searchUsers = (query) => async (dispatch, getState) => {
+  const { user } = getState()
+  const currentUser = user.uid
   let users = []
 
   const snapshot =
@@ -106,26 +137,29 @@ export const searchUsers = (query) => async (dispatch) => {
 
   snapshot.docs.map((doc) => {
     const user = doc.data()
-
-    users.push({
-      uid: doc.id,
-      username: user.displayName,
-      photoURL:
-        user.photoURL != undefined
-          ? user.photoURL
-          : 'https://st.depositphotos.com/2101611/3925/v/600/depositphotos_39258143-stock-illustration-businessman-avatar-profile-picture.jpg',
-    })
+    if (currentUser != doc.id) {
+      users.push({
+        uid: doc.id,
+        username: user.displayName,
+        photoURL:
+          user.photoURL != undefined
+            ? user.photoURL
+            : 'https://st.depositphotos.com/2101611/3925/v/600/depositphotos_39258143-stock-illustration-businessman-avatar-profile-picture.jpg',
+      })
+    }
   })
 
   await dispatch(updateUsersToSearch(users))
 }
 
-export const selectUsers = (uid) => async (dispatch, getState) => {
-  let users = []
-  if (typeof uid == 'string') users.push(uid)
-  if (typeof uid == 'object') users = [...users, ...Object.keys(uid)]
-
-  await dispatch(updateUsersToAdd(users))
+export const selectUsers = (aUsers = undefined) => async (dispatch) => {
+  try {
+    if (aUsers == null || aUsers == undefined)
+      return dispatch(updateUsersToAdd({}))
+    if (typeof aUsers == 'object') return dispatch(updateUsersToAdd(aUsers))
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 export const getMessagesFromPrivateConversation = (
@@ -287,6 +321,7 @@ export const getConversationFromID = (userID) => async (dispatch) => {
 export const createConversation = (senderID, receiverID) => async (
   dispatch
 ) => {
+  console.log(receiverID)
   try {
     const snapshot = await firestore
       .collection('PrivateConversation')
@@ -349,14 +384,48 @@ export const createConversation = (senderID, receiverID) => async (
   }
 }
 
-export const createGroupConversation = (senderID, ...receiverIDs) => async (
-  dispatch
+export const createGroupConversation = (hostID, groupChatInfo) => async (
+  dispatch,
+  getState
 ) => {
   try {
-    let data = {}
+    const { user } = getState()
+
+    let users = groupChatInfo['users']
+    users = {
+      [hostID]: {
+        uid: user.uid,
+        username: user.username,
+        photoURL: user.photoURL,
+      },
+      ...users,
+    }
+
+    let data = { ...groupChatInfo, hostID, createdAt: new Date() }
+    delete data['users']
+
     const querySnapshot = await firestore
       .collection('GroupConversation')
       .add(data)
+
+    Object.entries(users).forEach(
+      async (element) =>
+        await firestore
+          .collection('GroupConversation')
+          .doc(querySnapshot.id)
+          .collection('GroupChatMembers')
+          .doc(element[0])
+          .set(element[1])
+    )
+
+    dispatch(
+      addToGroup([
+        {
+          id: querySnapshot.id,
+          data: { ...data, createdAt: new Date(), lastMessage: {} },
+        },
+      ])
+    )
   } catch (err) {
     console.error(err)
   }
@@ -421,18 +490,21 @@ export const sendChatMessage = (conversationID, message) => async (
 
 //actions imports
 export const {
+  updateGroupChatInfo,
   setReachFirstMessageState,
   putAtTopLastUpToDatePrivateChat,
   updateMessages,
   updateUsersToSearch,
   updateUsersToAdd,
   addToPrivate,
+  addToGroup,
   setError,
   addMessagesToConversation,
 } = chatSlice.actions
 
 // selectors
 export const selectMessages = (state) => state.chat.messages
+export const selectGroupChatInfo = (state) => state.chat.groupChatInfo
 export const selectPrivateChats = (state) => state.chat.privateConversations
 export const selectUsersToSearch = (state) => state.chat.usersToSearch
 export const selectUsersToAdd = (state) => state.chat.usersToAdd
