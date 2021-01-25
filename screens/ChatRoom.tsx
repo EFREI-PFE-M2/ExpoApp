@@ -12,10 +12,9 @@ import {
   getMessagesFromGroupConversation,
   getMessagesFromPrivateConversation,
   selectGroupChats,
-  selectMessages,
   selectPrivateChats,
-  selectReachFirstMessageState,
-  sendChatMessage,
+  sendGroupChatMessage,
+  sendPrivateChatMessage,
 } from '../store/chatSlice'
 
 function showExtraInfo(check, sameItem) {
@@ -34,7 +33,7 @@ export default function ChatRoom({ route }) {
   const { username, photoURL, uid } = displayUser
 
   const { chatInfo, isPrivateChat } = route.params
-
+ 
   const messages = isPrivateChat ? useSelector(selectPrivateChats)[chatInfo.chatID]?.messages
   : useSelector(selectGroupChats)[chatInfo.chatID]?.messages
 
@@ -60,7 +59,7 @@ export default function ChatRoom({ route }) {
       setContent('')
 
       setChatHistory([...chatHistory, message])
-      dispatch(sendChatMessage(chatInfo.chatID, message))
+      dispatch(isPrivateChat ? sendPrivateChatMessage(chatInfo.chatID, message) : sendGroupChatMessage(chatInfo.chatID, message)) 
     }
   }
 
@@ -156,9 +155,9 @@ export default function ChatRoom({ route }) {
         </Animated.View> 
         
         {chatHistory.map((m: any, i: number) => {
-          const dt = typeof m.createdAt['seconds'] == 'undefined' ? new Date(m.createdAt) : new Date(m.createdAt['seconds'] * 1000)
-
-          if (m.uid == chatInfo.senderID) {
+          const dt = typeof m.createdAt['seconds'] == 'undefined' ? m.createdAt : new Date(m.createdAt['seconds'] * 1000)
+          
+          if (m.uid == uid) {
             return (
               <View style={{ backgroundColor: 'rgba(0,0,0,0)', padding: 10 }}>
                 <Text
@@ -245,7 +244,7 @@ export default function ChatRoom({ route }) {
 
       <View style={styles.containerChatFooter}>
         <View style={styles.chatFooterLeftPart}>
-        <ImagePicker params={{uid, username, photoURL, chatID: chatInfo.chatID}} />
+        <ImagePicker params={{isPrivateChat, uid, username, photoURL, chatID: chatInfo.chatID}} />
           <MaterialCommunityIcons
             name="microphone"
             size={30}

@@ -21,6 +21,7 @@ export const chatSlice = createSlice({
         isPrivateChat,
         reachFirstMessageState,
       } = action.payload
+
       if (isPrivateChat)
         state.privateConversations[
           conversationID
@@ -51,6 +52,31 @@ export const chatSlice = createSlice({
       updatedPrivateConversations.unshift(...privateChatToTop)
 
       state.privateConversations = updatedPrivateConversations.reduce(
+        (r, [k, v]) => ({ ...r, [k]: v }),
+        {}
+      )
+    },
+    putAtTopLastUpToDateGroupChat: (state, action) => {
+      const referencedID = action.payload.id
+      const lastMessage = action.payload.lastMessage
+      state.groupConversations[referencedID].lastMessage = lastMessage
+
+      let groupChatToTop = Object.assign(
+        {},
+        { [referencedID]: state.groupConversations[referencedID] }
+      )
+
+      groupChatToTop = Object.entries(groupChatToTop)
+
+      let groupConversations = Object.assign({}, state.groupConversations)
+
+      delete groupConversations[referencedID]
+
+      let updatedGroupConversations = Object.entries(groupConversations)
+
+      updatedGroupConversations.unshift(...groupChatToTop)
+
+      state.groupConversations = updatedGroupConversations.reduce(
         (r, [k, v]) => ({ ...r, [k]: v }),
         {}
       )
@@ -98,12 +124,15 @@ export const chatSlice = createSlice({
     setError: (state, action) => {
       state.error = action.payload
     },
-    addMessagesToConversation: (state, action) => {
-      const { conversationID, isPrivateChat, messages } = action.payload
+    addMessagesToPrivateConversation: (state, action) => {
+      const { conversationID, messages } = action.payload
 
-      if (isPrivateChat)
-        state.privateConversations[conversationID].messages = messages
-      else state.groupConversations[conversationID].messages = messages
+      state.privateConversations[conversationID].messages = messages
+    },
+    addMessagesToGroupConversation: (state, action) => {
+      const { conversationID, messages } = action.payload
+
+      state.groupConversations[conversationID].messages = messages
     },
   },
 })
@@ -244,9 +273,8 @@ export const getMessagesFromPrivateConversation = (
   }
 
   await dispatch(
-    addMessagesToConversation({
+    addMessagesToPrivateConversation({
       conversationID,
-      isPrivateChat: true,
       messages,
     })
   )
@@ -328,9 +356,8 @@ export const getMessagesFromGroupConversation = (
   }
 
   await dispatch(
-    addMessagesToConversation({
+    addMessagesToGroupConversation({
       conversationID,
-      isPrivateChat: false,
       messages,
     })
   )
@@ -418,8 +445,6 @@ export const getGroupConversationFromID = (userID) => async (dispatch) => {
     let data = []
 
     let count = snapshot.size
-
-    console.log(count)
 
     snapshot.forEach(async (doc) => {
       const lastMessage = await firestore
@@ -592,7 +617,7 @@ export const startMessagesListening = (conversationID) => async (dispatch) => {
   }
 }*/
 
-export const sendChatMessage = (conversationID, message) => async (
+export const sendPrivateChatMessage = (conversationID, message) => async (
   dispatch,
   getState
 ) => {
@@ -610,10 +635,13 @@ export const sendChatMessage = (conversationID, message) => async (
       .collection('Messages')
       .add(message)
 
-    let messages = [chat.privateConversations[conversationID].messages, message]
+    let messages = [
+      ...chat.privateConversations[conversationID].messages,
+      message,
+    ]
 
     await dispatch(
-      addMessagesToConversation({
+      addMessagesToPrivateConversation({
         conversationID,
         messages,
       })
@@ -621,6 +649,47 @@ export const sendChatMessage = (conversationID, message) => async (
 
     await dispatch(
       putAtTopLastUpToDatePrivateChat({
+        id: conversationID,
+        lastMessage: { ...message, createdAt: new Date() },
+      })
+    )
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const sendGroupChatMessage = (conversationID, message) => async (
+  dispatch,
+  getState
+) => {
+  const { chat } = getState()
+  try {
+    if (!message || !conversationID) return
+
+    // Check locally if conversation ID exists
+    if (!chat.groupConversations.hasOwnProperty(conversationID))
+      return dispatch(setError('Conversation not loaded, error aborting.'))
+
+    await firestore
+      .collection('GroupConversation')
+      .doc(conversationID)
+      .collection('Messages')
+      .add(message)
+
+    let messages = [
+      ...chat.groupConversations[conversationID].messages,
+      message,
+    ]
+
+    await dispatch(
+      addMessagesToGroupConversation({
+        conversationID,
+        messages,
+      })
+    )
+
+    await dispatch(
+      putAtTopLastUpToDateGroupChat({
         id: conversationID,
         lastMessage: { ...message, createdAt: new Date() },
       })
@@ -656,12 +725,14 @@ export const {
   updateGroupChatInfo,
   setReachFirstMessageState,
   putAtTopLastUpToDatePrivateChat,
+  putAtTopLastUpToDateGroupChat,
   updateUsersToSearch,
   updateUsersToAdd,
   addToPrivate,
   addToGroup,
   setError,
-  addMessagesToConversation,
+  addMessagesToPrivateConversation,
+  addMessagesToGroupConversation,
 } = chatSlice.actions
 
 // selectors
