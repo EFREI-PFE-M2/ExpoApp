@@ -24,13 +24,15 @@ export default function ImagePickerBtn(props) {
         });
     
         if (!result.cancelled) {
+            const { username, photoURL, uid, chatID, isPrivateChat, chatHistory, setChatHistory } = props.params
+
             const datetime = new Date()
             const message = {
                 type: result.type,
                 createdAt: datetime,
-                displayName: props.params.username,
-                photoURL: props.params.photoURL,
-                uid: props.params.uid,
+                displayName: username,
+                photoURL: photoURL,
+                uid: uid,
                 image: {
                     uri: result.uri,
                     name: result.uri.substring(result.uri.lastIndexOf('/') + 1, result.uri.length),
@@ -38,8 +40,9 @@ export default function ImagePickerBtn(props) {
                     width: result.width
                 }
             }
-            await dispatch(props.params.isPrivateChat ? sendPrivateChatMessage(props.params.chatID, message) : 
-            sendGroupChatMessage(props.params.chatID, message))
+            setChatHistory([...chatHistory, message])
+            await dispatch(isPrivateChat ? sendPrivateChatMessage(chatID, message) : 
+            sendGroupChatMessage(chatID, message))
         }
     };  
 

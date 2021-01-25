@@ -244,7 +244,7 @@ export default function ChatRoom({ route }) {
 
       <View style={styles.containerChatFooter}>
         <View style={styles.chatFooterLeftPart}>
-        <ImagePicker params={{isPrivateChat, uid, username, photoURL, chatID: chatInfo.chatID}} />
+        <ImagePicker params={{isPrivateChat, uid, username, photoURL, chatID: chatInfo.chatID, chatHistory, setChatHistory}} />
           <MaterialCommunityIcons
             name="microphone"
             size={30}

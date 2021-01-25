@@ -145,6 +145,9 @@ export const chatSlice = createSlice({
   },
 })
 
+/**
+ * @param {Object} groupChatInfo
+ */
 export const changeGroupChatInfo = (groupChatInfo) => async (dispatch) => {
   try {
     if (typeof groupChatInfo == 'object')
@@ -191,6 +194,9 @@ export const searchUsers = (query) => async (dispatch, getState) => {
   await dispatch(updateUsersToSearch(users))
 }
 
+/**
+ * @param {Object} aUsers
+ */
 export const selectUsers = (aUsers = undefined) => async (dispatch) => {
   try {
     if (aUsers == null || aUsers == undefined)
@@ -201,6 +207,10 @@ export const selectUsers = (aUsers = undefined) => async (dispatch) => {
   }
 }
 
+/**
+ * @param {String} conversationID
+ * @param {String} earliestMessageID
+ */
 export const getMessagesFromPrivateConversation = (
   conversationID,
   earliestMessageID = undefined
@@ -288,6 +298,10 @@ export const getMessagesFromPrivateConversation = (
   )
 }
 
+/**
+ * @param {String} conversationID
+ * @param {String} earliestMessageID
+ */
 export const getMessagesFromGroupConversation = (
   conversationID,
   earliestMessageID = undefined
@@ -402,6 +416,9 @@ export const getMessagesFromGroupConversation = (
   }
 }*/
 
+/**
+ * @param {String} userID
+ */
 export const getConversationFromID = (userID) => async (dispatch) => {
   try {
     const snapshot = await firestore
@@ -444,6 +461,9 @@ export const getConversationFromID = (userID) => async (dispatch) => {
   }
 }
 
+/**
+ * @param {String} userID
+ */
 export const getGroupConversationFromID = (userID) => async (dispatch) => {
   try {
     const snapshot = await firestore
@@ -492,6 +512,10 @@ export const getGroupConversationFromID = (userID) => async (dispatch) => {
   }
 }
 
+/**
+ * @param {String} senderID
+ * @param {String} receiverID
+ */
 export const createConversation = (senderID, receiverID) => async (
   dispatch
 ) => {
@@ -557,6 +581,10 @@ export const createConversation = (senderID, receiverID) => async (
   }
 }
 
+/**
+ * @param {String} conversationID
+ * @param {Object} groupChatInfo
+ */
 export const createGroupConversation = (hostID, groupChatInfo) => async (
   dispatch,
   getState
@@ -632,6 +660,10 @@ export const startMessagesListening = (conversationID) => async (dispatch) => {
   }
 }*/
 
+/**
+ * @param {String} conversationID
+ * @param {Object} message
+ */
 export const sendPrivateChatMessage = (conversationID, message) => async (
   dispatch,
   getState
@@ -673,6 +705,10 @@ export const sendPrivateChatMessage = (conversationID, message) => async (
   }
 }
 
+/**
+ * @param {String} conversationID
+ * @param {Object} message
+ */
 export const sendGroupChatMessage = (conversationID, message) => async (
   dispatch,
   getState
@@ -714,6 +750,9 @@ export const sendGroupChatMessage = (conversationID, message) => async (
   }
 }
 
+/**
+ * @param {String} conversationID
+ */
 export const getGroupChatMembersDetails = (conversationID) => async (
   dispatch
 ) => {
@@ -753,35 +792,61 @@ export const getGroupChatMembersDetails = (conversationID) => async (
   }
 }
 
+/**
+ * @param {String} conversationID
+ * @param {Object} aUsers
+ */
+export const addUsersToGroupChatAfterCreation = (
+  conversationID,
+  aUsers
+) => async (dispatch) => {
+  try {
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+/**
+ * @param {String} conversationID
+ */
 export const leaveGroupChat = (conversationID) => async (
   dispatch,
   getState
 ) => {
   try {
-    const { user, chat } = getState()
+    const { user } = getState()
     const ref = firestore.collection('GroupConversation').doc(conversationID)
 
-    const snapshot = await ref.get().then(async (doc) => {
+    await ref.get().then(async (doc) => {
       const chatInfo = doc.data()
       const users = chatInfo['users']
       if (users.length > 1) {
-        users.shift(user.uid)
-
+        users.splice(users.indexOf(user.uid), 1)
         await ref.update({ users: users })
         await ref.collection('GroupChatMembers').doc(user.uid).delete()
 
         if (chatInfo.hostID === user.uid) await ref.update({ hostID: users[0] })
       } else {
         await ref.delete()
+        await ref.collection('GroupChatMembers').doc(user.uid).delete()
+        await ref
+          .collection('Messages')
+          .get()
+          .then(
+            async (doc) => await ref.collection('Messages').doc(doc.id).delete()
+          )
       }
+      await dispatch(updateGroupConversationsAfterLeaving({ conversationID }))
     })
-
-    await dispatch(updateGroupConversationsAfterLeaving({ conversationID }))
   } catch (err) {
-    console.log(err)
+    console.error(err)
   }
 }
 
+/**
+ * @param {Object} a
+ * @param {Object} b
+ */
 const sortChatFunction = (a, b) => {
   const aLastMessage = a.data.lastMessage
   const aLength = Object.keys(aLastMessage).length

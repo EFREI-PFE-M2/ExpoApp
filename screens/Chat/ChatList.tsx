@@ -16,12 +16,16 @@ import {
   selectGroupChats,
   getMessagesFromGroupConversation,
 } from '../../store/chatSlice'
+import { selectCurrentUser } from '../../store/userSlice'
 
 function PrivateChatList({ navigation }) {
   const noPrivateChats = 'No private conversations.'
 
-  let privateChats = useSelector(selectPrivateChats)
+  const privateChats = useSelector(selectPrivateChats)
   const [privateConversations, setPrivateConversations] = useState(privateChats)
+
+  const displayUser = useSelector(selectCurrentUser)
+  const { uid } = displayUser
 
   useEffect(() => {
     setPrivateConversations(privateChats)
@@ -41,8 +45,8 @@ function PrivateChatList({ navigation }) {
         {Object.keys(privateConversations).map((key) => {
           const chatInfo = { ...privateConversations[key], chatID: key }        
 
-          const displayName = GetRoomTitleShort(chatInfo.receiverDisplayName)
-          const photoURL = chatInfo.receiverPhotoURL
+          const displayName = GetRoomTitleShort(uid == chatInfo.senderID ? chatInfo.receiverDisplayName : chatInfo.senderDisplayName)
+          const photoURL = uid == chatInfo.senderID ? chatInfo.receiverPhotoURL : chatInfo.senderPhotoURL
 
           const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
           (chatInfo.lastMessage['type'] == 'text' ? chatInfo.lastMessage.text : (chatInfo.lastMessage['type']== 'image' ?
