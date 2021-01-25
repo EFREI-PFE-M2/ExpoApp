@@ -9,6 +9,8 @@ export default function PrivateChatMenuOptions(props) {
   const [visible, setVisible] = React.useState(false)
   const navigation = useNavigation()
 
+  const { chatInfo } = props.params
+
   const openMenu = () => setVisible(true)
   const closeMenu = () => setVisible(false)
   return (
@@ -30,8 +32,8 @@ export default function PrivateChatMenuOptions(props) {
             navigation.navigate('Profil', {
               self: false,
               user: {
-                username: props.params.chatInfo.receiverDisplayName,
-                photoURL: props.params.chatInfo.receiverPhotoURL,
+                username: chatInfo.receiverDisplayName,
+                photoURL: chatInfo.receiverPhotoURL,
                 level: 0,
                 experience: 0,
                 winPercentage: 0,

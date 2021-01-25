@@ -3,24 +3,30 @@ import { StyleSheet, Text } from 'react-native'
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { Avatar, TextInput } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
-import { View } from "../components/Themed";
-import { changeGroupChatInfo, selectUsersToAdd } from '../store/chatSlice';
+import { View } from "../../components/Themed";
+import { changeGroupChatInfo, selectGroupChatMembersDetails, selectGroupChats, selectUsersToAdd } from '../../store/chatSlice';
 
-export default function AddGroupChat() {
-    const aUsers = useSelector(selectUsersToAdd)
-    const [groupChatPhotoURL, setGroupChatPhotoURL] = React.useState('https://m.info.pmu.fr/images/pmu.jpg')
-    const [groupChatName, setGroupChatName] = React.useState('')
+export default function GroupChatDetails({ route }) {
+    const { isCreated, chatInfo } = route.params
+    
+    const [users, setUsers] = React.useState(isCreated ? 
+      useSelector(selectGroupChats)[chatInfo.chatID].usersDetails 
+      : useSelector(selectUsersToAdd))
+    const usersTitle = isCreated ? 'Membres du chat' : 'Utilisateurs invités' 
+    const [groupChatPhotoURL, setGroupChatPhotoURL] = React.useState(isCreated ? chatInfo.photoURL : 'https://m.info.pmu.fr/images/pmu.jpg')
+    const [groupChatName, setGroupChatName] = React.useState(isCreated ? chatInfo.name : '')
     
     const nameOnChange = (name: string) => { setGroupChatName(name); dispatch(changeGroupChatInfo(groupChatInfo)) }
     
+    console.log('u:'+JSON.stringify(users))
     const groupChatInfo = {
-        name: groupChatName, 
-        photoURL: groupChatPhotoURL, 
-        users: aUsers
+      name: groupChatName, 
+      photoURL: groupChatPhotoURL, 
+      users
     }
 
     const dispatch = useDispatch()
-    dispatch(changeGroupChatInfo(groupChatInfo))
+    //dispatch(changeGroupChatInfo(groupChatInfo))
 
     return(<View style={styles.container}>
         <Text style={styles.titleStyle}>Photo de groupe</Text>
@@ -28,7 +34,7 @@ export default function AddGroupChat() {
           source={{uri: groupChatPhotoURL}}
         />
         <Text style={styles.titleStyle}>Nom de groupe</Text>
-        <TextInput
+        {isCreated ? <Text style={{marginLeft: 30, marginTop: 10, fontSize: 16}}>- {groupChatName}</Text> : <TextInput
           value={groupChatName}
           onChangeText={nameOnChange}
           mode="outlined"
@@ -41,10 +47,10 @@ export default function AddGroupChat() {
               text: '#000',
             },
           }}
-        />        
-        <Text style={styles.titleStyle}>Utilisateurs invités</Text>
+        />}     
+        <Text style={styles.titleStyle}>{usersTitle}</Text>
         <ScrollView>
-            {Object.values(aUsers).map((u: any) => { 
+            {Object.values(users).map((u: any) => { 
                 return(
                 <TouchableOpacity
                     key={u.uid}

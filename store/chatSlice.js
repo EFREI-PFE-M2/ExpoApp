@@ -7,11 +7,16 @@ export const chatSlice = createSlice({
     privateConversations: {},
     groupChatInfo: {},
     groupConversations: {},
+    groupChatMembersDetails: {},
     usersToSearch: [],
     usersToAdd: {},
     error: '',
   },
   reducers: {
+    updateGroupChatMembersDetails: (state, action) => {
+      const { conversationID, usersDetails } = action.payload
+      state.groupConversations[conversationID].usersDetails = usersDetails
+    },
     updateGroupChatInfo: (state, action) => {
       state.groupChatInfo = action.payload
     },
@@ -355,6 +360,8 @@ export const getMessagesFromGroupConversation = (
     }
   }
 
+  //await dispatch(getGroupChatMembersDetails(conversationID))
+
   await dispatch(
     addMessagesToGroupConversation({
       conversationID,
@@ -458,10 +465,16 @@ export const getGroupConversationFromID = (userID) => async (dispatch) => {
       if (lastMessage.size) {
         lastMessage.docs.forEach((_doc) => {
           const lastMessage = _doc.data()
-          data.push({ id: doc.id, data: { ...doc.data(), lastMessage } })
+          data.push({
+            id: doc.id,
+            data: { ...doc.data(), usersDetails: {}, lastMessage },
+          })
         })
       } else {
-        data.push({ id: doc.id, data: { ...doc.data(), lastMessage: {} } })
+        data.push({
+          id: doc.id,
+          data: { ...doc.data(), usersDetails: {}, lastMessage: {} },
+        })
       }
 
       count--
@@ -699,6 +712,45 @@ export const sendGroupChatMessage = (conversationID, message) => async (
   }
 }
 
+export const getGroupChatMembersDetails = (conversationID) => async (
+  dispatch
+) => {
+  try {
+    let usersDetails = {}
+
+    const ref = await firestore.collection('GroupConversation')
+    let hostID
+
+    await ref
+      .doc(conversationID)
+      .get()
+      .then((doc) => {
+        hostID = doc.data().hostID
+      })
+
+    const snapshot = await ref
+      .doc(conversationID)
+      .collection('GroupChatMembers')
+      .get()
+
+    snapshot.docs.map((doc) => {
+      const user = doc.data()
+      usersDetails[doc.id] = {
+        uid: user.uid,
+        username: user.username,
+        photoURL: user.photoURL,
+        isHost: doc.id === hostID,
+      }
+    })
+
+    await dispatch(
+      updateGroupChatMembersDetails({ conversationID, usersDetails })
+    )
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 const sortChatFunction = (a, b) => {
   const aLastMessage = a.data.lastMessage
   const aLength = Object.keys(aLastMessage).length
@@ -733,11 +785,14 @@ export const {
   setError,
   addMessagesToPrivateConversation,
   addMessagesToGroupConversation,
+  updateGroupChatMembersDetails,
 } = chatSlice.actions
 
 // selectors
 export const selectGroupChatInfo = (state) => state.chat.groupChatInfo
 export const selectGroupChats = (state) => state.chat.groupConversations
+export const selectGroupChatMembersDetails = (state) =>
+  state.chat.groupChatMembersDetails
 export const selectPrivateChats = (state) => state.chat.privateConversations
 export const selectUsersToSearch = (state) => state.chat.usersToSearch
 export const selectUsersToAdd = (state) => state.chat.usersToAdd

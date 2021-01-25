@@ -1,15 +1,17 @@
 import { createStackNavigator, StackNavigationOptions } from '@react-navigation/stack'
 import React, { useState } from 'react'
-import AddChat from '../screens/AddChat'
-import AddGroupChat from '../screens/AddGroupChat'
-import ChatList from '../screens/ChatList'
-import ChatRoom from '../screens/ChatRoom'
+import AddChat from '../screens/Chat/AddChat'
+import AddGroupChat from '../screens/Chat/GroupChatDetails'
+import ChatList from '../screens/Chat/ChatList'
+import ChatRoom from '../screens/Chat/ChatRoom'
 import { View, Text, StatusBar, StyleSheet, Alert } from 'react-native'
 import { IconButton } from 'react-native-paper'
 import PrivateChatMenuOptions from '../components/Custom/PrivateChatMenuOptions'
 import { useDispatch, useSelector } from 'react-redux'
 import { createConversation, createGroupConversation, getConversationFromID, getGroupConversationFromID, searchUsers, selectGroupChatInfo, selectUsers, selectUsersToAdd } from '../store/chatSlice'
 import { selectCurrentUser } from '../store/userSlice'
+import GroupChatMenuOptions from '../components/Custom/GroupChatMenuOption'
+import GroupChatDetails from '../screens/Chat/GroupChatDetails'
 
 const Stack = createStackNavigator()
 
@@ -49,8 +51,7 @@ export default function ChatStack({navigation}) {
   const createChat = () => {
     const length = Object.keys(selectUsersIn).length 
     if (length > 1) {
-      navigation.navigate('AddGroupChat')
-      //dispatch(createGroupConversation(uid, selectUsers))
+      navigation.navigate('GroupChatDetails', {title: 'Créer un chat de groupe', isCreated: false})
     } else {
       if (length) {
         const receiver = Object.values(selectUsersIn)[0]
@@ -114,7 +115,7 @@ export default function ChatStack({navigation}) {
               {route.params?.isPrivateChat ? 
                 <PrivateChatMenuOptions params={{chatInfo: route.params?.chatInfo}}/> 
                 :
-                null
+                <GroupChatMenuOptions params={{chatInfo: route.params?.chatInfo}}/>
              }
             </View>
           )})}/>
@@ -139,22 +140,41 @@ export default function ChatStack({navigation}) {
               <IconButton icon='account-plus' style={{marginRight: 7}} size={24} onPress={createChat}/>
             }
       }}/>
-      <Stack.Screen name="AddGroupChat"
-        component={AddGroupChat}
-        options={{ 
+      <Stack.Screen name="GroupChatDetails"
+        component={GroupChatDetails}
+        options={({route}) => ({ 
           headerTitleStyle: {fontSize: 20},
-          headerTitle: 'Créer un chat de groupe',
-          headerLeft: ({ tintColor }) => (
-            <IconButton 
-              icon="chevron-left"
-              onPress={goBackToChatList}
-              size={30}
-              color="#fff"
-            />
-          ),
-          headerRight: ({ tintColor}) => 
-            <IconButton icon='check' style={{marginRight: 7}} size={24} onPress={createGroupChat}/>    
-      }}/>
+          headerTitle: route.params?.title,
+          headerLeft: ({ tintColor }) => 
+            route.params?.isCreated ?
+              <IconButton 
+                icon="chevron-left"
+                onPress={() => navigation.navigate('ChatRoom', {chatInfo: route.params?.chatInfo, isPrivate: false})}
+                size={30}
+                color="#fff"
+              /> :
+              <IconButton 
+                icon="chevron-left"
+                onPress={goBackToChatList}
+                size={30}
+                color="#fff"
+              />
+          ,
+          headerRight: ({ tintColor }) => 
+            route.params?.isCreated ?
+              <IconButton 
+                icon='check' 
+                style={{marginRight: 7}} 
+                size={24} 
+                onPress={() => navigation.navigate('ChatRoom', {chatInfo: route.params?.chatInfo, isPrivate: false})}
+              />  :
+              <IconButton 
+                icon='check' 
+                style={{marginRight: 7}} 
+                size={24} 
+                onPress={createGroupChat}
+              /> 
+      })}/>
     </Stack.Navigator> 
   )
 }

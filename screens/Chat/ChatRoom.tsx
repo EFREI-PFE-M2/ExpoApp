@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Animated, StyleSheet, ScrollView, TextInput, Image, RefreshControl } from 'react-native'
-import { Text, View } from '../components/Themed'
+import { Text, View } from '../../components/Themed'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectCurrentUser } from '../store/userSlice'
+import { selectCurrentUser } from '../../store/userSlice'
 import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler'
-import { GetPublishedDate } from '../utils/ChatFunctions'
+import { GetPublishedDate } from '../../utils/ChatFunctions'
 import { Avatar } from 'react-native-paper'
-import ImagePicker from '../components/ImagePicker'
+import ImagePicker from '../../components/ImagePicker'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 import {
   getMessagesFromGroupConversation,
@@ -15,7 +15,7 @@ import {
   selectPrivateChats,
   sendGroupChatMessage,
   sendPrivateChatMessage,
-} from '../store/chatSlice'
+} from '../../store/chatSlice'
 
 function showExtraInfo(check, sameItem) {
   if (!(check && sameItem)) {

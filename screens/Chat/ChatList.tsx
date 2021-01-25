@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { View } from '../components/Themed'
+import { View } from '../../components/Themed'
 import { StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native'
 import { Avatar } from 'react-native-paper'
 import {
   GetMessageShort,
   GetRoomTitleShort,
   GetPublishedDate,
-} from '../utils/ChatFunctions'
+} from '../../utils/ChatFunctions'
 import { useDispatch, useSelector } from 'react-redux'
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import {
@@ -15,7 +15,7 @@ import {
   setReachFirstMessageState,
   selectGroupChats,
   getMessagesFromGroupConversation,
-} from '../store/chatSlice'
+} from '../../store/chatSlice'
 
 function PrivateChatList({ navigation }) {
   const noPrivateChats = 'No private conversations.'

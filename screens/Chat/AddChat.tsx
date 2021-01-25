@@ -2,7 +2,7 @@ import React, { useState }  from 'react'
 import { Text, TouchableOpacity, StyleSheet, View } from 'react-native'
 import { Searchbar, Avatar, RadioButton } from 'react-native-paper'
 import { useSelector, useDispatch } from 'react-redux'
-import { searchUsers, selectUsers, selectUsersToSearch } from '../store/chatSlice'
+import { searchUsers, selectUsers, selectUsersToSearch } from '../../store/chatSlice'
 import { ScrollView } from 'react-native-gesture-handler'
 
 export default function AddChat({route}) {
