@@ -18,7 +18,6 @@ export default function GroupChatDetails({ route }) {
     
     const nameOnChange = (name: string) => { setGroupChatName(name); dispatch(changeGroupChatInfo(groupChatInfo)) }
     
-    console.log('u:'+JSON.stringify(users))
     const groupChatInfo = {
       name: groupChatName, 
       photoURL: groupChatPhotoURL, 
@@ -26,7 +25,7 @@ export default function GroupChatDetails({ route }) {
     }
 
     const dispatch = useDispatch()
-    //dispatch(changeGroupChatInfo(groupChatInfo))
+    dispatch(changeGroupChatInfo(groupChatInfo))
 
     return(<View style={styles.container}>
         <Text style={styles.titleStyle}>Photo de groupe</Text>
@@ -51,6 +50,7 @@ export default function GroupChatDetails({ route }) {
         <Text style={styles.titleStyle}>{usersTitle}</Text>
         <ScrollView>
             {Object.values(users).map((u: any) => { 
+                const username = u.isHost ? `${u.username} (Host)` : u.username
                 return(
                 <TouchableOpacity
                     key={u.uid}
@@ -58,7 +58,7 @@ export default function GroupChatDetails({ route }) {
                 >
                     <Avatar.Image size={60} source={{ uri: u.photoURL }} />
                     <View style={styles.containerView}>
-                        <Text style={{marginTop: 8}}>{u.username}</Text>
+                        <Text style={{marginTop: 8, fontWeight: u.isHost ? 'bold' : 'normal'}}>{username}</Text>
                     </View>
                 </TouchableOpacity>
             )})}

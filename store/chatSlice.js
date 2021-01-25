@@ -7,12 +7,15 @@ export const chatSlice = createSlice({
     privateConversations: {},
     groupChatInfo: {},
     groupConversations: {},
-    groupChatMembersDetails: {},
     usersToSearch: [],
     usersToAdd: {},
     error: '',
   },
   reducers: {
+    updateGroupConversationsAfterLeaving: (state, action) => {
+      const { conversationID } = action.payload
+      delete state.groupConversations[conversationID]
+    },
     updateGroupChatMembersDetails: (state, action) => {
       const { conversationID, usersDetails } = action.payload
       state.groupConversations[conversationID].usersDetails = usersDetails
@@ -492,7 +495,6 @@ export const getGroupConversationFromID = (userID) => async (dispatch) => {
 export const createConversation = (senderID, receiverID) => async (
   dispatch
 ) => {
-  console.log(receiverID)
   try {
     const snapshot = await firestore
       .collection('PrivateConversation')
@@ -751,6 +753,35 @@ export const getGroupChatMembersDetails = (conversationID) => async (
   }
 }
 
+export const leaveGroupChat = (conversationID) => async (
+  dispatch,
+  getState
+) => {
+  try {
+    const { user, chat } = getState()
+    const ref = firestore.collection('GroupConversation').doc(conversationID)
+
+    const snapshot = await ref.get().then(async (doc) => {
+      const chatInfo = doc.data()
+      const users = chatInfo['users']
+      if (users.length > 1) {
+        users.shift(user.uid)
+
+        await ref.update({ users: users })
+        await ref.collection('GroupChatMembers').doc(user.uid).delete()
+
+        if (chatInfo.hostID === user.uid) await ref.update({ hostID: users[0] })
+      } else {
+        await ref.delete()
+      }
+    })
+
+    await dispatch(updateGroupConversationsAfterLeaving({ conversationID }))
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 const sortChatFunction = (a, b) => {
   const aLastMessage = a.data.lastMessage
   const aLength = Object.keys(aLastMessage).length
@@ -786,13 +817,12 @@ export const {
   addMessagesToPrivateConversation,
   addMessagesToGroupConversation,
   updateGroupChatMembersDetails,
+  updateGroupConversationsAfterLeaving,
 } = chatSlice.actions
 
 // selectors
 export const selectGroupChatInfo = (state) => state.chat.groupChatInfo
 export const selectGroupChats = (state) => state.chat.groupConversations
-export const selectGroupChatMembersDetails = (state) =>
-  state.chat.groupChatMembersDetails
 export const selectPrivateChats = (state) => state.chat.privateConversations
 export const selectUsersToSearch = (state) => state.chat.usersToSearch
 export const selectUsersToAdd = (state) => state.chat.usersToAdd
