@@ -14,7 +14,7 @@ export default function AddChat(props: any) {
 
   const [usersToAdd, setUsersToAdd] = useState({})
 
-  const { alreadyInvitedUsers, isCreated, setShowState } = props.route.params
+  const { groupChatID, isCreated, setShowState } = props.route.params
 
   const toggleButton = (buttonId: string, user: any) => () => {
     let aUsers = Object.assign({}, usersToAdd)
@@ -45,7 +45,7 @@ export default function AddChat(props: any) {
   const onChangeText = (query: any) => { 
     setSearchQuery(query);
     if (isCreated)
-      dispatch(searchUsers(query, alreadyInvitedUsers))
+      dispatch(searchUsers(query, groupChatID))
     else 
       dispatch(searchUsers(query))
   }
@@ -61,13 +61,13 @@ export default function AddChat(props: any) {
         value={searchQuery}
         />
       </View>
+      <ScrollView>
       { sUsers.length == 0 ?
         <>
           <Text style={styles.noResults}>{noResults}</Text>
         </>
         :
         <>
-        <ScrollView>
           { sUsers.map((u: any) => { 
             const btnId = u.uid
             const isToggled = Object.keys(usersToAdd).includes(btnId) 
@@ -93,9 +93,9 @@ export default function AddChat(props: any) {
             </TouchableOpacity>)
             })
           }
-        </ScrollView>
         </>
       }
+      </ScrollView>
     </View>
     );
 }

@@ -164,8 +164,9 @@ export const changeGroupChatInfo = (groupChatInfo) => async (dispatch) => {
 
 /**
  * @param {String} query
+ * @param {Array<String>} alreadyInvitedUsers
  */
-export const searchUsers = (query, alreadyInvitedUsers = undefined) => async (
+export const searchUsers = (query, groupConversationID = undefined) => async (
   dispatch,
   getState
 ) => {
@@ -174,8 +175,8 @@ export const searchUsers = (query, alreadyInvitedUsers = undefined) => async (
     const currentUser = user.uid
     let users = []
 
-    const snapshot = !alreadyInvitedUsers
-      ? query.length != 0
+    const snapshot =
+      query.length != 0
         ? await firestore
             .collection('Users')
             .where('displayName', '>=', query)
@@ -188,44 +189,38 @@ export const searchUsers = (query, alreadyInvitedUsers = undefined) => async (
             .orderBy('displayName')
             .limit(10)
             .get()
-      : query.length != 0
-      ? await firestore
-          .collection('Users')
-          .where('reference', 'not-in', alreadyInvitedUsers)
-          .where('displayName', '>=', query)
-          .where('displayName', '<=', query + '~')
-          .orderBy('displayName')
-          .limit(10)
-          .get()
-      : await firestore
-          .collection('Users')
-          .where('reference', 'not-in', alreadyInvitedUsers)
-          .orderBy('displayName')
-          .limit(10)
-          .get()
 
-    console.log(snapshot.size)
+    let alreadyInvitedUsers = []
+
+    const sp = groupConversationID
+      ? await firestore
+          .collection('GroupConversation')
+          .doc(groupConversationID)
+          .get()
+          .then((doc) => (alreadyInvitedUsers = doc.data().users))
+      : null
 
     snapshot.docs.map((doc) => {
       const user = doc.data()
       if (currentUser != doc.id) {
-        users.push({
-          uid: doc.id,
-          username: user.displayName,
-          photoURL:
-            user.photoURL != undefined
-              ? user.photoURL
-              : 'https://st.depositphotos.com/2101611/3925/v/600/depositphotos_39258143-stock-illustration-businessman-avatar-profile-picture.jpg',
-        })
+        if (
+          !groupConversationID ||
+          (alreadyInvitedUsers.length && !alreadyInvitedUsers.includes(doc.id))
+        )
+          users.push({
+            uid: doc.id,
+            username: user.displayName,
+            photoURL:
+              user.photoURL != undefined
+                ? user.photoURL
+                : 'https://st.depositphotos.com/2101611/3925/v/600/depositphotos_39258143-stock-illustration-businessman-avatar-profile-picture.jpg',
+          })
       }
     })
 
-    console.log('u====' + users)
-
     await dispatch(updateUsersToSearch(users))
   } catch (err) {
-    console.log(err)
-    console.log('BAAAAAAAAAADDDD!!!!')
+    console.error(err)
   }
 }
 
@@ -591,8 +586,10 @@ export const createConversation = (senderID, receiverID) => async (
         .collection('PrivateConversation')
         .add(data)
 
+      await dispatch(updateUsersToAdd({}))
+
       // Add to local
-      dispatch(
+      await dispatch(
         addToPrivate([
           {
             id: querySnapshot.id,
@@ -830,10 +827,9 @@ export const addUsersToGroupChatAfterCreation = (
 
     await ref.get().then(async (doc) => {
       const chatInfo = doc.data()
-      const users = chatInfo['users']
-      const usersDetails = chat.groupConversations[conversationID].usersDetails
+      let users = [...chatInfo['users'], ...Object.keys(aUsers)]
+      let usersDetails = chat.groupConversations[conversationID].usersDetails
 
-      users = [...users, ...Object.keys(aUsers)]
       await ref.update({ users: users })
 
       Object.entries(aUsers).forEach(
@@ -853,6 +849,8 @@ export const addUsersToGroupChatAfterCreation = (
             .doc(element[0])
             .set(element[1])
       )
+
+      await dispatch(updateUsersToAdd({}))
 
       await dispatch(
         updateGroupChatMembersList({

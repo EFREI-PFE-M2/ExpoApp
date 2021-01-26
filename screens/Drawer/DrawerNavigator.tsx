@@ -72,7 +72,7 @@ export default function DrawerNavigator() {
         component={ChatNavigator}
         options={{
           drawerIcon: ({ color }) => (
-            <MaterialIcons name="message" size={24} color={color} />
+              <MaterialIcons name="message" size={24} color={color} />
           ),
         }}
       />

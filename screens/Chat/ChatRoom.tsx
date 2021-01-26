@@ -9,8 +9,10 @@ import { Avatar } from 'react-native-paper'
 import ImagePicker from '../../components/ImagePicker'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 import {
+  addUsersToGroupChatAfterCreation,
   getMessagesFromGroupConversation,
   getMessagesFromPrivateConversation,
+  searchUsers,
   selectGroupChats,
   selectPrivateChats,
   sendGroupChatMessage,

@@ -4,7 +4,10 @@ import { Menu, Divider } from 'react-native-paper'
 import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useDispatch } from 'react-redux'
-import { getGroupChatMembersDetails } from '../../store/chatSlice'
+import {
+  getGroupChatMembersDetails,
+  leaveGroupChat,
+} from '../../store/chatSlice'
 
 export default function GroupChatMenuOptions(props) {
   const [visible, setVisible] = React.useState(false)
@@ -27,7 +30,7 @@ export default function GroupChatMenuOptions(props) {
     })
   }
 
-  const leaveGroupChat = () => {
+  const quitGroupChat = () => {
     setVisible(false)
     Alert.alert('Warning', 'Are you sure to leave the chat?', [
       {
@@ -37,8 +40,8 @@ export default function GroupChatMenuOptions(props) {
       },
       {
         text: 'OK',
-        onPress: () => {
-          dispatch(leaveGroupChat(chatInfo.chatID))
+        onPress: async () => {
+          await dispatch(leaveGroupChat(chatInfo.chatID))
           navigation.navigate('ChatList')
         },
       },
@@ -65,7 +68,7 @@ export default function GroupChatMenuOptions(props) {
         />
         <Divider />
         <Menu.Item
-          onPress={leaveGroupChat}
+          onPress={quitGroupChat}
           titleStyle={styles.redColor}
           title="Quitter le chat"
         />

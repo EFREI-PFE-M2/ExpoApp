@@ -15,28 +15,31 @@ import {
   setReachFirstMessageState,
   selectGroupChats,
   getMessagesFromGroupConversation,
+  getConversationFromID,
+  getGroupConversationFromID,
 } from '../../store/chatSlice'
 import { selectCurrentUser } from '../../store/userSlice'
 
 function PrivateChatList(props: any) {
   const noPrivateChats = 'No private conversations.'
 
-  const privateChats = useSelector(selectPrivateChats)
-  const [privateConversations, setPrivateConversations] = useState(privateChats)
-
   const displayUser = useSelector(selectCurrentUser)
   const { uid } = displayUser
 
+  const dispatch = useDispatch()
+
+  const privateChats = useSelector(selectPrivateChats)
+  const [privateConversations, setPrivateConversations] = useState(privateChats)
+
   useEffect(() => {
-    setPrivateConversations(privateChats)
+    setPrivateConversations(privateChats)   
   })
 
-  const dispatch = useDispatch()
   const { navigation } = props
 
-  const redirectToPrivateChatRoom = ({props}: any) => () => 
+  const redirectToPrivateChatRoom = ({props}: any) => async () => 
   {
-    dispatch(getMessagesFromPrivateConversation(props.chatID))
+    await dispatch(getMessagesFromPrivateConversation(props.chatID))
     navigation.navigate('ChatRoom', {
       isPrivateChat: true,
       chatInfo: props.chatInfo,
@@ -63,9 +66,10 @@ function PrivateChatList(props: any) {
     })
   }
 
-  return (
-    <ScrollView>
-      {Object.keys(privateConversations).length == 0 ? 
+
+  const privateConversationsList = () =>
+    {
+      return Object.keys(privateConversations).length == 0 ? 
       (
         <Text style={{ marginTop: 10, marginStart: 10, fontSize: 16 }}>
           {noPrivateChats}
@@ -95,7 +99,7 @@ function PrivateChatList(props: any) {
             <TouchableOpacity
               key={chatInfo.chatID}
               style={styles.containerChatRoomItem}
-              onPress={redirectToPrivateChatRoom({props: {chatId: chatInfo.chatID, displayName, photoURL, chatInfo}})}
+              onPress={redirectToPrivateChatRoom({props: {chatID: chatInfo.chatID, displayName, photoURL, chatInfo}})}
             >
               <Avatar.Image 
                 size={60} 
@@ -117,13 +121,20 @@ function PrivateChatList(props: any) {
               </TouchableOpacity>)      
         })}
       </View>
-      }
+    }
+    
+
+  return (
+    <ScrollView>
+      {privateConversationsList()}
     </ScrollView>
   )
 }
 
 function GroupChatList(props: any) {
   const noGroupChats = 'No group conversations.'
+
+  const dispatch = useDispatch()
 
   let groupChats = useSelector(selectGroupChats)
   const [groupConversations, setGroupConversations] = useState(groupChats)
@@ -132,11 +143,10 @@ function GroupChatList(props: any) {
     setGroupConversations(groupChats)
   })
 
-  const dispatch = useDispatch()
   const { navigation } = props
 
-  const redirectToGroupChatRoom = ({props}: any) => () => {
-    dispatch(getMessagesFromGroupConversation(props.chatID))
+  const redirectToGroupChatRoom = ({props}: any) => async () => {
+    await dispatch(getMessagesFromGroupConversation(props.chatID))
     navigation.navigate('ChatRoom', {
       isPrivateChat: false,
       chatInfo: props.chatInfo,
@@ -163,62 +173,66 @@ function GroupChatList(props: any) {
     })
   }
 
+  const groupConversationsList = () => 
+  { 
+    return Object.keys(groupConversations).length == 0 ? 
+    (
+      <Text style={{ marginTop: 10, marginStart: 10, fontSize: 16 }}>
+        {noGroupChats}
+      </Text>
+    ) : (
+      <View style={{backgroundColor: 'rgba(0,0,0,0)'}}>
+        {Object.keys(groupConversations).map((key) => {
+          const chatInfo = { ...groupConversations[key], chatID: key }        
+
+          const groupChatName = GetRoomTitleShort(chatInfo.name)
+          const photoURL = chatInfo.photoURL
+
+          const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
+            (chatInfo.lastMessage['type'] == 'text' ? 
+              chatInfo.lastMessage.text : (chatInfo.lastMessage['type'] == 'image' ?
+                '[New image has been sent]' : '[New audio has been sent]')) 
+              : '[Be the first to send message]')
+
+          const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length ? 
+            GetPublishedDate(new Date(!chatInfo.lastMessage.createdAt['seconds'] ? 
+              chatInfo.lastMessage.createdAt : chatInfo.lastMessage.createdAt['seconds'] * 1000))
+            : 
+            GetPublishedDate(new Date(!chatInfo.createdAt['seconds'] ? 
+              chatInfo.createdAt : chatInfo.createdAt['seconds'] * 1000)) 
+
+          return(
+            <TouchableOpacity
+              key={chatInfo.chatID}
+              style={styles.containerChatRoomItem}
+              onPress={redirectToGroupChatRoom({props: {chatID: chatInfo.chatID, groupChatName, photoURL, chatInfo}})}
+            >
+              <Avatar.Image 
+                size={60} 
+                source={{ uri: photoURL }} 
+              />
+              <View style={{ marginStart: 10, ...styles.viewStyle }}>
+                  <Text style={styles.nameStyle}>
+                    {groupChatName}
+                  </Text>
+                  <View style={styles.viewStyle}>
+                    <Text style={styles.lastMessageStyle}>
+                      {lastMessage}
+                    </Text>
+                    <Text style={styles.publishedDateStyle}>
+                      - {createdOrPublishedAt}
+                    </Text>
+                  </View>
+                </View>
+            </TouchableOpacity>) 
+        })} 
+      </View>
+      )
+    }
+  
   return (
     <ScrollView>
-      {Object.keys(groupConversations).length == 0 ? 
-      (
-        <Text style={{ marginTop: 10, marginStart: 10, fontSize: 16 }}>
-          {noGroupChats}
-        </Text>
-      ) : (
-        <View style={{backgroundColor: 'rgba(0,0,0,0)'}}>
-          {Object.keys(groupConversations).map((key) => {
-            const chatInfo = { ...groupConversations[key], chatID: key }        
-
-            const groupChatName = GetRoomTitleShort(chatInfo.name)
-            const photoURL = chatInfo.photoURL
-
-            const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
-              (chatInfo.lastMessage['type'] == 'text' ? 
-                chatInfo.lastMessage.text : (chatInfo.lastMessage['type'] == 'image' ?
-                  '[New image has been sent]' : '[New audio has been sent]')) 
-                : '[Be the first to send message]')
-
-            const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length ? 
-              GetPublishedDate(new Date(!chatInfo.lastMessage.createdAt['seconds'] ? 
-                chatInfo.lastMessage.createdAt : chatInfo.lastMessage.createdAt['seconds'] * 1000))
-              : 
-              GetPublishedDate(new Date(!chatInfo.createdAt['seconds'] ? 
-                chatInfo.createdAt : chatInfo.createdAt['seconds'] * 1000)) 
-
-            return(
-              <TouchableOpacity
-                key={chatInfo.chatID}
-                style={styles.containerChatRoomItem}
-                onPress={redirectToGroupChatRoom({props: {chatID: chatInfo.chatID, groupChatName, photoURL, chatInfo}})}
-              >
-                <Avatar.Image 
-                  size={60} 
-                  source={{ uri: photoURL }} 
-                />
-                <View style={{ marginStart: 10, ...styles.viewStyle }}>
-                    <Text style={styles.nameStyle}>
-                      {groupChatName}
-                    </Text>
-                    <View style={styles.viewStyle}>
-                      <Text style={styles.lastMessageStyle}>
-                        {lastMessage}
-                      </Text>
-                      <Text style={styles.publishedDateStyle}>
-                        - {createdOrPublishedAt}
-                      </Text>
-                    </View>
-                  </View>
-              </TouchableOpacity>) 
-          })} 
-        </View>
-        )
-      }
+      {groupConversationsList()}
     </ScrollView>
   )
 }
@@ -226,6 +240,17 @@ function GroupChatList(props: any) {
 const Tab = createMaterialTopTabNavigator()
 
 export default function ChatListStack(props: any) {
+  const displayUser = useSelector(selectCurrentUser)
+  const { uid } = displayUser
+
+  const dispatch = useDispatch()
+  const getConversations = async () => {
+    await dispatch(getConversationFromID(uid))
+    await dispatch(getGroupConversationFromID(uid))
+  }
+  
+  getConversations()
+
   return (
     <>
       <Tab.Navigator

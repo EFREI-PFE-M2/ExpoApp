@@ -1,5 +1,5 @@
 import { createStackNavigator, StackNavigationOptions } from '@react-navigation/stack'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import AddChat from '../screens/Chat/AddChat'
 import ChatList from '../screens/Chat/ChatList'
 import ChatRoom from '../screens/Chat/ChatRoom'
@@ -11,8 +11,6 @@ import {
   addUsersToGroupChatAfterCreation, 
   createConversation, 
   createGroupConversation, 
-  getConversationFromID, 
-  getGroupConversationFromID, 
   searchUsers, 
   selectGroupChatInfo, 
   selectUsers, 
@@ -48,9 +46,6 @@ export default function ChatStack(props: any) {
   const { uid } = displayUser              
   const dispatch = useDispatch()
 
-  dispatch(getConversationFromID(uid))
-  dispatch(getGroupConversationFromID(uid))
-
   // Callbacks using constants
   
   const goBackToHome = () => navigation.navigate('Home')
@@ -59,50 +54,51 @@ export default function ChatStack(props: any) {
 
   const goBackToGroupChatDetails = () => navigation.navigate('GroupChatDetails')
 
-  const goBackToChatList = () => {
+  const goBackToChatList = async () => {
     setShowState(false)
+    await dispatch(selectUsers()) 
     navigation.navigate('ChatList')
-    dispatch(selectUsers()) 
   }
 
-  const searchUsersToCreateChat = () => { 
-    dispatch(searchUsers('')); 
+  const searchUsersToCreateChat = async () => { 
+    await dispatch(searchUsers('')); 
     navigation.navigate('AddChat', { 
       title: 'Nouvelle discussion', 
       isCreated: false, 
       setShowState 
     })}
 
-  const createChat = () => {
+  const createChat = async () => {
     const length = Object.keys(selectUsersIn).length 
     if (length > 1) {
       navigation.navigate('GroupChatDetails', {title: 'Créer un chat de groupe', isCreated: false})
     } else {
       if (length) {
         const receiver = Object.values(selectUsersIn)[0]
-        dispatch(createConversation(uid, receiver.uid))
+        await dispatch(createConversation(uid, receiver.uid))
         goBackToChatList()
       }  
     }
   }
 
-  const searchForUsersToAddToGroupChat = (chatInfo: any) => () => {
-    dispatch(searchUsers('', chatInfo.users))
+  const searchForUsersToAddToGroupChat = ({chatInfo}: any) => async () => {
+    await dispatch(searchUsers('', chatInfo.chatID))
     navigation.navigate('AddChat', { 
       title: 'Nouveaux invités',
       groupChatID: chatInfo.chatID,
       alreadyInvitedUsers: chatInfo.users, isCreated: true })
   }
 
-  const addMembersToGroupChat = () => { 
-    //await dispatch(addUsersToGroupChatAfterCreation(route.params?.groupChatID, selectUsersIn))
-    navigation.navigate('GroupChatDetails')
+  const addMembersToGroupChat = ({groupChatID}: any) => async () => { 
+    if (Object.keys(selectUsersIn).length != 0)
+      await dispatch(addUsersToGroupChatAfterCreation(groupChatID, selectUsersIn))
+    navigation.navigate('ChatRoom')
   }
 
   const groupChatInfo = useSelector(selectGroupChatInfo)
-  const createGroupChat = () => {
+  const createGroupChat = async () => {
     if (groupChatInfo.name.trim() != '') {
-      dispatch(createGroupConversation(uid, groupChatInfo))
+      await dispatch(createGroupConversation(uid, groupChatInfo))
       goBackToChatList()
     } else {
       alert('Enter a name for your group chat')
@@ -159,7 +155,7 @@ export default function ChatStack(props: any) {
           icon='check' 
           style={{marginRight: 7}} 
           size={24} 
-          onPress={addMembersToGroupChat}
+          onPress={addMembersToGroupChat({groupChatID: props.groupChatID})}
       /> 
       :
       !showState ?
@@ -196,7 +192,7 @@ export default function ChatStack(props: any) {
         icon='account-plus' 
         style={{marginRight: 7}} 
         size={24} 
-        onPress={searchForUsersToAddToGroupChat(props.chatInfo)}
+        onPress={searchForUsersToAddToGroupChat({chatInfo: props.chatInfo})}
       />  
       :
       <IconButton 

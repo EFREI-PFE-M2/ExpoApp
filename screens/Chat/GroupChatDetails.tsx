@@ -4,14 +4,14 @@ import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { Avatar, TextInput } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { View } from "../../components/Themed";
-import { changeGroupChatInfo, selectGroupChatMembersDetails, selectGroupChats, selectUsersToAdd } from '../../store/chatSlice';
+import { changeGroupChatInfo, selectGroupChats, selectUsersToAdd } from '../../store/chatSlice';
 
 export default function GroupChatDetails(props: any) {
     const { isCreated, chatInfo } = props.route.params
     
-    const [users, setUsers] = React.useState(isCreated ? 
+    const users = isCreated ? 
       useSelector(selectGroupChats)[chatInfo.chatID].usersDetails 
-      : useSelector(selectUsersToAdd))
+      : useSelector(selectUsersToAdd)
     const usersTitle = isCreated ? 'Membres du chat' : 'Utilisateurs invités' 
     const [groupChatPhotoURL, setGroupChatPhotoURL] = React.useState(isCreated ? chatInfo.photoURL : 'https://m.info.pmu.fr/images/pmu.jpg')
     const [groupChatName, setGroupChatName] = React.useState(isCreated ? chatInfo.name : '')
@@ -27,7 +27,25 @@ export default function GroupChatDetails(props: any) {
     const dispatch = useDispatch()
     dispatch(changeGroupChatInfo(groupChatInfo))
 
-    return(
+    const chatMembersList = () => <ScrollView>
+    {Object.values(users).map((u: any) => { 
+        const username = u.isHost ? `${u.username} (Host)` : u.username
+        return(
+        <TouchableOpacity
+            key={u.uid}
+            style={styles.containerProfile}
+        >
+            <Avatar.Image size={60} source={{ uri: u.photoURL }} />
+            <View style={styles.containerView}>
+                <Text style={{marginTop: 8, fontWeight: u.isHost ? 'bold' : 'normal'}}>
+                  {username}
+                </Text>
+            </View>
+        </TouchableOpacity>
+    )})}
+  </ScrollView>
+
+  return(
       <View style={styles.container}>
         <Text style={styles.titleStyle}>Photo de groupe</Text>
         <Avatar.Image size={140} style={styles.photoStyle}
@@ -50,23 +68,7 @@ export default function GroupChatDetails(props: any) {
           }}
         />}     
         <Text style={styles.titleStyle}>{usersTitle}</Text>
-        <ScrollView>
-            {Object.values(users).map((u: any) => { 
-                const username = u.isHost ? `${u.username} (Host)` : u.username
-                return(
-                <TouchableOpacity
-                    key={u.uid}
-                    style={styles.containerProfile}
-                >
-                    <Avatar.Image size={60} source={{ uri: u.photoURL }} />
-                    <View style={styles.containerView}>
-                        <Text style={{marginTop: 8, fontWeight: u.isHost ? 'bold' : 'normal'}}>
-                          {username}
-                        </Text>
-                    </View>
-                </TouchableOpacity>
-            )})}
-          </ScrollView>
+        {chatMembersList()}
       </View>
     )
 }
