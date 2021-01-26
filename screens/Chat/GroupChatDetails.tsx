@@ -6,8 +6,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { View } from "../../components/Themed";
 import { changeGroupChatInfo, selectGroupChatMembersDetails, selectGroupChats, selectUsersToAdd } from '../../store/chatSlice';
 
-export default function GroupChatDetails({ route }) {
-    const { isCreated, chatInfo } = route.params
+export default function GroupChatDetails(props: any) {
+    const { isCreated, chatInfo } = props.route.params
     
     const [users, setUsers] = React.useState(isCreated ? 
       useSelector(selectGroupChats)[chatInfo.chatID].usersDetails 
@@ -33,13 +33,14 @@ export default function GroupChatDetails({ route }) {
           source={{uri: groupChatPhotoURL}}
         />
         <Text style={styles.titleStyle}>Nom de groupe</Text>
-        {isCreated ? <Text style={{marginLeft: 30, marginTop: 10, fontSize: 16}}>- {groupChatName}</Text> : <TextInput
+        {isCreated ? <Text style={styles.groupNameStyle}>- {groupChatName}</Text> : 
+        <TextInput
           value={groupChatName}
           onChangeText={nameOnChange}
           mode="outlined"
           placeholder="e.g. PMU's Dev Team"
           placeholderTextColor="#757575"
-          style={{ width: '100%', paddingHorizontal: 25}}
+          style={styles.textInputStyle}
           theme={{
             colors: {
               background: '#0002',
@@ -58,7 +59,9 @@ export default function GroupChatDetails({ route }) {
                 >
                     <Avatar.Image size={60} source={{ uri: u.photoURL }} />
                     <View style={styles.containerView}>
-                        <Text style={{marginTop: 8, fontWeight: u.isHost ? 'bold' : 'normal'}}>{username}</Text>
+                        <Text style={{marginTop: 8, fontWeight: u.isHost ? 'bold' : 'normal'}}>
+                          {username}
+                        </Text>
                     </View>
                 </TouchableOpacity>
             )})}
@@ -72,6 +75,15 @@ const styles = StyleSheet.create({
     },
     titleStyle: {
         marginLeft: 30, marginTop: 20, fontSize: 18
+    },
+    groupNameStyle: {
+      marginLeft: 30, 
+      marginTop: 10, 
+      fontSize: 16
+    },
+    textInputStyle: { 
+      width: '100%', 
+      paddingHorizontal: 25
     },
     photoStyle: {
         marginLeft: 30, marginTop: 20 

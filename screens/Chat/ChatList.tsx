@@ -18,7 +18,7 @@ import {
 } from '../../store/chatSlice'
 import { selectCurrentUser } from '../../store/userSlice'
 
-function PrivateChatList({ navigation }) {
+function PrivateChatList(props: any) {
   const noPrivateChats = 'No private conversations.'
 
   const privateChats = useSelector(selectPrivateChats)
@@ -32,6 +32,36 @@ function PrivateChatList({ navigation }) {
   })
 
   const dispatch = useDispatch()
+  const { navigation } = props
+
+  const redirectToPrivateChatRoom = (props: any) => () => 
+  {
+    dispatch(getMessagesFromPrivateConversation(props.key))
+    navigation.navigate('ChatRoom', {
+      isPrivateChat: true,
+      chatInfo: props.chatInfo,
+      title: (
+        <View
+          style={{
+            flexDirection: 'row',
+            backgroundColor: 'rgba(0, 0, 0, 0)',
+          }}>
+          <Avatar.Image size={45} source={{ uri: props.photoURL }} />
+          <View
+            style={{
+              flexDirection: 'column',
+              justifyContent: 'center',
+              marginBottom: 5,
+              backgroundColor: 'rgba(0, 0, 0, 0)',
+            }}>
+            <Text style={styles.titleStyle}>
+              {props.displayName}
+            </Text>
+          </View>
+        </View>
+      ),
+    })
+  }
 
   return (
     <ScrollView>
@@ -49,56 +79,42 @@ function PrivateChatList({ navigation }) {
           const photoURL = uid == chatInfo.senderID ? chatInfo.receiverPhotoURL : chatInfo.senderPhotoURL
 
           const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
-          (chatInfo.lastMessage['type'] == 'text' ? chatInfo.lastMessage.text : (chatInfo.lastMessage['type']== 'image' ?
-          '[New image has been sent]' : '[New audio has been sent]')) : '[Be the first to send message]')
+            (chatInfo.lastMessage['type'] == 'text' ? 
+              chatInfo.lastMessage.text : (chatInfo.lastMessage['type'] == 'image' ?
+                '[New image has been sent]' : '[New audio has been sent]')) 
+              : '[Be the first to send message]')
 
-          const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length  ? GetPublishedDate(new Date(typeof chatInfo.lastMessage.createdAt['seconds'] == 'undefined' ? chatInfo.lastMessage.createdAt : chatInfo.lastMessage.createdAt['seconds'] * 1000)) : 
-          GetPublishedDate(new Date(typeof chatInfo.createdAt['seconds'] == 'undefined' ? chatInfo.createdAt : chatInfo.createdAt['seconds'] * 1000)) 
+          const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length ? 
+            GetPublishedDate(new Date(!chatInfo.lastMessage.createdAt['seconds'] ? 
+              chatInfo.lastMessage.createdAt : chatInfo.lastMessage.createdAt['seconds'] * 1000)) 
+              : 
+            GetPublishedDate(new Date(!chatInfo.createdAt['seconds'] ? 
+              chatInfo.createdAt : chatInfo.createdAt['seconds'] * 1000)) 
 
           return(
             <TouchableOpacity
-            key={key}
-            style={styles.containerChatRoomItem}
-            onPress={async () => {
-              await dispatch(getMessagesFromPrivateConversation(key))
-              navigation.navigate('ChatRoom', {
-                isPrivateChat: true,
-                chatInfo,
-                title: (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      backgroundColor: 'rgba(0, 0, 0, 0)',
-                    }}>
-                    <Avatar.Image size={45} source={{ uri: photoURL }} />
-                    <View
-                      style={{
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        marginBottom: 5,
-                        backgroundColor: 'rgba(0, 0, 0, 0)',
-                      }}>
-                      <Text style={styles.titleStyle}>
-                        {displayName}
-                      </Text>
-                    </View>
+              key={key}
+              style={styles.containerChatRoomItem}
+              onPress={redirectToPrivateChatRoom({key, displayName, photoURL, chatInfo})}
+            >
+              <Avatar.Image 
+                size={60} 
+                source={{ uri: photoURL }} 
+              />
+              <View style={{ marginStart: 10, ...styles.viewStyle }}>
+                  <Text style={styles.nameStyle}>
+                    {displayName}
+                  </Text>
+                  <View style={styles.viewStyle}>
+                    <Text style={styles.lastMessageStyle}>
+                      {lastMessage}
+                    </Text>
+                    <Text style={styles.publishedDateStyle}>
+                      - {createdOrPublishedAt}
+                    </Text>
                   </View>
-                ),
-              })
-            }}>
-            <Avatar.Image size={60} source={{ uri: photoURL }} />
-            <View style={{ marginStart: 10, ...styles.viewStyle }}>
-                <Text style={styles.nameStyle}>{displayName}</Text>
-                <View style={styles.viewStyle}>
-                  <Text style={styles.lastMessageStyle}>
-                    {lastMessage}
-                  </Text>
-                  <Text style={styles.publishedDateStyle}>
-                    - {createdOrPublishedAt}
-                  </Text>
                 </View>
-              </View>
-            </TouchableOpacity>)      
+              </TouchableOpacity>)      
         })}
       </View>
       }
@@ -106,7 +122,7 @@ function PrivateChatList({ navigation }) {
   )
 }
 
-function GroupChatList({ navigation }) {
+function GroupChatList(props: any) {
   const noGroupChats = 'No group conversations.'
 
   let groupChats = useSelector(selectGroupChats)
@@ -117,10 +133,40 @@ function GroupChatList({ navigation }) {
   })
 
   const dispatch = useDispatch()
+  const { navigation } = props
+
+  const redirectToGroupChatRoom = (props: any) => () => {
+    dispatch(getMessagesFromGroupConversation(props.key))
+    navigation.navigate('ChatRoom', {
+      isPrivateChat: false,
+      chatInfo: props.chatInfo,
+      title: (
+        <View
+          style={{
+            flexDirection: 'row',
+            backgroundColor: 'rgba(0, 0, 0, 0)',
+          }}>
+          <Avatar.Image size={45} source={{ uri: props.photoURL }} />
+          <View
+            style={{
+              flexDirection: 'column',
+              justifyContent: 'center',
+              marginBottom: 5,
+              backgroundColor: 'rgba(0, 0, 0, 0)',
+            }}>
+            <Text style={styles.titleStyle}>
+              {props.groupChatName}
+            </Text>
+          </View>
+        </View>
+      ),
+    })
+  }
 
   return (
     <ScrollView>
-      {Object.keys(groupConversations).length == 0 ? (
+      {Object.keys(groupConversations).length == 0 ? 
+      (
         <Text style={{ marginTop: 10, marginStart: 10, fontSize: 16 }}>
           {noGroupChats}
         </Text>
@@ -133,55 +179,41 @@ function GroupChatList({ navigation }) {
             const photoURL = chatInfo.photoURL
 
             const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
-            (chatInfo.lastMessage['type'] == 'text' ? chatInfo.lastMessage.text : (chatInfo.lastMessage['type']== 'image' ?
-            '[New image has been sent]' : '[New audio has been sent]')) : '[Be the first to send message]')
+              (chatInfo.lastMessage['type'] == 'text' ? 
+                chatInfo.lastMessage.text : (chatInfo.lastMessage['type'] == 'image' ?
+                  '[New image has been sent]' : '[New audio has been sent]')) 
+                : '[Be the first to send message]')
 
-            const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length ? GetPublishedDate(new Date(typeof chatInfo.lastMessage.createdAt['seconds'] == 'undefined' ? chatInfo.lastMessage.createdAt : chatInfo.lastMessage.createdAt['seconds'] * 1000)) : 
-            GetPublishedDate(new Date(typeof chatInfo.createdAt['seconds'] == 'undefined' ? chatInfo.createdAt : chatInfo.createdAt['seconds'] * 1000)) 
+            const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length ? 
+              GetPublishedDate(new Date(!chatInfo.lastMessage.createdAt['seconds'] ? 
+                chatInfo.lastMessage.createdAt : chatInfo.lastMessage.createdAt['seconds'] * 1000))
+              : 
+              GetPublishedDate(new Date(!chatInfo.createdAt['seconds'] ? 
+                chatInfo.createdAt : chatInfo.createdAt['seconds'] * 1000)) 
 
             return(
               <TouchableOpacity
-              key={key}
-              style={styles.containerChatRoomItem}
-              onPress={async () => {
-                await dispatch(getMessagesFromGroupConversation(key))
-                navigation.navigate('ChatRoom', {
-                  isPrivateChat: false,
-                  chatInfo,
-                  title: (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        backgroundColor: 'rgba(0, 0, 0, 0)',
-                      }}>
-                      <Avatar.Image size={45} source={{ uri: photoURL }} />
-                      <View
-                        style={{
-                          flexDirection: 'column',
-                          justifyContent: 'center',
-                          marginBottom: 5,
-                          backgroundColor: 'rgba(0, 0, 0, 0)',
-                        }}>
-                        <Text style={styles.titleStyle}>
-                          {groupChatName}
-                        </Text>
-                      </View>
+                key={key}
+                style={styles.containerChatRoomItem}
+                onPress={redirectToGroupChatRoom({key, groupChatName, photoURL, chatInfo})}
+              >
+                <Avatar.Image 
+                  size={60} 
+                  source={{ uri: photoURL }} 
+                />
+                <View style={{ marginStart: 10, ...styles.viewStyle }}>
+                    <Text style={styles.nameStyle}>
+                      {groupChatName}
+                    </Text>
+                    <View style={styles.viewStyle}>
+                      <Text style={styles.lastMessageStyle}>
+                        {lastMessage}
+                      </Text>
+                      <Text style={styles.publishedDateStyle}>
+                        - {createdOrPublishedAt}
+                      </Text>
                     </View>
-                  ),
-                })
-              }}>
-              <Avatar.Image size={60} source={{ uri: photoURL }} />
-              <View style={{ marginStart: 10, ...styles.viewStyle }}>
-                  <Text style={styles.nameStyle}>{groupChatName}</Text>
-                  <View style={styles.viewStyle}>
-                    <Text style={styles.lastMessageStyle}>
-                      {lastMessage}
-                    </Text>
-                    <Text style={styles.publishedDateStyle}>
-                      - {createdOrPublishedAt}
-                    </Text>
                   </View>
-                </View>
               </TouchableOpacity>) 
           })} 
         </View>
@@ -193,7 +225,7 @@ function GroupChatList({ navigation }) {
 
 const Tab = createMaterialTopTabNavigator()
 
-export default function ChatListStack({ navigation }) {
+export default function ChatListStack(props: any) {
   return (
     <>
       <Tab.Navigator

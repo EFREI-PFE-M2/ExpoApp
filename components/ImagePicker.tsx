@@ -6,7 +6,7 @@ import { View } from './Themed';
 import { sendGroupChatMessage, sendPrivateChatMessage } from '../store/chatSlice';
 import { useDispatch } from 'react-redux';
 
-export default function ImagePickerBtn(props) {
+export default function ImagePickerBtn({props}: any) {
     const dispatch = useDispatch()
     const pickImage = async () => {
         if (Platform.OS !== 'web') {
@@ -24,7 +24,7 @@ export default function ImagePickerBtn(props) {
         });
     
         if (!result.cancelled) {
-            const { username, photoURL, uid, chatID, isPrivateChat, chatHistory, setChatHistory } = props.params
+            const { username, photoURL, uid, chatID, isPrivateChat, chatHistory, setChatHistory } = props
 
             const datetime = new Date()
             const message = {

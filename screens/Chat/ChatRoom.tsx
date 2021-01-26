@@ -3,7 +3,7 @@ import { Animated, StyleSheet, ScrollView, TextInput, Image, RefreshControl } fr
 import { Text, View } from '../../components/Themed'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../../store/userSlice'
-import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 import { GetPublishedDate } from '../../utils/ChatFunctions'
 import { Avatar } from 'react-native-paper'
 import ImagePicker from '../../components/ImagePicker'
@@ -17,22 +17,18 @@ import {
   sendPrivateChatMessage,
 } from '../../store/chatSlice'
 
-function showExtraInfo(check, sameItem) {
-  if (!(check && sameItem)) {
-    return 'none'
-  } else {
-    return undefined
-  }
+function showExtraInfo(check: any, sameItem: any) {
+  return !(check && sameItem) ? 'none' : undefined
 }
 
-export default function ChatRoom({ route }) {
+export default function ChatRoom(props: any) {
   const [showState, setShowState] = useState(false)
   const [currentItem, setCurrentItem] = useState(0)
 
   const displayUser = useSelector(selectCurrentUser)
   const { username, photoURL, uid } = displayUser
 
-  const { chatInfo, isPrivateChat } = route.params
+  const { chatInfo, isPrivateChat } = props.route.params
  
   const messages = isPrivateChat ? useSelector(selectPrivateChats)[chatInfo.chatID]?.messages
   : useSelector(selectGroupChats)[chatInfo.chatID]?.messages
@@ -42,6 +38,7 @@ export default function ChatRoom({ route }) {
   const dispatch = useDispatch()
   
   const [content, setContent] = useState('')
+  const changeText = (text: string) => setContent(text)
 
   const sendMessage = () => {
     const datetime = new Date()
@@ -63,21 +60,30 @@ export default function ChatRoom({ route }) {
     }
   }
 
+  function isCloseToBottom({ layoutMeasurement, contentOffset, contentSize }: any) {
+    return layoutMeasurement.height + contentOffset.y >= contentSize.height - 20
+  }
+
+  function isCloseToTop({ layoutMeasurement, contentOffset, contentSize }: any) {
+    return contentOffset.y == 0
+  }
+
+  const onScroll = ({ nativeEvent }: any) => {
+    if (isCloseToTop(nativeEvent)) {
+      fadeIn()
+    } else {
+      fadeOut()
+    }
+  }
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
   useEffect(() => {
     if (refreshing) {
       setChatHistory(messages)
     }     
   })
 
-  function isCloseToBottom({ layoutMeasurement, contentOffset, contentSize }) {
-    return layoutMeasurement.height + contentOffset.y >= contentSize.height - 20
-  }
-
-  function isCloseToTop({ layoutMeasurement, contentOffset, contentSize }) {
-    return contentOffset.y == 0
-  }
-
-  const [refreshing, setRefreshing] = React.useState(false);
   const reachFirstMessageState = isPrivateChat ? useSelector(selectPrivateChats)[chatInfo.chatID]?.reachFirstMessageState
   : useSelector(selectGroupChats)[chatInfo.chatID]?.reachFirstMessageState
 
@@ -122,24 +128,28 @@ export default function ChatRoom({ route }) {
       wait(2000).then(() => setRefreshing(false));  
   }, []);
 
-  const scrollViewRef = React.createRef<ScrollView>()
-  let scrollToTopMessage = reachFirstMessageState ? 'You already reached the top of the messages' : 'Click or scroll up to display older messages'
+  const clickToRefresh = () => { return reachFirstMessageState ? null : onRefresh() }
 
+  const scrollViewRef = React.createRef<ScrollView>()
+  let scrollToTopMessage = reachFirstMessageState ? 
+    'You already reached the top of the messages' : 'Click or scroll up to display older messages'
+
+  const showDate = (i: any) => () => {
+    setShowState(!showState)
+    setCurrentItem(i)
+  }
+
+  const contentSizeChange = () => scrollViewRef.current?.scrollToEnd({ animated: true })
+
+  const pressOnMicro = () => alert('Include voice message')
+  
   return (
     <View style={styles.container}>
       <ScrollView
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}
-        onScroll={({ nativeEvent }) => {
-          if (isCloseToTop(nativeEvent)) {
-            fadeIn()
-          } else {
-            fadeOut()
-          }
-        }}
+        onScroll={onScroll}
         ref={scrollViewRef}
-        onContentSizeChange={() =>
-          scrollViewRef.current?.scrollToEnd({ animated: true })
-        }>
+        onContentSizeChange={contentSizeChange}>
 
         <Animated.View
           style={[
@@ -149,17 +159,17 @@ export default function ChatRoom({ route }) {
             }
           ]}
         >
-          <TouchableOpacity onPress={() => {reachFirstMessageState ? null : onRefresh()}}>
-            <Text style={{fontSize: 12}}>{scrollToTopMessage}</Text>
+          <TouchableOpacity onPress={clickToRefresh}>
+            <Text style={styles.scrollToTopMessageStyle}>{scrollToTopMessage}</Text>
           </TouchableOpacity>
         </Animated.View> 
         
         {chatHistory.map((m: any, i: number) => {
-          const dt = typeof m.createdAt['seconds'] == 'undefined' ? m.createdAt : new Date(m.createdAt['seconds'] * 1000)
+          const dt = !m.createdAt['seconds'] ? m.createdAt : new Date(m.createdAt['seconds'] * 1000)
           
           if (m.uid == uid) {
             return (
-              <View style={{ backgroundColor: 'rgba(0,0,0,0)', padding: 10 }}>
+              <View style={styles.viewStyle}>
                 <Text
                   style={{
                     display: showExtraInfo(showState, i == currentItem),
@@ -168,33 +178,32 @@ export default function ChatRoom({ route }) {
                   {GetPublishedDate(dt)}
                 </Text>
                 <Text
-                  style={{
-                    paddingRight: 60,
-                    paddingTop: 15,
-                    alignSelf: 'flex-end',
-                  }}>
+                  style={styles.senderDisplayNameStyle}>
                   {m.displayName}
                 </Text>
                 <View
-                  style={{
-                    backgroundColor: 'rgba(0,0,0,0)',
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                  }}>
+                  style={styles.subViewLeftStyle}>
                   <TouchableOpacity
                     style={styles.containerMessageRight}
-                    onPress={() => {
-                      setShowState(!showState)
-                      setCurrentItem(i)
-                    }}>
-                    { m.type == 'text' ? <Text style={{ color: '#fff' }}>{m.text}</Text> :
-                      (m.type == 'image' ? <Image source={{ uri: m.image.uri }} style={{ width: 200, height: 200 }}/> : 
-                      <Text>audio part</Text>
-                      )} 
+                    onPress={showDate(i)}>
+                    { m.type == 'text' ? 
+                      <Text style={{ color: '#fff' }}>
+                        {m.text}
+                      </Text> 
+                      :
+                      (m.type == 'image' ? 
+                        <Image 
+                          source={{ uri: m.image.uri }} 
+                          style={styles.imageStyle}
+                        /> 
+                        : 
+                        <Text>audio part</Text>
+                      )
+                    } 
                   </TouchableOpacity>
                   <Avatar.Image
                     size={48}
-                    style={{ marginStart: 10 }}
+                    style={styles.profilePhotoStyle}
                     source={{ uri: m.photoURL }}
                   />
                 </View>
@@ -202,7 +211,7 @@ export default function ChatRoom({ route }) {
             )
           } else {
             return (
-              <View style={{ backgroundColor: 'rgba(0,0,0,0)', padding: 10 }}>
+              <View style={styles.viewStyle}>
                 <Text
                   style={{
                     display: showExtraInfo(showState, i == currentItem),
@@ -210,30 +219,34 @@ export default function ChatRoom({ route }) {
                   }}>
                   {GetPublishedDate(dt)}
                 </Text>
-                <Text style={{ paddingLeft: 60, paddingTop: 15 }}>
+                <Text style={styles.receiverDisplayNameStyle}>
                   {m.displayName}
                 </Text>
                 <View
-                  style={{
-                    backgroundColor: 'rgba(0,0,0,0)',
-                    flexDirection: 'row',
-                  }}>
+                  style={styles.subViewRightStyle}>
                   <Avatar.Image
                     size={48}
-                    style={{ marginEnd: 10 }}
+                    style={styles.profilePhotoStyle}
                     source={{ uri: m.photoURL }}
                   />
                   <TouchableOpacity
                     key={i}
                     style={styles.containerMessageLeft}
-                    onPress={() => {
-                      setShowState(!showState)
-                      setCurrentItem(i)
-                    }}>
-                    { m.type == 'text' ? <Text>{m.text}</Text> :
-                      (m.type == 'image' ? <Image source={{ uri: m.image.uri }} style={{ width: 200, height: 200 }}/> : 
-                      <Text>audio part</Text>
-                      )}                    
+                    onPress={showDate(i)}>
+                    { m.type == 'text' ? 
+                      <Text>
+                        {m.text}
+                      </Text> 
+                      :
+                      (m.type == 'image' ? 
+                        <Image 
+                          source={{ uri: m.image.uri }} 
+                          style={styles.imageStyle}
+                        /> 
+                        : 
+                        <Text>audio part</Text>
+                      )
+                    }                    
                   </TouchableOpacity>
                 </View>
               </View>
@@ -244,11 +257,13 @@ export default function ChatRoom({ route }) {
 
       <View style={styles.containerChatFooter}>
         <View style={styles.chatFooterLeftPart}>
-        <ImagePicker params={{isPrivateChat, uid, username, photoURL, chatID: chatInfo.chatID, chatHistory, setChatHistory}} />
+          <ImagePicker props={{isPrivateChat, uid, username, photoURL, 
+            chatID: chatInfo.chatID, chatHistory, setChatHistory
+          }}/>
           <MaterialCommunityIcons
             name="microphone"
             size={30}
-            onPress={() => alert('Include voice message')}
+            onPress={pressOnMicro}
           />
         </View>
 
@@ -256,7 +271,7 @@ export default function ChatRoom({ route }) {
           <TextInput
             style={styles.chatTextInput}
             value={content}
-            onChangeText={(text) => setContent(text)}
+            onChangeText={changeText}
             placeholder="Envoyer un message..."
             multiline
             numberOfLines={2}
@@ -272,6 +287,38 @@ export default function ChatRoom({ route }) {
 }
 
 const styles = StyleSheet.create({
+  subViewLeftStyle: {
+    backgroundColor: 'rgba(0,0,0,0)',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  subViewRightStyle: {
+    backgroundColor: 'rgba(0,0,0,0)',
+    flexDirection: 'row',
+  },
+  scrollToTopMessageStyle: {
+    fontSize: 12
+  },
+  viewStyle: { 
+    backgroundColor: 'rgba(0,0,0,0)', 
+    padding: 10 
+  },
+  senderDisplayNameStyle: {
+    paddingRight: 60,
+    paddingTop: 15,
+    alignSelf: 'flex-end',
+  },
+  receiverDisplayNameStyle: {
+    paddingLeft: 60,
+    paddingTop: 15,
+  },
+  profilePhotoStyle: {
+    marginStart: 10
+  },
+  imageStyle: {
+    width: 200, 
+    height: 200 
+  },
   iconRight: {
     backgroundColor: '#194A4C',
     paddingTop: 5,

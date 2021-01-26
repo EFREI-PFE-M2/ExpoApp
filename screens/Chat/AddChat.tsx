@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { searchUsers, selectUsers, selectUsersToSearch } from '../../store/chatSlice'
 import { ScrollView } from 'react-native-gesture-handler'
 
-export default function AddChat({route}) {
+export default function AddChat(props: any) {
   const [searchQuery, setSearchQuery] = useState('')
   const dispatch = useDispatch()
 
@@ -14,9 +14,9 @@ export default function AddChat({route}) {
 
   const [usersToAdd, setUsersToAdd] = useState({})
 
-  const { showState, setShowState } = route.params
+  const { alreadyInvitedUsers, isCreated, setShowState } = props.route.params
 
-  const toggleButton = async (buttonId: string, user: any) => {
+  const toggleButton = (buttonId: string, user: any) => () => {
     let aUsers = Object.assign({}, usersToAdd)
       // click on the same user twice
     if (Object.keys(aUsers).includes(buttonId)) {
@@ -30,58 +30,71 @@ export default function AddChat({route}) {
       } 
     }
 
-    if (Object.keys(aUsers).length == 0) {
-      setShowState(false)
-    } else {
-      setShowState(true)
+    if (!isCreated) {
+      if (Object.keys(aUsers).length == 0) {
+        setShowState(false)
+      } else {
+        setShowState(true)
+      }
     }
-
+    
     setUsersToAdd(aUsers) 
     dispatch(selectUsers(aUsers))    
+  }
+
+  const onChangeText = (query: any) => { 
+    setSearchQuery(query);
+    if (isCreated)
+      dispatch(searchUsers(query, alreadyInvitedUsers))
+    else 
+      dispatch(searchUsers(query))
+  }
+
+  const checkStatus = (isToggled: boolean) => { 
+    return isToggled ? 'checked' : 'unchecked' 
   }
 
   return (<View>
       <View style={styles.searchBar}>
         <Searchbar inputStyle={{color: "#000"}}
-        placeholder="Recherche" iconColor="#000" onChangeText={async (query) => { 
-          setSearchQuery(query);
-          await dispatch(searchUsers(query))
-        }}
+        placeholder="Recherche" iconColor="#000" onChangeText={onChangeText}
         value={searchQuery}
         />
       </View>
       { sUsers.length == 0 ?
-      <>
-        <Text style={{marginStart: 10, marginTop: 10, fontSize: 16}}>{noResults}</Text>
-      </>
-      :
-      <>
-      <ScrollView>
-        { sUsers.map((u: any) => { 
-          const btnId = u.uid
-          const isToggled = Object.keys(usersToAdd).includes(btnId) 
+        <>
+          <Text style={styles.noResults}>{noResults}</Text>
+        </>
+        :
+        <>
+        <ScrollView>
+          { sUsers.map((u: any) => { 
+            const btnId = u.uid
+            const isToggled = Object.keys(usersToAdd).includes(btnId) 
 
-          return(<TouchableOpacity
-            key={btnId}
-            style={styles.containerProfile}
-            onPress={() => toggleButton(btnId, u)} 
-            >
-            <Avatar.Image size={60} source={{ uri: u.photoURL }} />
-            <View style={styles.containerView}>
-              <Text style={{marginTop: 8}}>{u.username}</Text>
-              <View >
-                <RadioButton
-                  value={btnId}
-                  color="#000"
-                  uncheckedColor="grey"
-                  status={ isToggled ? 'checked' : 'unchecked' }
-                  onPress={() => toggleButton(btnId, u)}
-                />
-              </View>  
-            </View>
-          </TouchableOpacity>)})}
-      </ScrollView>
-      </>
+            return (<TouchableOpacity
+              key={btnId}
+              style={styles.containerProfile}
+              onPress={toggleButton(btnId, u)} 
+              >
+              <Avatar.Image size={60} source={{ uri: u.photoURL }} />
+              <View style={styles.containerView}>
+                <Text style={styles.usernameStyle}>{u.username}</Text>
+                <View >
+                  <RadioButton
+                    value={btnId}
+                    color="#000"
+                    uncheckedColor="grey"
+                    status={checkStatus(isToggled)}
+                    onPress={toggleButton(btnId, u)}
+                  />
+                </View>  
+              </View>
+            </TouchableOpacity>)
+            })
+          }
+        </ScrollView>
+        </>
       }
     </View>
     );
@@ -133,5 +146,13 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#E5E5E5',
         justifyContent: 'flex-end',
+    },
+    usernameStyle: {
+      marginTop: 8
+    },
+    noResults: {
+      marginStart: 10, 
+      marginTop: 10, 
+      fontSize: 16
     }
 })
