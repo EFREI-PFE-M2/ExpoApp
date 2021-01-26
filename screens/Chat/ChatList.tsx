@@ -34,9 +34,9 @@ function PrivateChatList(props: any) {
   const dispatch = useDispatch()
   const { navigation } = props
 
-  const redirectToPrivateChatRoom = (props: any) => () => 
+  const redirectToPrivateChatRoom = ({props}: any) => () => 
   {
-    dispatch(getMessagesFromPrivateConversation(props.key))
+    dispatch(getMessagesFromPrivateConversation(props.chatID))
     navigation.navigate('ChatRoom', {
       isPrivateChat: true,
       chatInfo: props.chatInfo,
@@ -93,9 +93,9 @@ function PrivateChatList(props: any) {
 
           return(
             <TouchableOpacity
-              key={key}
+              key={chatInfo.chatID}
               style={styles.containerChatRoomItem}
-              onPress={redirectToPrivateChatRoom({key, displayName, photoURL, chatInfo})}
+              onPress={redirectToPrivateChatRoom({props: {chatId: chatInfo.chatID, displayName, photoURL, chatInfo}})}
             >
               <Avatar.Image 
                 size={60} 
@@ -135,8 +135,8 @@ function GroupChatList(props: any) {
   const dispatch = useDispatch()
   const { navigation } = props
 
-  const redirectToGroupChatRoom = (props: any) => () => {
-    dispatch(getMessagesFromGroupConversation(props.key))
+  const redirectToGroupChatRoom = ({props}: any) => () => {
+    dispatch(getMessagesFromGroupConversation(props.chatID))
     navigation.navigate('ChatRoom', {
       isPrivateChat: false,
       chatInfo: props.chatInfo,
@@ -193,9 +193,9 @@ function GroupChatList(props: any) {
 
             return(
               <TouchableOpacity
-                key={key}
+                key={chatInfo.chatID}
                 style={styles.containerChatRoomItem}
-                onPress={redirectToGroupChatRoom({key, groupChatName, photoURL, chatInfo})}
+                onPress={redirectToGroupChatRoom({props: {chatID: chatInfo.chatID, groupChatName, photoURL, chatInfo}})}
               >
                 <Avatar.Image 
                   size={60} 

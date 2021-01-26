@@ -27,7 +27,8 @@ export default function GroupChatDetails(props: any) {
     const dispatch = useDispatch()
     dispatch(changeGroupChatInfo(groupChatInfo))
 
-    return(<View style={styles.container}>
+    return(
+      <View style={styles.container}>
         <Text style={styles.titleStyle}>Photo de groupe</Text>
         <Avatar.Image size={140} style={styles.photoStyle}
           source={{uri: groupChatPhotoURL}}
@@ -66,7 +67,8 @@ export default function GroupChatDetails(props: any) {
                 </TouchableOpacity>
             )})}
           </ScrollView>
-    </View>)
+      </View>
+    )
 }
 
 const styles = StyleSheet.create({

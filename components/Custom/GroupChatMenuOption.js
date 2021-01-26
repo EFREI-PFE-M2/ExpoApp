@@ -17,8 +17,8 @@ export default function GroupChatMenuOptions(props) {
   const openMenu = () => setVisible(true)
   const closeMenu = () => setVisible(false)
 
-  const redirectToGroupChatDetails = () => {
-    dispatch(getGroupChatMembersDetails(chatInfo.chatID))
+  const redirectToGroupChatDetails = async () => {
+    await dispatch(getGroupChatMembersDetails(chatInfo.chatID))
     setVisible(false)
     navigation.navigate('GroupChatDetails', {
       chatInfo,
