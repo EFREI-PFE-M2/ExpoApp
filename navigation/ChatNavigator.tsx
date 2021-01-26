@@ -111,8 +111,33 @@ export default function ChatStack(props: any) {
 
   // HeaderLeft/Right Buttons
 
-  /*const AddChatHeaderLeftBtn = ({props}: any) => {
-    return props.isCreated ? 
+  const ChatListHeaderLeft = () => 
+    <IconButton 
+      icon="chevron-left"
+      color="#fff"
+      size={30}
+      onPress={goBackToHome}
+    />
+
+  const ChatListHeaderRight = () => 
+    <IconButton
+      icon="message-plus"
+      color="#fff"
+      size={22}
+      onPress={searchUsersToCreateChat}
+    />
+
+  const ChatRoomHeaderRight = ({props}: any) => () =>
+      <View style={styles.iconRight}>
+        {props.isPrivateChat ? 
+          <PrivateChatMenuOptions params={{chatInfo: props.chatInfo}}/> 
+          :
+          <GroupChatMenuOptions params={{chatInfo: props.chatInfo}}/>
+        }
+      </View>
+
+  const AddChatHeaderLeft = ({props}: any) => () => 
+    props.isCreated ? 
       <IconButton 
         icon="chevron-left"
         onPress={goBackToGroupChatDetails}
@@ -126,11 +151,10 @@ export default function ChatStack(props: any) {
         size={30}
         color="#fff"
       />  
-  }
+  
 
-  const AddChatHeaderRightBtn = ({props}: any) => 
-  {
-    return props.isCreated ? 
+  const AddChatHeaderRight = ({props}: any) => () =>
+    props.isCreated ? 
       <IconButton 
           icon='check' 
           style={{marginRight: 7}} 
@@ -149,51 +173,46 @@ export default function ChatStack(props: any) {
           size={24} 
           onPress={createChat}
       />
-  }
 
-  const GroupChatDetailsHeaderLeftBtn = ({props}: any) =>
-  {
-    return props.isCreated ?
+  const GroupChatDetailsHeaderLeft = ({props}: any) => () =>
+    props.isCreated ?
       <IconButton 
-        icon="chevron-left"
-        onPress={goToChatRoom}
-        size={30}
-        color="#fff"
-      /> :
+      icon="chevron-left"
+      onPress={goToChatRoom}
+      size={30}
+      color="#fff"
+    /> :
+    <IconButton 
+      icon="chevron-left"
+      onPress={goBackToChatList}
+      size={30}
+      color="#fff"
+    />         
+    
+  const GroupChatDetailsHeaderRight = ({props}: any) => () =>
+  props.isCreated ?
+    props.chatInfo.hostID === uid ?
       <IconButton 
-        icon="chevron-left"
-        onPress={goBackToChatList}
-        size={30}
-        color="#fff"
-      />
-  } 
-
-  const GroupChatDetailsHeaderRightBtn = ({props}: any) =>
-  {
-    return props.isCreated ?
-      props.chatInfo.hostID === uid ?
-      (<IconButton 
-      icon='account-plus' 
-      style={{marginRight: 7}} 
-      size={24} 
-      onPress={searchForUsersToAddToGroupChat(props.chatInfo)}
-      />)
+        icon='account-plus' 
+        style={{marginRight: 7}} 
+        size={24} 
+        onPress={searchForUsersToAddToGroupChat(props.chatInfo)}
+      />  
       :
-      (<IconButton 
+      <IconButton 
         icon='check' 
         style={{marginRight: 7}} 
         size={24} 
         onPress={goToChatRoom}
-      />     )
+      />     
       :
-      (<IconButton 
+      <IconButton 
         icon='check' 
         style={{marginRight: 7}} 
         size={24} 
         onPress={createGroupChat}
-      /> )  
-  }  */
-
+      /> 
+    
  
   return (
     <Stack.Navigator screenOptions={defaultScreenOptions}>
@@ -201,20 +220,8 @@ export default function ChatStack(props: any) {
         component={ChatList} 
         options={{ 
           headerTitle: 'Messages',
-          headerLeft: () => 
-          <IconButton 
-            icon="chevron-left"
-            color="#fff"
-            size={30}
-            onPress={goBackToHome}
-          />,
-          headerRight: () => 
-          <IconButton
-            icon="message-plus"
-            color="#fff"
-            size={22}
-            onPress={searchUsersToCreateChat}
-          />,
+          headerLeft: ChatListHeaderLeft,
+          headerRight: ChatListHeaderRight,
         headerRightContainerStyle: {
           marginRight: 5,
         }}}
@@ -225,53 +232,15 @@ export default function ChatStack(props: any) {
         options={({ route }) => ({
           title: route.params?.title,
           headerTitleAlign: 'left',
-          headerRight: () => 
-          <View style={styles.iconRight}>
-            {route.params?.isPrivateChat ? 
-              <PrivateChatMenuOptions params={{chatInfo: route.params?.chatInfo}}/> 
-              :
-              <GroupChatMenuOptions params={{chatInfo: route.params?.chatInfo}}/>
-            }
-          </View>
+          headerRight: ChatRoomHeaderRight({props: route.params})
         })}/>
 
       <Stack.Screen name="AddChat"
         component={AddChat}
         options={({route}) => ({ 
           headerTitle: route.params?.title,
-          headerLeft: () => route.params?.isCreated ? 
-          <IconButton 
-            icon="chevron-left"
-            onPress={goBackToGroupChatDetails}
-            size={30}
-            color="#fff"
-          />  
-          : 
-          <IconButton 
-            icon="chevron-left"
-            onPress={goBackToChatList}
-            size={30}
-            color="#fff"
-          />,
-          headerRight: () => route.params?.isCreated ? 
-          <IconButton 
-              icon='check' 
-              style={styles.marginRight} 
-              size={24} 
-              onPress={addMembersToGroupChat}
-          /> 
-          :
-          !showState ?
-            <>
-              {null}
-            </>
-            :
-            <IconButton 
-              icon='account-plus' 
-              style={styles.marginRight} 
-              size={24} 
-              onPress={createChat}
-          />
+          headerLeft: AddChatHeaderLeft({props: route.params}),
+          headerRight: AddChatHeaderRight({props: route.params})
       })}/>
 
       <Stack.Screen name="GroupChatDetails"
@@ -279,41 +248,8 @@ export default function ChatStack(props: any) {
         options={({route}) => ({ 
           headerTitleStyle: {fontSize: 20},
           headerTitle: route.params?.title,
-          headerLeft: () => route.params?.isCreated ?
-          <IconButton 
-            icon="chevron-left"
-            onPress={goToChatRoom}
-            size={30}
-            color="#fff"
-          /> :
-          <IconButton 
-            icon="chevron-left"
-            onPress={goBackToChatList}
-            size={30}
-            color="#fff"
-          />,
-          headerRight: () => route.params?.isCreated ?
-          route.params?.chatInfo.hostID === uid ?
-            <IconButton 
-            icon='account-plus' 
-            style={styles.marginRight} 
-            size={24} 
-            onPress={searchForUsersToAddToGroupChat(route.params?.chatInfo)}
-            />
-            :
-            <IconButton 
-              icon='check' 
-              style={styles.marginRight} 
-              size={24} 
-              onPress={goToChatRoom}
-            />     
-            :
-            <IconButton 
-              icon='check' 
-              style={styles.marginRight} 
-              size={24} 
-              onPress={createGroupChat}
-            />
+          headerLeft: GroupChatDetailsHeaderLeft({props: route.params}),
+          headerRight: GroupChatDetailsHeaderRight({props: route.params})
       })}/>
     </Stack.Navigator> 
   )
