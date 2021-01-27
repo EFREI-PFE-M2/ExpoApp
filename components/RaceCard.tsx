@@ -3,17 +3,17 @@ import { useNavigation } from '@react-navigation/native'
 import React from 'react'
 import { StyleSheet } from 'react-native'
 import { IconButton, TouchableRipple } from 'react-native-paper'
-import { useSelector } from 'react-redux'
 import { Text, View } from './Themed'
+import { useDispatch, useSelector } from 'react-redux'
+
+import {  setSpecificRace } from '../store/raceSlice'
 
 export default function RaceCard(props) {
-  const { raceID } = props
-  const race = useSelector((state) =>
-    state.race.races.find((element) => element.id === raceID)
-  )
-  const navigation = useNavigation()
-  const onPress = () => navigation.navigate('Home_Race', { raceID })
+  const { race } = props
 
+  const navigation = useNavigation()
+  const dispatch = useDispatch()
+  
   const {
     allocation,
     category,
@@ -22,19 +22,30 @@ export default function RaceCard(props) {
     raceCode,
     nbContenders,
     raceTitle,
+    horses,
+    locationCode,
+    hour,
   } = race
 
-  const raceCodeParts = raceCode.split(' ')
-  const description = `${category} - ${distance}m - ${nbContenders} partants`
+  const onPress = () => {
+    dispatch(setSpecificRace(race))
+    navigation.navigate('Home_Race', { raceID: race.id })
+  }
+
+  const description = `${category} - ${distance}m - ${
+    horses?.length || 0
+  } partants`
+
+  const hourFormat = hour.split(':')
 
   return (
     <TouchableRipple style={styles.container} onPress={onPress}>
       <>
-        <Text style={styles.time}>11h50</Text>
+        <Text style={styles.time}>{`${hourFormat[0]}h${hourFormat[1]}`}</Text>
 
         <View style={styles.codeContainer}>
-          <Text style={styles.raceCode}>{raceCodeParts[0]}</Text>
-          <Text style={styles.raceCode}>{raceCodeParts[1]}</Text>
+          <Text style={styles.raceCode}>{raceCode}</Text>
+          <Text style={styles.raceCode}>{locationCode}</Text>
         </View>
 
         <View style={styles.infoContainer}>
@@ -48,10 +59,10 @@ export default function RaceCard(props) {
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text>123</Text>
           <MaterialIcons name="message" size={12} color="#757575" />
-        </View>
+        </View> */}
 
         <IconButton
           icon="chevron-right"

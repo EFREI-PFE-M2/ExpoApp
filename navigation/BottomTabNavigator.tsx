@@ -23,6 +23,7 @@ import { StatusBar } from 'react-native'
 import { IconButton, TouchableRipple } from 'react-native-paper'
 import Race from '../screens/Race'
 import Group from '../screens/Group'
+import GroupParameters from '../screens/GroupParameters'
 
 const BottomTab = createBottomTabNavigator()
 
@@ -139,6 +140,11 @@ function TabHomeNavigator({ navigation }) {
         name="Home_Group"
         component={Group}
         options={{ headerTitle: 'Groupe' }}
+      />
+      <HomeStack.Screen
+        name="Home_Group_setting"
+        component={GroupParameters}
+        options={{ headerTitle: 'Paramètres' }}
       />
     </HomeStack.Navigator>
   )

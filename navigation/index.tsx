@@ -53,11 +53,11 @@ function RootNavigator() {
         </>
       )}
       <Stack.Screen name="TermsOfUse" component={TermsOfUse} />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="NotFound"
         component={NotFoundScreen}
         options={{ title: 'Oops!' }}
-      />
+      /> */}
     </Stack.Navigator>
   )
 }
