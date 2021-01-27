@@ -22,18 +22,18 @@ export type User = {
   email: string
   photoURL: string
   emailVerified: boolean | undefined
-  notificationSettings: Map<string, boolean>
-  description: string
   winPercentage: number
   lossPercentage: number
-  canceledPercentage: number
-  returnOnInvestment: number
   currentSeries: string[]
   showStats: boolean
   level: number
   experience: number
   nbFollowers: number
-  nbFollowing: number
+  nbFollowing: number,
+  nbPendingMessages: Number,
+  posts: [],
+  notifications: [],
+  cards: []
 }
 
 export type UserStore = {
@@ -42,3 +42,19 @@ export type UserStore = {
   }
   current: string
 }
+/*
+export type PrivateConversation = {
+  senderID: string
+  senderUsername: string
+  senderProfilePhoto: string
+  receiverID: string
+}
+
+export type MessageStore = {
+  messages: {
+    [key: string]: Message
+  }
+
+}*/
+
+

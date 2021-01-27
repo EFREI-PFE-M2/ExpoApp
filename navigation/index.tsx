@@ -12,13 +12,12 @@ import LinkingConfiguration from './LinkingConfiguration'
 
 import SignIn from './../screens/SignIn'
 import SignUp from './../screens/SignUp'
-import BottomTabNavigator from './BottomTabNavigator'
-import MessageNavigator from './MessageNavigator'
 import DrawerNavigator from '../screens/Drawer/DrawerNavigator'
 import RetrievePassword from '../screens/RetrievePassword'
 import ResetPassword from '../screens/ResetPassword'
 import TermsOfUse from '../screens/TermsOfUse'
-import useUser from './../hooks/useUser'
+import { useSelector } from 'react-redux'
+import { selectCurrent } from '../store/userSlice'
 
 export default function Navigation({
   colorScheme,
@@ -35,18 +34,15 @@ export default function Navigation({
 }
 
 const Stack = createStackNavigator()
-
 function RootNavigator() {
-  const user = useUser()
+  const user = useSelector(selectCurrent)
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
       initialRouteName="SignIn">
       {user ? (
         <>
-          <Stack.Screen name="Root" component={BottomTabNavigator} />
           <Stack.Screen name="Drawer" component={DrawerNavigator} />
-          <Stack.Screen name="ChatRoom" component={MessageNavigator}/>
         </>
       ) : (
         <>

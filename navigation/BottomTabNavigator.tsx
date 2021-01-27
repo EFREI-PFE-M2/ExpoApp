@@ -5,7 +5,10 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from '@expo/vector-icons'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import {
+  BottomTabBar,
+  createBottomTabNavigator,
+} from '@react-navigation/bottom-tabs'
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -14,13 +17,12 @@ import Colors from '../constants/Colors'
 import useColorScheme from '../hooks/useColorScheme'
 import CardGame from '../screens/CardGame'
 import Challenge from '../screens/Challenge'
-import ChatList from '../screens/ChatList'
-import ChatRoom from '../screens/ChatRoom'
 import Home from '../screens/HomeTabNavigator'
 import Search from '../screens/Search'
-import { BottomTabParamList } from '../types'
 import { StatusBar } from 'react-native'
-import { View } from 'react-native'
+import { IconButton, TouchableRipple } from 'react-native-paper'
+import Race from '../screens/Race'
+import Group from '../screens/Group'
 
 const BottomTab = createBottomTabNavigator()
 
@@ -30,7 +32,7 @@ const BottomTab = createBottomTabNavigator()
  * created with createBottomTabNavigator
  * @returns React Node
  */
-export default function BottomTabNavigator() {
+export default function BottomTabNavigator({ navigation }) {
   const colorScheme = useColorScheme()
 
   const iconWrapper = {
@@ -59,6 +61,7 @@ export default function BottomTabNavigator() {
           tabBarIcon: ({ color }) => (
             <Ionicons name="md-search" color={color} {...iconWrapper} />
           ),
+          tabBarLabel: 'Rechercher',
         }}
       />
       <BottomTab.Screen
@@ -83,19 +86,6 @@ export default function BottomTabNavigator() {
           ),
         }}
       />
-      <BottomTab.Screen
-        name="Messages"
-        component={TabMessageNavigator}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons
-              name="mail"
-              color={color}
-              {...iconWrapper}
-            />
-          ),
-        }}
-      />
     </BottomTab.Navigator>
   )
 }
@@ -110,6 +100,7 @@ const defaultScreenOptions: StackNavigationOptions = {
     fontSize: 24,
     fontWeight: 'bold',
   },
+  headerTintColor: '#fff',
   headerStatusBarHeight: StatusBar.currentHeight,
 }
 
@@ -117,25 +108,37 @@ const defaultScreenOptions: StackNavigationOptions = {
  * Home tab navigator
  */
 const HomeStack = createStackNavigator()
-function TabHomeNavigator() {
+function TabHomeNavigator({ navigation }) {
   return (
     <HomeStack.Navigator
       screenOptions={{
         ...defaultScreenOptions,
         headerRight: ({ tintColor }) => (
-          <View>
-            <MaterialCommunityIcons name="bell" color={tintColor} size={24} />
-          </View>
+          <IconButton icon="bell" size={24} color={tintColor} />
         ),
-        headerRightContainerStyle: {
-          marginRight: 15,
-        },
-        headerTintColor: '#fff',
+        headerLeft: ({ tintColor }) => (
+          <IconButton
+            onPress={() => navigation.openDrawer()}
+            icon="menu"
+            size={24}
+            color={tintColor}
+          />
+        ),
       }}>
       <HomeStack.Screen
         name="Home_Home"
         component={Home}
         options={{ headerTitle: 'Flux' }}
+      />
+      <HomeStack.Screen
+        name="Home_Race"
+        component={Race}
+        options={{ headerTitle: 'Course' }}
+      />
+      <HomeStack.Screen
+        name="Home_Group"
+        component={Group}
+        options={{ headerTitle: 'Groupe' }}
       />
     </HomeStack.Navigator>
   )
@@ -151,7 +154,7 @@ function TabSearchNavigator() {
       <SearchStack.Screen
         name="Search_Main"
         component={Search}
-        options={{ headerTitle: 'Search' }}
+        options={{ headerTitle: 'Rechercher' }}
       />
     </SearchStack.Navigator>
   )
@@ -186,22 +189,5 @@ function TabCardGameNavigator() {
         options={{ headerTitle: 'Cartes' }}
       />
     </CardGameStack.Navigator>
-  )
-}
-
-
-/**
- * ChatList stack navigator
- */
-const MessageStack = createStackNavigator()
-function TabMessageNavigator() {
-  return (
-    <MessageStack.Navigator screenOptions={defaultScreenOptions}>
-      <MessageStack.Screen
-        name="Messages"
-        component={ChatList}
-        options={{ headerTitle: 'Messages'}}
-      />  
-    </MessageStack.Navigator>
   )
 }
