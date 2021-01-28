@@ -1,15 +1,19 @@
 import React from 'react'
 import { Image, StyleSheet } from 'react-native'
+import { TouchableRipple } from 'react-native-paper'
 import { useSelector } from 'react-redux'
+import Navigation from '../navigation'
 import { View, Text } from './Themed'
 
-export default function UserCard({ user }) {
-  const { photoURL, displayName } = user
+export default function UserCard({ user, navigate }) {
+  const { photoURL, displayName } = useSelector(({ search }) => search.search.searchedUsers[user])
+
+  const onPress = () => navigate('Home_Profile', {})
   return (
-    <View style={styles.container}>
+    <TouchableRipple style={styles.container} onPress={}>
       <Image source={{ uri: photoURL || '' }} style={styles.image} />
       <Text style={styles.title}>{displayName}</Text>
-    </View>
+    </TouchableRipple>
   )
 }
 

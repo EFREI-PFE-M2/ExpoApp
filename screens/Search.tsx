@@ -48,11 +48,14 @@ function UserTab() {
   const [search, setSearch] = useState('')
   const results = useSelector(selectUserResults)
   const dispatch = useDispatch()
+  const { navigate } = useNavigation()
 
   const searchInputOnChange = (value) => setSearch(value)
 
   const RenderUsers = () =>
-    results?.map((user, key) => <UserCard user={user} key={key} />)
+    Object.keys(results)?.map((id, key) => (
+      <UserCard user={id} key={key} navigate={navigate} />
+    ))
 
   const submit = () => dispatch(searchUsers(search))
 
@@ -93,7 +96,7 @@ function GroupTab() {
   const submit = () => dispatch(searchGroups(search))
 
   const RenderGroups = () =>
-    results?.map((group, key) => (
+    Object.keys(results)?.map((group, key) => (
       <GroupCard key={key} group={group} navigate={navigate} />
     ))
 
