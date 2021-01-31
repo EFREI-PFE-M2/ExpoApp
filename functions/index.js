@@ -95,3 +95,42 @@ exports.onCreateMessage = functions
       createdAt: admin.firestore.Timestamp.fromDate(new Date()),
     })
   })
+
+  exports.onCreateWaitingRoom = functions
+  .region('europe-west1')
+  .firestore.document('WaitingRoom/{id}')
+  .onCreate(async (waitingRecord, context) => {
+    size = db.collection('WaitingRoom').get().then(snap => {return snap.size});
+    if (size < 2){
+      return null
+    }
+    const twoFirstDoc = await db
+    .collection('WaitingRoom')
+    .orderBy('Timestamp', Query.Direction.ASCENDING)
+    .limit(2)
+    .get()
+    .catch(console.error)
+
+    const batch = db.batch()
+    let card=[]
+  
+    twoFirstDoc.forEach(async function(doc){
+      user = doc.get('userId')
+      deck = await db.collection('CardsDeck').where('userId','==',user).get('cards')
+      card.push(deck[Math.floor(Math.random() * deck.length)])
+    });
+
+    const game = await db.collection('Games').add({
+      turnUser1CardId: card[0],
+      turnUser2CardId: card[1],
+      state: 'attempt',
+    })
+
+    twoFirstDoc.forEach(async function(doc){
+      user = doc.get('userId')
+      await db.collection('Users').doc(user).set({
+        newGameID: game.id
+      }, { merge: true })
+      batch.delete(doc.ref)
+    })
+  })
