@@ -12,13 +12,13 @@ import LinkingConfiguration from './LinkingConfiguration'
 
 import SignIn from './../screens/SignIn'
 import SignUp from './../screens/SignUp'
-import DrawerNavigator from '../screens/Drawer/DrawerNavigator'
 import RetrievePassword from '../screens/RetrievePassword'
 import ResetPassword from '../screens/ResetPassword'
 import TermsOfUse from '../screens/TermsOfUse'
 import { useSelector } from 'react-redux'
 import { selectCurrent } from '../store/userSlice'
 import Auth from '../webScreens/Auth'
+import Main from '../webScreens/Main'
 
 export default function WebNavigation({
   colorScheme,
@@ -43,7 +43,7 @@ function RootNavigator() {
       initialRouteName="Auth">
       {user ? (
         <>
-          <Stack.Screen name="Drawer" component={DrawerNavigator} />
+          <Stack.Screen name="Main" component={Main} />
         </>
       ) : (
         <>
