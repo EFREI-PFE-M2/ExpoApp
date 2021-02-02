@@ -100,37 +100,46 @@ exports.onCreateMessage = functions
   .region('europe-west1')
   .firestore.document('WaitingRoom/{id}')
   .onCreate(async (waitingRecord, context) => {
-    size = db.collection('WaitingRoom').get().then(snap => {return snap.size});
+    size = await db.collection('WaitingRoom').get().then(snap => {return snap.size});
     if (size < 2){
       return null
     }
     const twoFirstDoc = await db
     .collection('WaitingRoom')
-    .orderBy('Timestamp', Query.Direction.ASCENDING)
+    .orderBy('timestamp', "asc")
     .limit(2)
     .get()
-    .catch(console.error)
 
-    const batch = db.batch()
-    let card=[]
-  
-    twoFirstDoc.forEach(async function(doc){
-      user = doc.get('userId')
-      deck = await db.collection('CardsDeck').where('userId','==',user).get('cards')
-      card.push(deck[Math.floor(Math.random() * deck.length)])
-    });
+    var card=["empty","empty"]
+    
+    for (var i=0; i<twoFirstDoc.docs.length; i++){
+      user = twoFirstDoc.docs[i].get('userId')
+      decks = await db.collection('CardsDeck').where('userId','==',user).get()
+      if (!decks.empty){
+        for (var k=0; k<decks.docs.length;k++){
+          card[i]=decks.docs[k].data().cards[Math.floor(Math.random() * decks.docs[k].data().cards.length)]
+        }
+      }
+      await db.collection('WaitingRoom').doc(twoFirstDoc.docs[i].id).delete()
+    };
+
 
     const game = await db.collection('Games').add({
       turnUser1CardId: card[0],
       turnUser2CardId: card[1],
-      state: 'attempt',
+      state: 'initial',
     })
 
-    twoFirstDoc.forEach(async function(doc){
-      user = doc.get('userId')
-      await db.collection('Users').doc(user).set({
-        newGameID: game.id
-      }, { merge: true })
-      batch.delete(doc.ref)
+    await twoFirstDoc.forEach(async function(doc){
+      user = db.collection('Users').doc(doc.get('userId'))
+      if(user.get('newGameID') != null){
+        await user.update({
+          newGameID: game.id
+        })
+      } else {
+        await user.set({
+          newGameID: game.id
+        },{merge:true})
+      }
     })
   })
