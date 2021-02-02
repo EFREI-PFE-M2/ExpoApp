@@ -16,7 +16,7 @@ import {
 import { firebaseAuthLogin } from '../store/userSlice'
 import useKeyboardState from './../hooks/useKeyboardState'
 
-export default function SignIn({ navigation }) {
+export default function SignIn({ navigation, signUpCallback }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const passwordInputRef = React.createRef()
@@ -36,7 +36,11 @@ export default function SignIn({ navigation }) {
     navigation.navigate('RetrievePassword')
   const navigationSignUp = () => {
     dispatch(setFirebaseAuthError(''))
-    navigation.navigate('SignUp')
+    if (signUpCallback) {
+      signUpCallback()
+    } else {
+      navigation.navigate('SignUp')
+    }
   }
 
   return (
