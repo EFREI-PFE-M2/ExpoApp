@@ -26,7 +26,7 @@ exports.races = functions
       let dayID = date.getDay()
       let dayRaces = data.races
         .filter((race) => race.weekDayID === dayID)
-        .map((race) => ({ ...race, date: `${dateParameter} ${race.hour}` }))
+        .map((race) => ({ ...race, date: `${date.toISOString().split('T')[0]}T${race.hour}` }))
       return dayRaces
     } else {
       return false

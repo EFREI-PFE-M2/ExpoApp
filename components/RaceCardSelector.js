@@ -1,19 +1,13 @@
 import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import React from 'react'
-import { StyleSheet } from 'react-native'
-import { IconButton, TouchableRipple } from 'react-native-paper'
+import { StyleSheet, TouchableOpacity } from 'react-native'
+import { IconButton, TouchableRipple, RadioButton  } from 'react-native-paper'
 import { Text, View } from './Themed'
-import { useDispatch, useSelector } from 'react-redux'
 
-import {  setSpecificRace } from '../store/raceSlice'
+export default function RaceCardSelector(props) {
+  const { race, handleSelectRace, selectedRace } = props
 
-export default function RaceCard(props) {
-  const { race } = props
-
-  const navigation = useNavigation()
-  const dispatch = useDispatch()
-  
   const {
     allocation,
     category,
@@ -27,22 +21,18 @@ export default function RaceCard(props) {
     hour,
   } = race
 
-  
 
-  const onPress = () => {
-    dispatch(setSpecificRace(race))
-    navigation.navigate('Home_Race', { raceID: race.id })
-  }
-
-  const description = `${category} • ${distance}m • ${
+  const description = `${category} - ${distance}m - ${
     horses?.length || 0
   } partants`
 
   const hourFormat = hour.split(':')
 
   return (
-    <TouchableRipple style={styles.container} onPress={onPress}>
-      <>
+    <TouchableOpacity style={styles.container}
+    onPress={() => {selectedRace && race && selectedRace.id === race.id ?
+        handleSelectRace(null):
+        handleSelectRace(race)}}>
         <Text style={styles.time}>{`${hourFormat[0]}h${hourFormat[1]}`}</Text>
 
         <View style={styles.codeContainer}>
@@ -65,15 +55,10 @@ export default function RaceCard(props) {
           <Text>123</Text>
           <MaterialIcons name="message" size={12} color="#757575" />
         </View> */}
-
-        <IconButton
-          icon="chevron-right"
-          size={30}
-          color="#757575"
-          style={{ position: 'absolute', right: 0, top: 12 }}
+        <RadioButton
+            status={selectedRace && race && selectedRace.id === race.id ? 'checked':'unchecked'}
         />
-      </>
-    </TouchableRipple>
+    </TouchableOpacity>
   )
 }
 
@@ -84,7 +69,7 @@ const styles = StyleSheet.create({
     height: 80,
     width: '100%',
     paddingLeft: 5,
-    paddingRight: 40,
+    paddingRight: 5,
     alignItems: 'center',
     borderBottomColor: '#D6D6D6',
     borderBottomWidth: 1,
