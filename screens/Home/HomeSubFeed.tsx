@@ -37,6 +37,7 @@ export default function HomeSubFeed() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/*
       <View style={styles.loadingGif}>
       {loadingRecent && <Image source={require('../../assets/images/loading_horse_green.gif')}  style={{width: 72, height: 47}} />}
       </View>
@@ -106,6 +107,7 @@ export default function HomeSubFeed() {
             {loadingNext && <Image source={require('../../assets/images/loading_horse_green.gif')}  style={{width: 72, height: 47}} />}
           </View>
       </ScrollView>
+      */}
     </SafeAreaView>
   )
 }
