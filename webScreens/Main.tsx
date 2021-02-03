@@ -14,7 +14,7 @@ export default function Main() {
       <Header />
       <View style={{ flex: 1, width: '100%' }}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Accueil" component={Home} />
+          <Stack.Screen name="WebHome" component={Home} />
           <Stack.Screen name="Profile" component={Profile} />
         </Stack.Navigator>
       </View>

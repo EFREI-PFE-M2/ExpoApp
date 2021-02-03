@@ -2,22 +2,15 @@ import React from 'react'
 import { StyleSheet } from 'react-native'
 import { Button } from 'react-native-paper'
 import { View } from '../Themed'
+import MenuItems from './../../constants/WebPanelConstants'
 
-const MenuItems = {
-  Accueil: 'home',
-  Cartes: 'view-carousel',
-  Messages: 'email',
-  Réglages: 'settings',
-  "Centre d'assistance": 'help-circle',
-}
-
-export default function Menu({ current }) {
+export default function Menu({ current, changeCurrent }) {
   return (
     <View style={styles.container}>
       {Object.entries(MenuItems).map((el) => {
         const selected = current === el[0]
         const opacity = selected ? 1 : 0.6
-        const onPress = () => {}
+        const onPress = () => changeCurrent(el[0])
         return (
           <Button
             color="#194A4C"

@@ -5,11 +5,11 @@ import { View } from '../components/Themed'
 import Menu from '../components/Web/Menu'
 import ProfileCard from '../components/Web/ProfilCard'
 
-export default function LeftPanel({ current }) {
+export default function LeftPanel({ current, changeCurrent }) {
   return (
     <Surface style={styles.container}>
       <ProfileCard />
-      <Menu current={current} />
+      <Menu current={current} changeCurrent={changeCurrent} />
       <Divider />
     </Surface>
   )
