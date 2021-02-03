@@ -1,31 +1,34 @@
 import React, {useRef, useEffect} from 'react'
-import { View, Text, Image} from './Themed'
-import { StyleSheet, TouchableOpacity, FlatList } from 'react-native'
+import { View, Text} from './Themed'
+import { StyleSheet, TouchableOpacity, FlatList, Linking, Image } from 'react-native'
 import { Avatar, Divider, Button, Card } from 'react-native-paper'
-import Bet from './Post/Pronostic'
-import {
-  MaterialIcons,
-} from '@expo/vector-icons'
+import { MaterialIcons } from '@expo/vector-icons'; 
 import timeAgoFormat from '../utils/timeAgoFormatter'
+import ProfileAvatar from './ProfileAvatar';
 
+let currentDate = new Date()
 
 export default function Post(props) {
 
-  const { postID, username, photoURL, date, text, nbLikes, nbComments, type, 
-  image, content} = props
+  const { currentUserID, type, username, profilePicture, date, text, nbLikes, nbComments, image, 
+    nbCopiedBets, betRaceDate, betLocationCode, betRaceCode, betType, betTitle, betCategory, betRaceCategory, betDistance, betNbContenders, 
+    betLocation, bet, betRaceID, betActionUrl, betResults,
+    responses, expirationDate, userVote, authorID, won
+  } = props
 
-  console.log(image)
 
+  let strResponses = []
   let responseObjectList = [];
   let totalVotes = 0;
+
   if(type === "survey"){
-
-    Object.keys(content.responses).forEach((response)=>{
-      totalVotes += content.responses[response]
+    strResponses= Object.keys(responses)
+    Object.keys(responses).forEach((response)=>{
+      totalVotes += responses[response]
     })
-
-    responseObjectList = Object.keys(content.responses).map((response, i) => {
-      return {response: response, percentage: Math.round((content.responses[response]/totalVotes)*100)}
+    responseObjectList = Object.keys(responses).map((response, i) => {
+      return {response: response, percentage: totalVotes !== 0 ?
+        Math.round((responses[response]/totalVotes)*100) : 0}
     })
   }
 
@@ -33,7 +36,7 @@ export default function Post(props) {
   return (
     <View style={styles.container}>
         <View style={{flexDirection: 'row'}}>
-          <Avatar.Image source={{  uri: photoURL  }} size={48}/>
+          <ProfileAvatar url={profilePicture}/>
           <View style={{margin: 5}}>
             <TouchableOpacity onPress={null}>
               <Text style={{ fontWeight: 'bold' }}>{username}</Text>
@@ -52,26 +55,97 @@ export default function Post(props) {
         {
           type === "survey" && (
             <React.Fragment>
-              <FlatList
-                data={responseObjectList}
-                renderItem={({item}) => (
-                  <View style={{backgroundColor: "#E0E0E0", width: `${item.percentage}%`, 
-                  marginTop: 2, marginBottom: 2,padding: 4, flexDirection: 'row', borderRadius: 15}} >
-                      <View numberOfLines={1} style={{position: 'relative', flexDirection: 'row', backgroundColor: '#1fe0'}}>
-                        <Text style={{fontWeight: 'bold'}}>{`${item.percentage}%`} </Text>
-                        <Text>{item.response}</Text>
+              {
+                userVote || expirationDate < currentDate  || currentUserID === authorID ?
+                <FlatList
+                  data={responseObjectList}
+                  renderItem={({item, index}) => (
+                    <View style={{flex: 1, justifyContent: 'center'}}>
+                      <View style={[userVote === index ?{backgroundColor: "#759294"} : {backgroundColor: "#7D7D7D"},
+                        { width: `${item.percentage}%`, 
+                      height: 30, borderRadius: 15, marginBottom: 2}]} >
                       </View>
-                  </View>
-                )}
-              />
-              <Text style={{color: '#757575'}}>{totalVotes} votes · {content.expirationDate}</Text>
+                      <View style={{position: 'absolute', flexDirection: 'row', backgroundColor: 'transparent', marginLeft: 5}}>
+                            <Text style={{fontWeight: 'bold'}}>{`${item.percentage}%`} </Text>
+                            <Text>{item.response}</Text>
+                      </View>
+                    </View>
+                    
+                  )}
+                />
+                :
+                <FlatList
+                  data={strResponses}
+                  renderItem={({item}) => (
+                    <Button style={{margin: 4}} mode="outlined" color="#194A4C" uppercase={false} onPress={() => console.log('Pressed')}>{item}</Button>
+                  )}
+                />
+              }
+              <Text style={{color: '#757575', margin: 4}}>{totalVotes} votes · termine {timeAgoFormat(expirationDate)}</Text>
             </React.Fragment>
-
           )
         }
         {
           type === "bet" && (
-            <Bet betID={1} userID={1}/>
+            <View style={{backgroundColor: '#194A4C', borderRadius:10}}>
+              <View style={styles.betHeader}>
+                <View style={styles.codeContainer}>
+                  <Text style={styles.raceCode}>{betRaceCode}</Text>
+                  <Text style={styles.raceCode}>{betLocationCode}</Text>
+                </View>
+                <View style={styles.betDesc}>
+                  <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 12}}>{betTitle}</Text>
+                  <View style={{flexDirection: 'row', backgroundColor: 'transparent', alignItems: 'center', marginTop: 3}}>
+                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{betRaceCategory} • </Text>
+                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{betDistance}m • </Text>
+                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{betNbContenders} partants</Text>
+                  </View>
+                  <View style={{flexDirection: 'row', backgroundColor: 'transparent', alignItems: 'center', marginTop: 3}}>
+                    <MaterialIcons name="location-on" color="#C6D2D2" size={14} />
+                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{betLocation}</Text>
+                  </View>
+                  <View style={{flexDirection: 'row', backgroundColor: 'transparent', alignItems: 'center', marginTop: 3}}>
+                    <MaterialIcons name="access-time" color="#C6D2D2" size={14} style={{marginRight: 2}}/>
+                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{betRaceDate}</Text>
+                  </View>
+                </View>
+                {won !== null &&
+                <View style={{flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'center', backgroundColor: 'transparent'}}>
+                  <View style={[{backgroundColor: 'transparent', paddingVertical: 10,
+                  paddingHorizontal: 10, borderRadius:10, marginTop: 3}, 
+                  won ? styles.winBackgroundColor : 
+                  styles.loseBackgroundColor]}>
+                    <Text style={{color: '#fff'}}>{won ? 'Gagné' : 'Perdu'}</Text>
+                  </View>
+                </View>
+                }
+                
+              </View>
+              <View style={{flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent', marginLeft: 10, marginBottom: 10}}>
+                  {
+                    betType === "simple" && <Image style={styles.betTypeImage} source={require('./../assets/images/simple.png')}/>
+                  }
+                  {
+                    betType === "couplé" && <Image style={styles.betTypeImage} source={require('./../assets/images/couple.png')}/>
+                  }
+                  {
+                    betType === "quinté" && <Image style={styles.betTypeImage} source={require('./../assets/images/quinte.png')}/>
+                  }
+                <View style={{height: '100%', backgroundColor: 'transparent', marginRight: 2}}>
+                  <Text style={{color: "#C6D2D2", fontSize: 8}}>({betCategory})</Text>
+                </View>
+                {bet.map((result, index)=> (
+                    <View style={[{borderRadius: 100, width: 30, height: 30, 
+                      flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginRight: 2},
+                      , won !== null && (won ? styles.winBackgroundColor : styles.loseBackgroundColor)]} key={index}>
+                      <Text style={won !== null && {color: '#fff'}}>
+                        {result}
+                      </Text>
+                    </View>        
+                  ))
+                }
+              </View>
+            </View>
           )
         }
         {
@@ -92,7 +166,7 @@ export default function Post(props) {
               <React.Fragment>
                 <Text style={{color: '#757575'}}> · </Text>
                 <TouchableOpacity onPress={null}>
-                  <Text style={{color: '#757575'}}>{content.nbCopiedBet} ont joué</Text>
+                  <Text style={{color: '#757575'}}>{nbCopiedBets} ont joué</Text>
                 </TouchableOpacity>
               </React.Fragment>
             )
@@ -121,7 +195,7 @@ export default function Post(props) {
                 uppercase={false}
                 mode="text"
                 labelStyle={{fontWeight: 'bold', color: '#757575'}}
-                onPress={() => console.log('Pressed')}>Jouer
+                onPress={()=>Linking.openURL(betActionUrl)}>Jouer
               </Button>
             )
           }
@@ -131,9 +205,49 @@ export default function Post(props) {
 }
 
 
+function isWin(betType, betCategory, bet, betResults){
+  let podium
+  switch(betType){
+    case 'simple':
+      switch(betCategory){
+        case 'placé':
+          podium = betResults.slice(0, 3)
+          return podium.includes(bet[0])
+        case 'gagnant':
+          return betResults[0] === bet[0]
+      }
+      break;
+    case 'couplé':
+      switch(betCategory){
+        case 'gagnant':
+          podium = betResults.slice(0, 2)
+          return hasSubArray(podium, bet)
+        case 'placé':
+          podium = betResults.slice(0, 3)
+          return hasSubArray(podium, bet)
+        case 'ordre':
+          return bet[0] === betResults[0] && bet[1] === betResults[1]
+      }
+      break;
+    case 'quinté':
+      switch(betCategory){
+        case 'ordre':
+          return bet[0] === betResults[0] && bet[1] === betResults[1] && bet[2] === betResults[2]
+          && bet[3] === betResults[3] && bet[4] === betResults[4] 
+        case 'désordre':
+          return hasSubArray(betResults, bet)
+      }
+      break;
+  }
+}
+
+function hasSubArray(master, sub) {
+  return !sub.some(r=> !master.includes(r))
+}
+
+
 const styles = StyleSheet.create({
     container: {
-      elevation: 0,
       marginTop: 10,
       marginBottom: 10,
       padding: 4
@@ -153,5 +267,40 @@ const styles = StyleSheet.create({
     image: {
       width: 50,
       height: 50,
+    },
+    betHeader: {
+      margin: 8,
+      flexDirection: 'row',
+      backgroundColor: 'transparent'
+    },
+    betDesc: {
+      margin: 5,
+      flexDirection: 'column', 
+      justifyContent: 'space-between', 
+      backgroundColor: 'transparent',
+    },
+    codeContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 50,
+      borderRadius:10,
+      backgroundColor: "#113435"
+    },
+    raceCode: {
+      color: "#fff",
+      fontSize: 24,
+      fontWeight: 'bold',
+      fontStyle: 'italic',
+    },
+    winBackgroundColor: {
+      backgroundColor: '#53EC7E'
+    },
+    loseBackgroundColor: {
+      backgroundColor: '#EC5353'
+    },
+    betTypeImage: {
+      width:  85,
+      height: 30,
+      marginRight: 2
     }
   })

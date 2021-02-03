@@ -25,6 +25,7 @@ import Race from '../screens/Race'
 import Group from '../screens/Group'
 import GroupParameters from '../screens/GroupParameters'
 
+
 const BottomTab = createBottomTabNavigator()
 
 /**

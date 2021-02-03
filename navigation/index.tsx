@@ -18,6 +18,7 @@ import ResetPassword from '../screens/ResetPassword'
 import TermsOfUse from '../screens/TermsOfUse'
 import { useSelector } from 'react-redux'
 import { selectCurrent } from '../store/userSlice'
+import NewPost from '../screens/NewPost.js'
 
 export default function Navigation({
   colorScheme,
@@ -42,7 +43,8 @@ function RootNavigator() {
       initialRouteName="SignIn">
       {user ? (
         <>
-          <Stack.Screen name="Drawer" component={DrawerNavigator} />
+          <Stack.Screen name="Root" component={DrawerNavigator} />
+          <Stack.Screen name="New_Post" component={NewPost}/>
         </>
       ) : (
         <>
