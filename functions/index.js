@@ -149,3 +149,52 @@ exports.onCreateMessage = functions
       }
     }
   })
+
+exports.onUpdateGame = functions
+  .region('europe-west1')
+  .firestore.document('Games/{gameID}')
+  .onUpdate(async (gameRecord, context) => {
+    let { state, turnUser1CardId, turnUser2CardId, chosenCaracteristic } = gameRecord.after.data()
+    const gameID = context.params.gameID
+  
+    //users ID
+    const players = await db.collection('Users').where('newGameID', '==', gameID).get()
+    if(players.docs[0].get('player') === 1) {
+      user1ID = players.docs[0].id
+      user2ID = players.docs[1].id
+    }
+    else {
+      user1ID = players.docs[1].id
+      user2ID = players.docs[0].id
+    }
+  
+    if(typeof chosenCaracteristic !== 'undefined' && chosenCaracteristic !== '') {
+  
+      const card1 = await db.collection('Cards').doc(turnUser1CardId).get()
+      const card2 = await db.collection('Cards').doc(turnUser2CardId).get()
+      const score1 = card1.get(chosenCaracteristic)
+      const score2 = card2.get(chosenCaracteristic)
+  
+      if(typeof results === 'undefined')
+        results = []
+  
+      if(score1 > score2) {
+        results.push(1)
+      }
+      else if(score2 > score1) {
+        results.push(2)
+      }
+      else {
+        results.push(0)
+      }
+  
+      return gameRecord.after.ref.update({
+        chosenCaracteristic: '',
+        results: results,
+        state: 'turn_results'
+      })
+    }
+  
+    
+  
+  })
