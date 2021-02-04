@@ -154,11 +154,13 @@ exports.onUpdateGame = functions
   .region('europe-west1')
   .firestore.document('Games/{gameID}')
   .onUpdate(async (gameRecord, context) => {
-    let { state, turnUser1CardId, turnUser2CardId, chosenCaracteristic } = gameRecord.after.data()
+    let { state, turnUser1CardId, turnUser2CardId, chosenCaracteristic, results } = gameRecord.after.data()
     const gameID = context.params.gameID
   
+    // if caracteristic has been chosen
     if(typeof chosenCaracteristic !== 'undefined' && chosenCaracteristic !== '') {
   
+      // get scores from cards caracteristic
       const card1 = await db.collection('Cards').doc(turnUser1CardId).get()
       const card2 = await db.collection('Cards').doc(turnUser2CardId).get()
       const score1 = card1.get(chosenCaracteristic)
@@ -167,6 +169,7 @@ exports.onUpdateGame = functions
       if(typeof results === 'undefined')
         results = []
   
+      // record result
       if(score1 > score2) {
         results.push(1)
       }
@@ -177,6 +180,7 @@ exports.onUpdateGame = functions
         results.push(0)
       }
   
+      // update the game
       return gameRecord.after.ref.update({
         chosenCaracteristic: '',
         results: results,
@@ -184,8 +188,9 @@ exports.onUpdateGame = functions
       })
     }
   
-    if(state === 'turn_results') {
-      //find users ID
+    // if end of the turn
+    if(state === 'turn_results' && results.length < 5) {
+      // find users ID
       const players = await db.collection('Users').where('newGameID', '==', gameID).get()
       if(players.docs[0].get('player') === 1) {
         user1ID = players.docs[0].id
@@ -196,7 +201,7 @@ exports.onUpdateGame = functions
         user2ID = players.docs[0].id
       }
 
-      //find their deck
+      // find their deck & select random new card
       const deck1 = await db.collection('CardsDeck').where('userId', '==', user1ID).get()
       const deck2 = await db.collection('CardsDeck').where('userId', '==', user2ID).get()
 
@@ -204,11 +209,62 @@ exports.onUpdateGame = functions
       card[0]=deck1.docs[0].data().cards[Math.floor(Math.random() * deck1.docs[0].data().cards.length)]
       card[1]=deck2.docs[0].data().cards[Math.floor(Math.random() * deck2.docs[0].data().cards.length)]
 
+      // update game
       return gameRecord.after.ref.update({
         chosenCaracteristic: '',
         turnUser1CardId: card[0],
         turnUser2CardId: card[1],
         state: 'new_turn'
+      })
+    }
+
+    // if end of the game
+    if(state === 'turn_results' && results.length >= 5) {
+      // compute winner
+      nbWin1 = 0
+      nbWin2 = 0
+      for(var i = 0; i < results.length; i++) {
+        if(results[i] === 1) nbWin1++
+        if(results[i] === 2) nbWin2++
+      }
+
+      // find users ID
+      const players = await db.collection('Users').where('newGameID', '==', gameID).get()
+      if(players.docs[0].get('player') === 1) {
+        user1ID = players.docs[0].id
+        user2ID = players.docs[1].id
+      }
+      else {
+        user1ID = players.docs[1].id
+        user2ID = players.docs[0].id
+      }
+
+      // select winner, if draw, win comes to user who played second
+      winnerID = user2ID
+      looserID = user1ID
+      if(nbWin1 > nbWin2) {
+        winnerID = user1ID
+        looserID = user2ID
+      }
+
+      // remove game from users
+      await db.collection('Users').doc(user1ID).set({
+        newGameID: ''
+      }, { merge: true })
+      await db.collection('Users').doc(user2ID).set({
+        newGameID: ''
+      }, { merge: true })
+
+      // update the game
+      return gameRecord.after.ref.update({
+        looserXpWon: 50,
+        winnerXpWon: 300,
+        winnerID: winnerID,
+        looserID: looserID,
+        chosenCaracteristic: '',
+        turnUser1CardId: '',
+        turnUser2CardId: '',
+        state: 'game_results'
       })
     }
   
