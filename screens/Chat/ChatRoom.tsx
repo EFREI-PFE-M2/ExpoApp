@@ -264,6 +264,7 @@ export default function ChatRoom(props: any) {
           }}/>
           <MaterialCommunityIcons
             name="microphone"
+            style={{marginStart: 5}}
             size={30}
             onPress={pressOnMicro}
           />
@@ -376,8 +377,6 @@ const styles = StyleSheet.create({
   },
   chatFooterLeftPart: {
     flexDirection: 'row',
-    flex: 1,
-    justifyContent: 'space-between',
     marginEnd: 10,
   },
   chatFooterMiddlePart: {
