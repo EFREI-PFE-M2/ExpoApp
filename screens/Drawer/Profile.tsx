@@ -24,7 +24,7 @@ const Stack = createStackNavigator()
 
 export default function Profile(props) {
   const { user, route, navigation } = props
-  const displayUser = route.params.self ? useSelector(selectCurrentUser) : route.params.user
+  const displayUser = route.params.self ? useSelector(selectCurrentUser) : useSelector(({ foreignUser }) => foreignUser[route.params.id])
   const {
     uid,
     photoURL,
