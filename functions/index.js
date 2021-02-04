@@ -2,6 +2,7 @@ const functions = require('firebase-functions')
 const data = require('./weekRaces')
 const admin = require('firebase-admin')
 const { firestore } = require('firebase-admin')
+const { user } = require('firebase-functions/lib/providers/auth')
 
 admin.initializeApp()
 
@@ -111,6 +112,7 @@ exports.onCreateMessage = functions
     .get()
 
     var card=["empty","empty"]
+    let user
     
     for (var i=0; i<twoFirstDoc.docs.length; i++){
       user = twoFirstDoc.docs[i].get('userId')
@@ -130,16 +132,20 @@ exports.onCreateMessage = functions
       state: 'initial',
     })
 
-    await twoFirstDoc.forEach(async function(doc){
-      user = db.collection('Users').doc(doc.get('userId'))
+    for (var i=0; i<twoFirstDoc.docs.length; i++){
+      user = db.collection('Users').doc(twoFirstDoc.docs[i].get('userId'))
       if(user.get('newGameID') != null){
         await user.update({
           newGameID: game.id
         })
+        await user.update({
+          player: i+1
+        })
       } else {
         await user.set({
-          newGameID: game.id
+          newGameID: game.id,
+          player: i+1
         },{merge:true})
       }
-    })
+    }
   })
