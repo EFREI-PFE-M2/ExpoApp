@@ -6,6 +6,7 @@ import {
 import { getUserGroup } from './groupSlice'
 import { getInitRaces } from './raceSlice'
 import { setFirebaseAuthError } from './sessionSlice'
+import firebase from 'firebase'
 
 export const userSlice = createSlice({
   name: 'User',
@@ -254,6 +255,29 @@ export const switchNotificationState = (state) => (dispatch) => {
     dispatch(changeNotificationState(state))
   } catch (err) {
     console.log(err)
+  }
+}
+
+export const userFollow = (userID, followUserID) => async (dispatch) => {
+  if (!userID || !followUserID) return
+
+  try {
+    await firestore
+      .collection('Followers')
+      .add({ followedID: followUserID, followerID: userID })
+
+    await Promise.all([
+      firestore
+        .collection('Users')
+        .doc(userID)
+        .set({ nbFollowing: firebase.firestore.FieldValue.increment(1) }),
+      firestore
+        .collection('Users')
+        .doc(followUserID)
+        .set({ nbFollowers: firebase.firestore.FieldValue.increment(1) }),
+    ])
+  } catch (err) {
+    console.error(err)
   }
 }
 // Export selectors
