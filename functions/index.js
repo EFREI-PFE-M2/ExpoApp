@@ -34,6 +34,36 @@ exports.races = functions
     }
   })
 
+exports.likePost = functions
+.region('europe-west1')
+.https.onCall(async (contextData, context) => {
+    let {feed, entityID, postID, userID, like} = contextData
+    switch(feed){
+      case 'race':
+        try{
+          if(!like){
+            let snapshot = await db.collection(`Races/${entityID}/Posts/${postID}/Likes`)
+            .where('userID','==',userID).get()
+            snapshot.forEach(doc => {
+              doc.ref.delete()
+            });
+            return true
+          }else{
+            await db.collection(`Races/${entityID}/Posts/${postID}/Likes`)
+            .add({userID: userID})
+            return true;
+          }
+        }catch(err){
+          return false
+        }
+        break;
+      case 'sub':
+        break;
+      case 'group':
+        break;
+    }
+})
+
 exports.onCreateUser = functions
   .region('europe-west1')
   .auth.user()

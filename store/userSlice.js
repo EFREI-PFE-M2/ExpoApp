@@ -176,8 +176,10 @@ export const firebaseAuthLogin = (email, password) => async (dispatch) => {
     } catch (err) {
       console.error(err)
     }
+    let completedUser = Object.assign(userData, user)
+    delete completedUser.createdAt
 
-    dispatch(updateUser(Object.assign(userData, user)))
+    dispatch(updateUser(completedUser))
   } catch (err) {
     dispatch(setFirebaseAuthError(err.code))
     console.error(err)
@@ -222,6 +224,7 @@ export const autoAuth = () => async (dispatch) => {
       newUser.emailVerified = user.emailVerified
       newUser.loading = false
 
+    
       dispatch(updateUser(newUser))
       retrieveUserData(user.uid, dispatch)
       // dispatch(getInitRaces(new Date().toDateString()))
@@ -233,7 +236,8 @@ export const autoAuth = () => async (dispatch) => {
 const retrieveUserData = async (id, dispatch) => {
   const resultRef = await firestore.collection('Users').doc(id).get()
   const result = resultRef.data()
-
+  delete result.createdAt
+  
   dispatch(updateUser(result))
 }
 

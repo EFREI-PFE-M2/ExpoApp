@@ -8,13 +8,21 @@ import ProfileAvatar from './ProfileAvatar';
 
 let currentDate = new Date()
 
+const PMU_URL = 'https://www.pmu.fr/turf'
+
 export default function Post(props) {
 
-  const { currentUserID, type, username, profilePicture, date, text, nbLikes, nbComments, image, 
-    nbCopiedBets, betRaceDate, betLocationCode, betRaceCode, betType, betTitle, betCategory, betRaceCategory, betDistance, betNbContenders, 
-    betLocation, bet, betRaceID, betActionUrl, betResults,
-    responses, expirationDate, userVote, authorID, won
-  } = props
+  let { post, currentUserID, handleLikePost } = props
+
+  let { type, displayName, profilePicture, datetime, text, 
+    nbLikes, nbComments, image, 
+    nbCopiedBets, raceDate, locationCode, raceCode, 
+    betType, title, category, raceCategory, 
+    distance, nbContenders, 
+    location, bet, raceID, betResults,
+    responses, expirationDate, userVote, userID, won, alreadyLiked, id
+  } = post || {}
+
 
 
   let strResponses = []
@@ -39,9 +47,9 @@ export default function Post(props) {
           <ProfileAvatar url={profilePicture}/>
           <View style={{margin: 5}}>
             <TouchableOpacity onPress={null}>
-              <Text style={{ fontWeight: 'bold' }}>{username}</Text>
+              <Text style={{ fontWeight: 'bold' }}>{displayName}</Text>
             </TouchableOpacity>
-            <Text style={styles.date}>{timeAgoFormat(date)}</Text>
+            <Text style={styles.date}>{timeAgoFormat(datetime)}</Text>
           </View>
         </View>
         <Text style={styles.postText}>{text}</Text>
@@ -56,7 +64,7 @@ export default function Post(props) {
           type === "survey" && (
             <React.Fragment>
               {
-                userVote || expirationDate < currentDate  || currentUserID === authorID ?
+                userVote || expirationDate < currentDate  || currentUserID === userID ?
                 <FlatList
                   data={responseObjectList}
                   renderItem={({item, index}) => (
@@ -90,23 +98,23 @@ export default function Post(props) {
             <View style={{backgroundColor: '#194A4C', borderRadius:10}}>
               <View style={styles.betHeader}>
                 <View style={styles.codeContainer}>
-                  <Text style={styles.raceCode}>{betRaceCode}</Text>
-                  <Text style={styles.raceCode}>{betLocationCode}</Text>
+                  <Text style={styles.raceCode}>{raceCode}</Text>
+                  <Text style={styles.raceCode}>{locationCode}</Text>
                 </View>
                 <View style={styles.betDesc}>
-                  <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 12}}>{betTitle}</Text>
+                  <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 12}}>{title}</Text>
                   <View style={{flexDirection: 'row', backgroundColor: 'transparent', alignItems: 'center', marginTop: 3}}>
-                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{betRaceCategory} • </Text>
-                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{betDistance}m • </Text>
-                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{betNbContenders} partants</Text>
+                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{raceCategory} • </Text>
+                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{distance}m • </Text>
+                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{nbContenders} partants</Text>
                   </View>
                   <View style={{flexDirection: 'row', backgroundColor: 'transparent', alignItems: 'center', marginTop: 3}}>
                     <MaterialIcons name="location-on" color="#C6D2D2" size={14} />
-                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{betLocation}</Text>
+                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{location}</Text>
                   </View>
                   <View style={{flexDirection: 'row', backgroundColor: 'transparent', alignItems: 'center', marginTop: 3}}>
                     <MaterialIcons name="access-time" color="#C6D2D2" size={14} style={{marginRight: 2}}/>
-                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{betRaceDate}</Text>
+                    <Text style={{color: '#C6D2D2', fontSize: 10}}>{raceDate}</Text>
                   </View>
                 </View>
                 {won !== null &&
@@ -132,7 +140,7 @@ export default function Post(props) {
                     betType === "quinté" && <Image style={styles.betTypeImage} source={require('./../assets/images/quinte.png')}/>
                   }
                 <View style={{height: '100%', backgroundColor: 'transparent', marginRight: 2}}>
-                  <Text style={{color: "#C6D2D2", fontSize: 8}}>({betCategory})</Text>
+                  <Text style={{color: "#C6D2D2", fontSize: 8}}>({category})</Text>
                 </View>
                 {bet.map((result, index)=> (
                     <View style={[{borderRadius: 100, width: 30, height: 30, 
@@ -178,8 +186,8 @@ export default function Post(props) {
             icon="thumb-up-outline" 
             mode="text"
             uppercase={false}
-            labelStyle={{fontWeight: 'bold', color: '#757575'}}
-            onPress={() => console.log('Pressed')}>J'aime
+            labelStyle={[{fontWeight: 'bold'},alreadyLiked ? {color: '#194A4C'} : {color: '#757575'}]}
+            onPress={()=> handleLikePost(id, !alreadyLiked)}>J'aime
           </Button>
           <Button 
             icon="comment-text-outline"  
@@ -195,7 +203,7 @@ export default function Post(props) {
                 uppercase={false}
                 mode="text"
                 labelStyle={{fontWeight: 'bold', color: '#757575'}}
-                onPress={()=>Linking.openURL(betActionUrl)}>Jouer
+                onPress={()=>Linking.openURL(`${PMU_URL}/${locationCode}/${raceCode}`)}>Jouer
               </Button>
             )
           }

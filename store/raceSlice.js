@@ -34,7 +34,7 @@ export const raceSlice = createSlice({
     },
     addSpecificRacePosts: (state, action) => {
       if(state.specificRace.posts)
-        state.specificRace.posts =  [...state.specificRace.posts, ...action.payload,]
+        state.specificRace.posts =  [...state.specificRace.posts, ...action.payload]
       else
         state.specificRace.posts =  action.payload
     },
@@ -47,13 +47,18 @@ export const raceSlice = createSlice({
     setSpecificRaceNoMorePosts: (state, action) => {
       state.specificRaceNoMorePosts = action.payload
     },
+    setSpecificRacePostLikeStatus: (state, action) => {
+      let { postID, like } = action.payload
+      state.specificRace.posts = state.specificRace.posts.map((post)=>
+      post.id === postID ? {...post, alreadyLiked: like} : post)
+    },
   },
 })
 
 //actions imports
 export const { setRaces, setSpecificRace, setSpecificRacePosts, addSpecificRacePostToMostRecent,
   setSpecificRaceRecentPostsLoading, setSpecificRaceNextPostsLoading,
-  setSpecificRaceNoMorePosts, addSpecificRacePosts} = raceSlice.actions
+  setSpecificRaceNoMorePosts, addSpecificRacePosts, setSpecificRacePostLikeStatus} = raceSlice.actions
 
 // thunks
 export const updateRaces = (date) => async (dispatch) => {
@@ -68,8 +73,17 @@ export const updateRaces = (date) => async (dispatch) => {
   }
 }
 
-export const updateSpecificRaceRecentPosts = (raceID) => async (dispatch) => {
+export const updateSpecificRaceRecentPosts = (raceID) => async (dispatch, getState) => {
+  /*
+  feed, entityID, postID, userID, unlike
+  const likePost = firebase.functions('europe-west1').httpsCallable('likePost')
+  const result = await likePost({feed: 'race', entityID: 56, postID: 12, unlike: false})
+  console.log(result)
+  */
   try {
+
+    let userID = getState().user.uid
+
     dispatch(setSpecificRacePosts([]))
     dispatch(setSpecificRaceNoMorePosts(false))
     dispatch(setSpecificRaceRecentPostsLoading(true))
@@ -88,9 +102,19 @@ export const updateSpecificRaceRecentPosts = (raceID) => async (dispatch) => {
         return;
       } 
       let posts = []
-      snapshot.forEach(doc => {
-        posts.push(doc.data())
-      });
+
+      for(doc of snapshot.docs) {
+        let post = doc.data()
+        delete post.createdAt
+        post.id = doc.id
+        let isAlreadyLiked = await doc.ref.collection('Likes').where('userID', '==', userID).get()
+        if(!isAlreadyLiked.empty)
+          post.alreadyLiked = true
+        else
+          post.alreadyLiked = false
+        posts.push(post)
+      } 
+      
       dispatch(setSpecificRacePosts(posts))
       
       //hide loading indicator
@@ -130,7 +154,10 @@ export const addSpecificRaceNextPosts = (raceID) => async (dispatch, getState) =
 
       let posts = []
       snapshot.forEach(doc => {
-        posts.push(doc.data())
+        let post = doc.data()
+        delete post.createdAt
+        post.id = doc.id
+        posts.push(post)
       });
 
       dispatch(addSpecificRacePosts(posts))
@@ -153,12 +180,11 @@ export const newRacePost = (data, cbSuccess, cbError) => async (dispatch) => {
       nbLikes: 0,
       nbComments: 0,
       datetime: currentDate.toISOString(),
-      username: user.username,
+      displayName: user.displayName,
       profilePicture: user.photoURL,
       userID: user.uid,
       text: text.trim(), 
     }
-    let type;
     if(image){
       post.type= 'image'
       let imageName = image.substring(image.lastIndexOf('/')+1);
@@ -185,6 +211,30 @@ export const newRacePost = (data, cbSuccess, cbError) => async (dispatch) => {
 
     dispatch(addSpecificRacePostToMostRecent([post]))//add to local store
 
+    cbSuccess()
+  }catch(err){
+    console.log(err)
+    cbError()
+  }
+}
+
+
+export const likePost = (data, cbSuccess, cbError) => async (dispatch) => {
+  
+  try{
+    let { postID, like, raceID, userID } = data
+    
+    const likePostCloudFunction = firebase.functions('europe-west1').httpsCallable('likePost')
+    const res = await likePostCloudFunction({feed: 'race', entityID: raceID,
+       postID: postID, userID: userID, like: like})
+    
+       console.log(res)
+
+
+
+
+    //set local store
+    dispatch(setSpecificRacePostLikeStatus({postID: postID, like: like}))
     cbSuccess()
   }catch(err){
     console.log(err)
