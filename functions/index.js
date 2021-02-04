@@ -157,17 +157,6 @@ exports.onUpdateGame = functions
     let { state, turnUser1CardId, turnUser2CardId, chosenCaracteristic } = gameRecord.after.data()
     const gameID = context.params.gameID
   
-    //users ID
-    const players = await db.collection('Users').where('newGameID', '==', gameID).get()
-    if(players.docs[0].get('player') === 1) {
-      user1ID = players.docs[0].id
-      user2ID = players.docs[1].id
-    }
-    else {
-      user1ID = players.docs[1].id
-      user2ID = players.docs[0].id
-    }
-  
     if(typeof chosenCaracteristic !== 'undefined' && chosenCaracteristic !== '') {
   
       const card1 = await db.collection('Cards').doc(turnUser1CardId).get()
@@ -195,6 +184,32 @@ exports.onUpdateGame = functions
       })
     }
   
-    
+    if(state === 'turn_results') {
+      //find users ID
+      const players = await db.collection('Users').where('newGameID', '==', gameID).get()
+      if(players.docs[0].get('player') === 1) {
+        user1ID = players.docs[0].id
+        user2ID = players.docs[1].id
+      }
+      else {
+        user1ID = players.docs[1].id
+        user2ID = players.docs[0].id
+      }
+
+      //find their deck
+      const deck1 = await db.collection('CardsDeck').where('userId', '==', user1ID).get()
+      const deck2 = await db.collection('CardsDeck').where('userId', '==', user2ID).get()
+
+      var card=['','']
+      card[0]=deck1.docs[0].data().cards[Math.floor(Math.random() * deck1.docs[0].data().cards.length)]
+      card[1]=deck2.docs[0].data().cards[Math.floor(Math.random() * deck2.docs[0].data().cards.length)]
+
+      return gameRecord.after.ref.update({
+        chosenCaracteristic: '',
+        turnUser1CardId: card[0],
+        turnUser2CardId: card[1],
+        state: 'new_turn'
+      })
+    }
   
-  })
+})
