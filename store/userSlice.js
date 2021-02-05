@@ -6,6 +6,7 @@ import {
 import { getUserGroup } from './groupSlice'
 import { getInitRaces } from './raceSlice'
 import { setFirebaseAuthError } from './sessionSlice'
+import firebase from 'firebase'
 
 export const userSlice = createSlice({
   name: 'User',
@@ -176,8 +177,10 @@ export const firebaseAuthLogin = (email, password) => async (dispatch) => {
     } catch (err) {
       console.error(err)
     }
+    let completedUser = Object.assign(userData, user)
+    delete completedUser.createdAt
 
-    dispatch(updateUser(Object.assign(userData, user)))
+    dispatch(updateUser(completedUser))
   } catch (err) {
     dispatch(setFirebaseAuthError(err.code))
     console.error(err)
@@ -222,6 +225,7 @@ export const autoAuth = () => async (dispatch) => {
       newUser.emailVerified = user.emailVerified
       newUser.loading = false
 
+    
       dispatch(updateUser(newUser))
       retrieveUserData(user.uid, dispatch)
       // dispatch(getInitRaces(new Date().toDateString()))
@@ -233,7 +237,8 @@ export const autoAuth = () => async (dispatch) => {
 const retrieveUserData = async (id, dispatch) => {
   const resultRef = await firestore.collection('Users').doc(id).get()
   const result = resultRef.data()
-
+  delete result.createdAt
+  
   dispatch(updateUser(result))
 }
 
@@ -254,6 +259,29 @@ export const switchNotificationState = (state) => (dispatch) => {
     dispatch(changeNotificationState(state))
   } catch (err) {
     console.log(err)
+  }
+}
+
+export const userFollow = (userID, followUserID) => async (dispatch) => {
+  if (!userID || !followUserID) return
+
+  try {
+    await firestore
+      .collection('Followers')
+      .add({ followedID: followUserID, followerID: userID })
+
+    await Promise.all([
+      firestore
+        .collection('Users')
+        .doc(userID)
+        .set({ nbFollowing: firebase.firestore.FieldValue.increment(1) }),
+      firestore
+        .collection('Users')
+        .doc(followUserID)
+        .set({ nbFollowers: firebase.firestore.FieldValue.increment(1) }),
+    ])
+  } catch (err) {
+    console.error(err)
   }
 }
 // Export selectors

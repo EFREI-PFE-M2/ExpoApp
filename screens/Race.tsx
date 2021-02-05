@@ -5,7 +5,7 @@ import { Badge, IconButton, FAB } from 'react-native-paper'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectSpecificRace, updateSpecificRaceRecentPosts, 
   selectSpecificRaceRecentPostsLoading, selectSpecificRaceNextPostsLoading,
-  selectSpecificRaceNoMorePosts, addSpecificRaceNextPosts} from '../store/raceSlice'
+  selectSpecificRaceNoMorePosts, addSpecificRaceNextPosts, likePost} from '../store/raceSlice'
 import { selectCurrentUser } from '../store/userSlice'
 import { FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Post from '../components/Post'
@@ -40,6 +40,7 @@ export default function Race({ route, navigation }) {
     dispatch(updateSpecificRaceRecentPosts(raceID))
   }, [])
 
+
   const goBack = () => navigation.goBack()
 
   navigation.setOptions({
@@ -64,6 +65,10 @@ export default function Race({ route, navigation }) {
 
   const handleLoadNext = () => {
     dispatch(addSpecificRaceNextPosts(raceID))
+  }
+
+  const handleLikePost = (postID, like) => {
+    dispatch(likePost({postID: postID, like: like, raceID: race.id, userID: user.uid},()=>{}, ()=>{}))
   }
 
   return (
@@ -138,34 +143,9 @@ export default function Race({ route, navigation }) {
             data={race.posts}
             renderItem={({item}) => 
               <Post 
-                authorID={item.userID}
-                type={item.type}
-                profilePicture={item.profilePicture}
-                username={item.username} 
-                date={item.datetime} 
-                nbLikes={item.nbLikes} 
-                nbComments={item.nbComments}
-                text={item.text}
-                image={item.image}
-                nbCopiedBets={item.nbCopiedBets}
-                betRaceDate={item.raceDate}
-                betLocationCode={item.locationCode}
-                betRaceCode={item.raceCode}
-                betType={item.betType}
-                betTitle={item.title}
-                betCategory={item.category} 
-                betRaceCategory={item.raceCategory} 
-                betDistance={item.distance} 
-                betNbContenders={item.nbContenders} 
-                betLocation={item.location} 
-                bet={item.bet}
-                betRaceID={item.raceID}
-                betResults={item.betResults}
-                responses={item.responses}
-                expirationDate={item.expirationDate}
-                userVote={item.userVote}
+                post={item}
                 currentUserID={user.uid}
-                won={item.won}
+                handleLikePost={handleLikePost}
               />
             }
           />
