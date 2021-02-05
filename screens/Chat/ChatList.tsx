@@ -85,7 +85,9 @@ function PrivateChatList(props: any) {
           const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
             (chatInfo.lastMessage['type'] == 'text' ? 
               chatInfo.lastMessage.text : (chatInfo.lastMessage['type'] == 'image' ?
-                '[New image has been sent]' : '[New audio has been sent]')) 
+                '[New image has been sent]' : (chatInfo.lastMessage['type'] == 'audio' ? 
+                '[New audio has been sent]' : '[Message has been deleted]' 
+            ))) 
               : '[Be the first to send message]')
 
           const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length ? 
@@ -191,7 +193,9 @@ function GroupChatList(props: any) {
           const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
             (chatInfo.lastMessage['type'] == 'text' ? 
               chatInfo.lastMessage.text : (chatInfo.lastMessage['type'] == 'image' ?
-                '[New image has been sent]' : '[New audio has been sent]')) 
+              '[New image has been sent]' : (chatInfo.lastMessage['type'] == 'audio' ? 
+              '[New audio has been sent]' : '[Message has been deleted]' 
+            ))) 
               : '[Be the first to send message]')
 
           const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length ? 

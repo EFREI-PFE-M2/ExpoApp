@@ -5,33 +5,28 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../../store/userSlice'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { GetPublishedDate } from '../../utils/ChatFunctions'
-import { Avatar, Button, Divider, Provider } from 'react-native-paper'
+import { Avatar, Divider } from 'react-native-paper'
 import ImagePicker from '../../components/ImagePicker'
-import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { MaterialIcons } from '@expo/vector-icons'
 import {
-  addUsersToGroupChatAfterCreation,
+  deleteMessageFromConversation,
   getMessagesFromGroupConversation,
   getMessagesFromPrivateConversation,
-  searchUsers,
   selectGroupChats,
   selectPrivateChats,
   sendGroupChatMessage,
   sendPrivateChatMessage,
 } from '../../store/chatSlice'
 import AudioRecorder from '../../components/AudioRecorder'
-import  { Menu,
-  MenuProvider,
-  MenuOptions,
-  MenuOption,
-  MenuTrigger,
-  renderers,
-} from 'react-native-popup-menu';
+import  { MenuProvider } from 'react-native-popup-menu';
+import MessageOptions from '../../components/Custom/MessageOptions'
 
 export default function ChatRoom(props: any) {
   const [dateVisible, setTimeVisible] = useState(false)
   const [currentItemForDate, setCurrentItemForDate] = useState(0)
 
   const showDate = (i: any) => () => {
+    closeMenu()
     if (i === currentItemForDate)
       setTimeVisible(!dateVisible)
     else
@@ -60,7 +55,7 @@ export default function ChatRoom(props: any) {
   const [content, setContent] = useState('')
   const changeText = (text: string) => setContent(text)
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const datetime = new Date()
 
     if (content.trim() != '') {
@@ -75,8 +70,11 @@ export default function ChatRoom(props: any) {
 
       setContent('')
 
-      setChatHistory([...chatHistory, message])
-      dispatch(isPrivateChat ? sendPrivateChatMessage(chatInfo.chatID, message) : sendGroupChatMessage(chatInfo.chatID, message)) 
+      await dispatch(isPrivateChat ? 
+        sendPrivateChatMessage(chatInfo.chatID, message) 
+        : 
+        sendGroupChatMessage(chatInfo.chatID, message)
+      ) 
     }
   }
 
@@ -99,9 +97,7 @@ export default function ChatRoom(props: any) {
   const [refreshing, setRefreshing] = React.useState(false);
 
   useEffect(() => {
-    if (refreshing) {
-      setChatHistory(messages)
-    }     
+    setChatHistory(messages)    
   })
 
   const reachFirstMessageState = isPrivateChat ? useSelector(selectPrivateChats)[chatInfo.chatID]?.reachFirstMessageState
@@ -154,12 +150,9 @@ export default function ChatRoom(props: any) {
   let scrollToTopMessage = reachFirstMessageState ? 
     'You already reached the top of the messages' : 'Click or scroll up to display older messages'
 
-
   const contentSizeChange = () => scrollViewRef.current?.scrollToEnd({ animated: true })
 
-  const pressOnMicro = () => alert('Include voice message')
-
-  const senderMessageTemplate = ({m, i, openMenu, isCurrentUser}: any) => <View style={styles.subViewRightStyle}>
+  const senderMessageTemplate = ({m, i, isCurrentUser}: any) => <View style={styles.subViewRightStyle}>
   <TouchableOpacity
     style={styles.containerMessageRight}
     //onLongPress={openMenu}
@@ -174,7 +167,7 @@ export default function ChatRoom(props: any) {
     /> 
     </View> 
 
-  const receiverMessageTemplate = ({m, i, openMenu, isCurrentUser}: any) => <View style={styles.subViewLeftStyle}>
+  const receiverMessageTemplate = ({m, i, isCurrentUser}: any) => <View style={styles.subViewLeftStyle}>
     <Avatar.Image
       size={48}
       style={styles.receiverProfilePhotoStyle}
@@ -202,12 +195,17 @@ const showContent = (message: any, currentUser: any) => {
       style={styles.imageStyle}
     /> 
         : 
-      <Text>audio part</Text>
+        (message.type === 'audio' ?
+          <Text>audio part</Text>
+          :
+          <Text style={{ fontStyle: 'italic', color: currentUser ? '#fff' : '#000' }}>
+            Ce message a été supprimé
+          </Text>
+        )
     )
 }
-
   
-  return (
+return (
     <View style={styles.container}>
       <ScrollView
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}
@@ -231,8 +229,7 @@ const showContent = (message: any, currentUser: any) => {
         {chatHistory.map((m: any, i: number) => {
           const dt = !m.createdAt['seconds'] ? m.createdAt : new Date(m.createdAt['seconds'] * 1000)
           const isCurrentUser = m.uid === uid
-          
-          
+                 
           return (
             <MenuProvider skipInstanceCheck={true}>
               <View style={styles.viewStyle}>
@@ -248,39 +245,31 @@ const showContent = (message: any, currentUser: any) => {
                   {m.displayName}
                 </Text>
                 { isCurrentUser ?
-            senderMessageTemplate({m,i,openMenu,isCurrentUser})
-            : 
-            receiverMessageTemplate({m,i,openMenu,isCurrentUser})
-          } 
-                  
-        <Menu
-          opened={menuVisible && i === currentItemForMenu}
-          onBackdropPress={closeMenu}
-        >
-          <MenuTrigger>
-          <MaterialIcons
-            name="more-vert"
-            style={isCurrentUser ? { marginStart: Dimensions.get('window').width -57 } : {marginStart: 12}}
-            color={'#000'}
-            size={24}
-            onPress={() => openMenu(i)}
-          />
-          
-          </MenuTrigger>
-          <MenuOptions customStyles={optionsStyles}>
-            <MenuOption text='Editer' onSelect={() => alert('edit a comment'+i)}
-              />
-              <Divider/>
-            <MenuOption text='Supprimer' //customStyles={optionStyles}
-              onSelect={() => alert('delete a comment')} />
-          </MenuOptions>
-        </Menu>             
-                  
+                  senderMessageTemplate({m,i,isCurrentUser})
+                  : 
+                  receiverMessageTemplate({m,i,isCurrentUser})
+                } 
 
-
-              </View></MenuProvider>
-            )
-        })}
+          { m.type != 'deleted' 
+          ?
+            <MessageOptions props={{
+              chatID: chatInfo.chatID,
+              menuVisible,
+              closeMenu,
+              openMenu,
+              m,
+              i,
+              currentItemForMenu,
+              isCurrentUser,
+            }}/>    
+          :
+            null
+          }    
+                     
+          </View>
+        </MenuProvider>
+        )
+      })}
         
       </ScrollView>
 
@@ -422,28 +411,3 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
   },
 })
-
-
-const optionsStyles = {
-  optionsContainer: {
-    //backgroundColor: 'green',
-    padding: 5,
-    //marginStart: 200,
-    //marginTop: 15,    
-    width: 120,
-  },
-  optionsWrapper: {
-    //backgroundColor: 'purple',
-  },
-  optionWrapper: {
-    //backgroundColor: 'yellow',
-    margin: 5,
-  },
-  optionTouchable: {
-    underlayColor: 'gold',
-    activeOpacity: 70,
-  },
-  optionText: {
-    color: 'black',
-  },
-};

@@ -697,15 +697,18 @@ export const sendPrivateChatMessage = (conversationID, message) => async (
     if (!chat.privateConversations.hasOwnProperty(conversationID))
       return dispatch(setError('Conversation not loaded, error aborting.'))
 
+    let messageID
+
     await firestore
       .collection('PrivateConversation')
       .doc(conversationID)
       .collection('Messages')
       .add(message)
+      .then((doc) => (messageID = doc.id))
 
     let messages = [
       ...chat.privateConversations[conversationID].messages,
-      message,
+      { ...message, messageID },
     ]
 
     await dispatch(
@@ -742,15 +745,18 @@ export const sendGroupChatMessage = (conversationID, message) => async (
     if (!chat.groupConversations.hasOwnProperty(conversationID))
       return dispatch(setError('Conversation not loaded, error aborting.'))
 
+    let messageID
+
     await firestore
       .collection('GroupConversation')
       .doc(conversationID)
       .collection('Messages')
       .add(message)
+      .then((doc) => (messageID = doc.id))
 
     let messages = [
       ...chat.groupConversations[conversationID].messages,
-      message,
+      { ...message, messageID },
     ]
 
     await dispatch(
@@ -766,6 +772,73 @@ export const sendGroupChatMessage = (conversationID, message) => async (
         lastMessage: { ...message, createdAt: new Date() },
       })
     )
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+/**
+ * @param {String} conversationID
+ * @param {String} messageID
+ * @param {Boolean} isPrivate
+ */
+export const deleteMessageFromConversation = (
+  conversationID,
+  messageID,
+  isPrivate = true
+) => async (dispatch, getState) => {
+  try {
+    const { chat } = getState()
+
+    const ref = isPrivate
+      ? firestore.collection('PrivateConversation')
+      : firestore.collection('GroupConversation')
+
+    await ref
+      .doc(conversationID)
+      .collection('Messages')
+      .doc(messageID)
+      .update({ type: 'deleted' })
+
+    let messages = isPrivate
+      ? chat.privateConversations[conversationID].messages
+      : chat.groupConversations[conversationID].messages
+
+    let messageToDelete
+    let toDel
+
+    const updatedMessages = messages.map((m, index) => {
+      if (m.messageID == messageID) {
+        toDel = index
+        messageToDelete = { ...m, type: 'deleted' }
+        return messageToDelete
+      } else return m
+    })
+
+    await dispatch(
+      isPrivate
+        ? addMessagesToPrivateConversation({
+            conversationID,
+            messages: updatedMessages,
+          })
+        : addMessagesToGroupConversation({
+            conversationID,
+            messages: updatedMessages,
+          })
+    )
+
+    if (toDel == updatedMessages.length - 1)
+      await dispatch(
+        isPrivate
+          ? putAtTopLastUpToDatePrivateChat({
+              id: conversationID,
+              lastMessage: messageToDelete,
+            })
+          : putAtTopLastUpToDateGroupChat({
+              id: conversationID,
+              lastMessage: messageToDelete,
+            })
+      )
   } catch (err) {
     console.error(err)
   }

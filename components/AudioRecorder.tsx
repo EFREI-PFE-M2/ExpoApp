@@ -4,7 +4,7 @@ import { View } from "./Themed";
 
 
 export default function AudioRecorder({props}: any) {
-    const pressOnMicro = () => alert('audio recording')
+    const pressOnMicro = () => alert('Audio recording is not included in this version')
 
     return (
         <View>
