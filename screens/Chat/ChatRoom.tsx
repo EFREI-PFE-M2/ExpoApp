@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Animated, StyleSheet, ScrollView, TextInput, Image, RefreshControl } from 'react-native'
+import { Animated, StyleSheet, ScrollView, TextInput, Image, RefreshControl, Dimensions } from 'react-native'
 import { Text, View } from '../../components/Themed'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../../store/userSlice'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { GetPublishedDate } from '../../utils/ChatFunctions'
-import { Avatar } from 'react-native-paper'
+import { Avatar, Button, Divider, Provider } from 'react-native-paper'
 import ImagePicker from '../../components/ImagePicker'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 import {
@@ -18,14 +18,32 @@ import {
   sendGroupChatMessage,
   sendPrivateChatMessage,
 } from '../../store/chatSlice'
-
-function showExtraInfo(check: any, sameItem: any) {
-  return !(check && sameItem) ? 'none' : undefined
-}
+import AudioRecorder from '../../components/AudioRecorder'
+import  { Menu,
+  MenuProvider,
+  MenuOptions,
+  MenuOption,
+  MenuTrigger,
+  renderers,
+} from 'react-native-popup-menu';
 
 export default function ChatRoom(props: any) {
-  const [showState, setShowState] = useState(false)
-  const [currentItem, setCurrentItem] = useState(0)
+  const [dateVisible, setTimeVisible] = useState(false)
+  const [currentItemForDate, setCurrentItemForDate] = useState(0)
+
+  const showDate = (i: any) => () => {
+    if (i === currentItemForDate)
+      setTimeVisible(!dateVisible)
+    else
+      setTimeVisible(true)
+    setCurrentItemForDate(i)
+  }
+
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [currentItemForMenu, setCurrentItemForMenu] = useState(0)
+
+  const openMenu = (i:any) => {setMenuVisible(true); setCurrentItemForMenu(i)};
+  const closeMenu = () => setMenuVisible(false);
 
   const displayUser = useSelector(selectCurrentUser)
   const { username, photoURL, uid } = displayUser
@@ -136,14 +154,58 @@ export default function ChatRoom(props: any) {
   let scrollToTopMessage = reachFirstMessageState ? 
     'You already reached the top of the messages' : 'Click or scroll up to display older messages'
 
-  const showDate = (i: any) => () => {
-    setShowState(!showState)
-    setCurrentItem(i)
-  }
 
   const contentSizeChange = () => scrollViewRef.current?.scrollToEnd({ animated: true })
 
   const pressOnMicro = () => alert('Include voice message')
+
+  const senderMessageTemplate = ({m, i, openMenu, isCurrentUser}: any) => <View style={styles.subViewRightStyle}>
+  <TouchableOpacity
+    style={styles.containerMessageRight}
+    //onLongPress={openMenu}
+    onPress={showDate(i)}
+    >
+      {showContent(m, isCurrentUser)} 
+    </TouchableOpacity>
+     <Avatar.Image
+        size={48}
+        style={styles.senderProfilePhotoStyle}
+        source={{ uri: m.photoURL }}
+    /> 
+    </View> 
+
+  const receiverMessageTemplate = ({m, i, openMenu, isCurrentUser}: any) => <View style={styles.subViewLeftStyle}>
+    <Avatar.Image
+      size={48}
+      style={styles.receiverProfilePhotoStyle}
+      source={{ uri: m.photoURL }}
+    /> 
+    <TouchableOpacity
+      style={styles.containerMessageLeft}
+      //onLongPress={openMenu}
+      onPress={showDate(i)}
+      >
+        {showContent(m, isCurrentUser)}
+    </TouchableOpacity>
+  </View> 
+
+  
+const showContent = (message: any, currentUser: any) => {
+  return message.type === 'text' ? 
+  <Text style={{ color: currentUser ? '#fff' : '#000' }}>
+    {message.text}
+    </Text> 
+    :
+    (message.type === 'image' ? 
+    <Image 
+      source={{ uri: message.image.uri }} 
+      style={styles.imageStyle}
+    /> 
+        : 
+      <Text>audio part</Text>
+    )
+}
+
   
   return (
     <View style={styles.container}>
@@ -152,7 +214,7 @@ export default function ChatRoom(props: any) {
         onScroll={onScroll}
         ref={scrollViewRef}
         onContentSizeChange={contentSizeChange}>
-
+      
         <Animated.View
           style={[
             styles.containerScrollToTopMessage,
@@ -168,93 +230,58 @@ export default function ChatRoom(props: any) {
         
         {chatHistory.map((m: any, i: number) => {
           const dt = !m.createdAt['seconds'] ? m.createdAt : new Date(m.createdAt['seconds'] * 1000)
+          const isCurrentUser = m.uid === uid
           
-          if (m.uid == uid) {
-            return (
+          
+          return (
+            <MenuProvider skipInstanceCheck={true}>
               <View style={styles.viewStyle}>
                 <Text
                   style={{
-                    display: showExtraInfo(showState, i == currentItem),
+                    display: dateVisible && i === currentItemForDate ? undefined : 'none',
                     ...styles.publishedDateStyle,
                   }}>
                   {GetPublishedDate(dt)}
                 </Text>
                 <Text
-                  style={styles.senderDisplayNameStyle}>
+                  style={isCurrentUser ? styles.senderDisplayNameStyle : styles.receiverDisplayNameStyle}>
                   {m.displayName}
                 </Text>
-                <View
-                  style={styles.subViewLeftStyle}>
-                  <TouchableOpacity
-                    style={styles.containerMessageRight}
-                    onPress={showDate(i)}>
-                    { m.type == 'text' ? 
-                      <Text style={{ color: '#fff' }}>
-                        {m.text}
-                      </Text> 
-                      :
-                      (m.type == 'image' ? 
-                        <Image 
-                          source={{ uri: m.image.uri }} 
-                          style={styles.imageStyle}
-                        /> 
-                        : 
-                        <Text>audio part</Text>
-                      )
-                    } 
-                  </TouchableOpacity>
-                  <Avatar.Image
-                    size={48}
-                    style={styles.profilePhotoStyle}
-                    source={{ uri: m.photoURL }}
-                  />
-                </View>
-              </View>
+                { isCurrentUser ?
+            senderMessageTemplate({m,i,openMenu,isCurrentUser})
+            : 
+            receiverMessageTemplate({m,i,openMenu,isCurrentUser})
+          } 
+                  
+        <Menu
+          opened={menuVisible && i === currentItemForMenu}
+          onBackdropPress={closeMenu}
+        >
+          <MenuTrigger>
+          <MaterialIcons
+            name="more-vert"
+            style={isCurrentUser ? { marginStart: Dimensions.get('window').width -57 } : {marginStart: 12}}
+            color={'#000'}
+            size={24}
+            onPress={() => openMenu(i)}
+          />
+          
+          </MenuTrigger>
+          <MenuOptions customStyles={optionsStyles}>
+            <MenuOption text='Editer' onSelect={() => alert('edit a comment'+i)}
+              />
+              <Divider/>
+            <MenuOption text='Supprimer' //customStyles={optionStyles}
+              onSelect={() => alert('delete a comment')} />
+          </MenuOptions>
+        </Menu>             
+                  
+
+
+              </View></MenuProvider>
             )
-          } else {
-            return (
-              <View style={styles.viewStyle}>
-                <Text
-                  style={{
-                    display: showExtraInfo(showState, i == currentItem),
-                    ...styles.publishedDateStyle,
-                  }}>
-                  {GetPublishedDate(dt)}
-                </Text>
-                <Text style={styles.receiverDisplayNameStyle}>
-                  {m.displayName}
-                </Text>
-                <View
-                  style={styles.subViewRightStyle}>
-                  <Avatar.Image
-                    size={48}
-                    style={styles.profilePhotoStyle}
-                    source={{ uri: m.photoURL }}
-                  />
-                  <TouchableOpacity
-                    key={i}
-                    style={styles.containerMessageLeft}
-                    onPress={showDate(i)}>
-                    { m.type == 'text' ? 
-                      <Text>
-                        {m.text}
-                      </Text> 
-                      :
-                      (m.type == 'image' ? 
-                        <Image 
-                          source={{ uri: m.image.uri }} 
-                          style={styles.imageStyle}
-                        /> 
-                        : 
-                        <Text>audio part</Text>
-                      )
-                    }                    
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )
-          }
         })}
+        
       </ScrollView>
 
       <View style={styles.containerChatFooter}>
@@ -262,12 +289,9 @@ export default function ChatRoom(props: any) {
           <ImagePicker props={{isPrivateChat, uid, username, photoURL, 
             chatID: chatInfo.chatID, chatHistory, setChatHistory
           }}/>
-          <MaterialCommunityIcons
-            name="microphone"
-            style={{marginStart: 5}}
-            size={30}
-            onPress={pressOnMicro}
-          />
+          <AudioRecorder props={{isPrivateChat, uid, username, photoURL, 
+            chatID: chatInfo.chatID, chatHistory, setChatHistory
+          }}/>
         </View>
 
         <View style={styles.chatFooterMiddlePart}>
@@ -293,11 +317,11 @@ const styles = StyleSheet.create({
   subViewLeftStyle: {
     backgroundColor: 'rgba(0,0,0,0)',
     flexDirection: 'row',
-    justifyContent: 'flex-end',
   },
   subViewRightStyle: {
     backgroundColor: 'rgba(0,0,0,0)',
     flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   scrollToTopMessageStyle: {
     fontSize: 12
@@ -315,8 +339,11 @@ const styles = StyleSheet.create({
     paddingLeft: 60,
     paddingTop: 15,
   },
-  profilePhotoStyle: {
+  senderProfilePhotoStyle: {
     marginStart: 10
+  },
+  receiverProfilePhotoStyle: {
+    marginEnd: 10
   },
   imageStyle: {
     width: 200, 
@@ -395,3 +422,28 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
   },
 })
+
+
+const optionsStyles = {
+  optionsContainer: {
+    //backgroundColor: 'green',
+    padding: 5,
+    //marginStart: 200,
+    //marginTop: 15,    
+    width: 120,
+  },
+  optionsWrapper: {
+    //backgroundColor: 'purple',
+  },
+  optionWrapper: {
+    //backgroundColor: 'yellow',
+    margin: 5,
+  },
+  optionTouchable: {
+    underlayColor: 'gold',
+    activeOpacity: 70,
+  },
+  optionText: {
+    color: 'black',
+  },
+};
