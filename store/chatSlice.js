@@ -53,6 +53,12 @@ export const chatSlice = createSlice({
           conversationID
         ].reachFirstMessageState = reachFirstMessageState
     },
+    updateLastMessageDeleted: (state, action) => {
+      const { id, lastMessage, isPrivate } = action.payload
+      isPrivate
+        ? (state.privateConversations[id].lastMessage = lastMessage)
+        : (state.groupConversations[id].lastMessage = lastMessage)
+    },
     putAtTopLastUpToDatePrivateChat: (state, action) => {
       const referencedID = action.payload.id
       const lastMessage = action.payload.lastMessage
@@ -654,33 +660,6 @@ export const createGroupConversation = (hostID, groupChatInfo) => async (
   }
 }
 
-/*
-export const startMessagesListening = (conversationID) => async (dispatch) => {
-  try {
-    const unsubscribe = await firestore
-      .collection('PrivateConversation')
-      .doc(conversationID)
-      .collection('Messages')
-      .onSnapshot((snapshot) => {
-        snapshot.docChanges()?.forEach(async (change) => {
-          if (change.type === 'added') {
-            await dispatch(
-              addMessagesToConversation({
-                conversationID,
-                messageID: change.doc.id,
-                message: change.doc.data(),
-              })
-            )
-          }
-        })
-      })
-
-    return unsubscribe
-  } catch (err) {
-    console.error(err)
-  }
-}*/
-
 /**
  * @param {String} conversationID
  * @param {Object} message
@@ -829,15 +808,11 @@ export const deleteMessageFromConversation = (
 
     if (toDel == updatedMessages.length - 1)
       await dispatch(
-        isPrivate
-          ? putAtTopLastUpToDatePrivateChat({
-              id: conversationID,
-              lastMessage: messageToDelete,
-            })
-          : putAtTopLastUpToDateGroupChat({
-              id: conversationID,
-              lastMessage: messageToDelete,
-            })
+        updateLastMessageDeleted({
+          id: conversationID,
+          lastMessage: messageToDelete,
+          isPrivate,
+        })
       )
   } catch (err) {
     console.error(err)
@@ -1006,6 +981,8 @@ const sortChatFunction = (a, b) => {
 export const {
   updateGroupChatInfo,
   setReachFirstMessageState,
+  updateLastMessageDeleted,
+  updateGroupChatMembersList,
   putAtTopLastUpToDatePrivateChat,
   putAtTopLastUpToDateGroupChat,
   updateUsersToSearch,

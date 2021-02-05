@@ -261,6 +261,7 @@ return (
               i,
               currentItemForMenu,
               isCurrentUser,
+              isPrivateChat
             }}/>    
           :
             null

@@ -31,7 +31,11 @@ export default function MessageOptions({ props }: any) {
       {
         text: 'OK',
         onPress: async () => {
-          await dispatch(deleteMessageFromConversation(chatID, message.messageID))
+          await dispatch(isPrivateChat ? 
+            deleteMessageFromConversation(chatID, message.messageID)
+            :
+            deleteMessageFromConversation(chatID, message.messageID, false)
+          )
         },
       },
     ])
@@ -63,6 +67,7 @@ export default function MessageOptions({ props }: any) {
     i,
     currentItemForMenu,
     isCurrentUser,
+    isPrivateChat
   } = props
 
   const optionsStyles = {
@@ -103,7 +108,7 @@ export default function MessageOptions({ props }: any) {
             { m.type === 'image' ? 
             <MenuOption text="Télécharger" onSelect={downloadImage(m)} /> : null}
             <Divider />
-            <MenuOption text="Supprimer" onSelect={deleteMessage(m)} />             
+            <MenuOption text="Supprimer" onSelect={deleteMessage(m, isPrivateChat)} />             
           </MenuOptions>
         :
         <MenuOptions customStyles={optionsStyles}>
