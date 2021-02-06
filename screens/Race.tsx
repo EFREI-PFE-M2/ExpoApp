@@ -5,7 +5,7 @@ import { Badge, IconButton, FAB } from 'react-native-paper'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectSpecificRace, updateSpecificRaceRecentPosts, 
   selectSpecificRaceRecentPostsLoading, selectSpecificRaceNextPostsLoading,
-  selectSpecificRaceNoMorePosts, addSpecificRaceNextPosts, likePost} from '../store/raceSlice'
+  selectSpecificRaceNoMorePosts, addSpecificRaceNextPosts, likePost, vote} from '../store/raceSlice'
 import { selectCurrentUser } from '../store/userSlice'
 import { FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Post from '../components/Post'
@@ -69,6 +69,11 @@ export default function Race({ route, navigation }) {
 
   const handleLikePost = (postID, like) => {
     dispatch(likePost({postID: postID, like: like, raceID: race.id, userID: user.uid},()=>{}, ()=>{}))
+  }
+
+  
+  const handleVote = (postID, response) => {
+    dispatch(vote({postID: postID, response: response, raceID: race.id, userID: user.uid},()=>{}, ()=>{}))
   }
 
   return (
@@ -146,6 +151,7 @@ export default function Race({ route, navigation }) {
                 post={item}
                 currentUserID={user.uid}
                 handleLikePost={handleLikePost}
+                handleVote={handleVote}
               />
             }
           />

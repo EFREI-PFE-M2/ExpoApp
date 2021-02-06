@@ -12,7 +12,7 @@ const PMU_URL = 'https://www.pmu.fr/turf'
 
 export default function Post(props) {
 
-  let { post, currentUserID, handleLikePost } = props
+  let { post, currentUserID, handleLikePost, handleVote } = props
 
   let { type, displayName, profilePicture, datetime, text, 
     nbLikes, nbComments, image, 
@@ -22,6 +22,7 @@ export default function Post(props) {
     location, bet, raceID, betResults,
     responses, expirationDate, userVote, userID, won, alreadyLiked, id
   } = post || {}
+
 
 
 
@@ -64,12 +65,12 @@ export default function Post(props) {
           type === "survey" && (
             <React.Fragment>
               {
-                userVote || expirationDate < currentDate  || currentUserID === userID ?
+                userVote || new Date(expirationDate) < currentDate  || currentUserID === userID ?
                 <FlatList
                   data={responseObjectList}
                   renderItem={({item, index}) => (
                     <View style={{flex: 1, justifyContent: 'center'}}>
-                      <View style={[userVote === index ?{backgroundColor: "#759294"} : {backgroundColor: "#7D7D7D"},
+                      <View style={[userVote === item.response ?{backgroundColor: "#759294"} : {backgroundColor: "#7D7D7D"},
                         { width: `${item.percentage}%`, 
                       height: 30, borderRadius: 15, marginBottom: 2}]} >
                       </View>
@@ -85,7 +86,10 @@ export default function Post(props) {
                 <FlatList
                   data={strResponses}
                   renderItem={({item}) => (
-                    <Button style={{margin: 4}} mode="outlined" color="#194A4C" uppercase={false} onPress={() => console.log('Pressed')}>{item}</Button>
+                    <Button style={{margin: 4}} mode="outlined" color="#194A4C" uppercase={false} 
+                    onPress={()=> handleVote(id, item)}>
+                      {item}
+                    </Button>
                   )}
                 />
               }

@@ -10,12 +10,12 @@ import ProfileAvatar from '../../components/ProfileAvatar';
 export default function DrawerProfile() {
   const user = useSelector(selectCurrentUser)
 
-  const { username, photoURL, nbFollowing, nbFollowers } = user
+  const { displayName, photoURL, nbFollowing, nbFollowers } = user
 
   return (
     <View style={styles.container}>
       <ProfileAvatar url={photoURL}/>
-      <Text style={styles.title}>{username}</Text>
+      <Text style={styles.title}>{displayName}</Text>
       <View style={styles.folllowContainer}>
         <Text style={styles.followLabel}>
           <Text style={styles.number}>{nbFollowing}</Text> Abonnements

@@ -50,15 +50,21 @@ export const raceSlice = createSlice({
     setSpecificRacePostLikeStatus: (state, action) => {
       let { postID, like } = action.payload
       state.specificRace.posts = state.specificRace.posts.map((post)=>
-      post.id === postID ? {...post, alreadyLiked: like} : post)
+      post.id === postID ? {...post, alreadyLiked: like, nbLikes: like ? post.nbLikes+1 : post.nbLikes-1} : post)
     },
+    setSpecificRacePostVoteStatus: (state, action) => {
+      let { postID, response } = action.payload
+      state.specificRace.posts = state.specificRace.posts.map((post)=>
+      post.id === postID ? {...post, userVote: response, responses: {...post.responses, [response]: post.responses[response] + 1}} : post)
+    }
   },
 })
 
 //actions imports
 export const { setRaces, setSpecificRace, setSpecificRacePosts, addSpecificRacePostToMostRecent,
   setSpecificRaceRecentPostsLoading, setSpecificRaceNextPostsLoading,
-  setSpecificRaceNoMorePosts, addSpecificRacePosts, setSpecificRacePostLikeStatus} = raceSlice.actions
+  setSpecificRaceNoMorePosts, addSpecificRacePosts, setSpecificRacePostLikeStatus,
+  setSpecificRacePostVoteStatus} = raceSlice.actions
 
 // thunks
 export const updateRaces = (date) => async (dispatch) => {
@@ -74,12 +80,6 @@ export const updateRaces = (date) => async (dispatch) => {
 }
 
 export const updateSpecificRaceRecentPosts = (raceID) => async (dispatch, getState) => {
-  /*
-  feed, entityID, postID, userID, unlike
-  const likePost = firebase.functions('europe-west1').httpsCallable('likePost')
-  const result = await likePost({feed: 'race', entityID: 56, postID: 12, unlike: false})
-  console.log(result)
-  */
   try {
 
     let userID = getState().user.uid
@@ -112,6 +112,19 @@ export const updateSpecificRaceRecentPosts = (raceID) => async (dispatch, getSta
           post.alreadyLiked = true
         else
           post.alreadyLiked = false
+
+        if(post.type === "survey"){
+          
+          let voteDocs = await doc.ref.collection('Votes').where('userID', '==', userID).get()
+          if (!voteDocs.empty) {
+            let vote;
+            voteDocs.forEach(voteDoc => {
+              vote = voteDoc.data()
+            });
+            post.userVote = vote.response;
+          } 
+        }
+
         posts.push(post)
       } 
       
@@ -225,16 +238,30 @@ export const likePost = (data, cbSuccess, cbError) => async (dispatch) => {
     let { postID, like, raceID, userID } = data
     
     const likePostCloudFunction = firebase.functions('europe-west1').httpsCallable('likePost')
-    const res = await likePostCloudFunction({feed: 'race', entityID: raceID,
+    await likePostCloudFunction({feed: 'race', entityID: raceID,
        postID: postID, userID: userID, like: like})
     
-       console.log(res)
-
-
-
-
     //set local store
     dispatch(setSpecificRacePostLikeStatus({postID: postID, like: like}))
+    cbSuccess()
+  }catch(err){
+    console.log(err)
+    cbError()
+  }
+}
+
+
+export const vote = (data, cbSuccess, cbError) => async (dispatch) => {
+  
+  try{
+    let { postID, raceID, userID, response } = data
+    
+    const voteCloudFunction = firebase.functions('europe-west1').httpsCallable('vote')
+    await voteCloudFunction({feed: 'race', entityID: raceID,
+       postID: postID, userID: userID, response: response})
+    
+    //set local store
+    dispatch(setSpecificRacePostVoteStatus({postID: postID, response: response}))
     cbSuccess()
   }catch(err){
     console.log(err)
