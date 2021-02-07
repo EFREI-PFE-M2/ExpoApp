@@ -127,6 +127,7 @@ exports.onCreateMessage = functions
 
 
     const game = await db.collection('Games').add({
+      player1Turn: Math.random() < 0.5,
       turnUser1CardId: card[0],
       turnUser2CardId: card[1],
       state: 'initial',
@@ -154,7 +155,7 @@ exports.onUpdateGame = functions
   .region('europe-west1')
   .firestore.document('Games/{gameID}')
   .onUpdate(async (gameRecord, context) => {
-    let { state, turnUser1CardId, turnUser2CardId, chosenCaracteristic, results } = gameRecord.after.data()
+    let { state, turnUser1CardId, turnUser2CardId, chosenCaracteristic, player1Turn, results } = gameRecord.after.data()
     const gameID = context.params.gameID
   
     // if caracteristic has been chosen
@@ -211,6 +212,7 @@ exports.onUpdateGame = functions
 
       // update game
       return gameRecord.after.ref.update({
+        player1Turn: !player1Turn,
         chosenCaracteristic: '',
         turnUser1CardId: card[0],
         turnUser2CardId: card[1],
@@ -240,11 +242,15 @@ exports.onUpdateGame = functions
       }
 
       // select winner, if draw, win comes to user who played second
-      winnerID = user2ID
-      looserID = user1ID
+      winnerID = player1Turn ? user2ID : user1ID
+      looserID = player1Turn ? user1ID : user2ID
       if(nbWin1 > nbWin2) {
         winnerID = user1ID
         looserID = user2ID
+      }
+      else if(nbWin1 < nbWin2) {
+        winnerID = user2ID
+        looserID = user1ID
       }
 
       // remove game from users
