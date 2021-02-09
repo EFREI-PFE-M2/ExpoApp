@@ -24,6 +24,8 @@ import { IconButton, TouchableRipple } from 'react-native-paper'
 import Race from '../screens/Race'
 import Group from '../screens/Group'
 import GroupParameters from '../screens/GroupParameters'
+import Profile from '../screens/Drawer/Profile'
+
 
 const BottomTab = createBottomTabNavigator()
 
@@ -146,6 +148,7 @@ function TabHomeNavigator({ navigation }) {
         component={GroupParameters}
         options={{ headerTitle: 'Paramètres' }}
       />
+      <HomeStack.Screen name="Home_Profile" component={Profile} />
     </HomeStack.Navigator>
   )
 }

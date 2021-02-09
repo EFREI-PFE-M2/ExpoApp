@@ -17,18 +17,18 @@ import Posts from '../../components/ProfileTabs/Posts'
 import { selectCurrentUser } from '../../store/userSlice'
 import { Text, View } from './../../components/Themed'
 import { createStackNavigator } from '@react-navigation/stack'
-import { MaterialIcons } from '@expo/vector-icons'
+import ProfileAvatar from '../../components/ProfileAvatar';
 
 const SubTab = createMaterialTopTabNavigator()
 const Stack = createStackNavigator()
 
 export default function Profile(props) {
   const { user, route, navigation } = props
-  const displayUser = route.params.self ? useSelector(selectCurrentUser) : route.params.user
+  const displayUser = route.params.self ? useSelector(selectCurrentUser) : useSelector(({ foreignUser }) => foreignUser[route.params.id])
   const {
     uid,
     photoURL,
-    username,
+    displayName,
     level,
     experience,
     winPercentage,
@@ -37,7 +37,7 @@ export default function Profile(props) {
     currentSeries,
   } = displayUser
 
-  const profileHeader = route.params.self ? 'Mon Profil' : username
+  const profileHeader = route.params.self ? 'Mon Profil' : displayName
 
   const renderXPCard = () => (
     <View style={XPCardStyles.container}>
@@ -53,7 +53,7 @@ export default function Profile(props) {
 
   const renderUserInformation = () => (
     <View style={infoCardStyles.container}>
-      <Text style={infoCardStyles.username}>{username}</Text>
+      <Text style={infoCardStyles.username}>{displayName}</Text>
       {!self && 
         <View style={[infoCardStyles.container, { paddingRight: 0 }]}>
           <IconButton color="#194A4C" size={32} icon="message" />
@@ -66,26 +66,16 @@ export default function Profile(props) {
 
   const renderStats = () => (
     <View style={infoCardStyles.container}>
-      <Text>
-        Pronos <Text style={infoCardStyles.label}>999</Text>
-      </Text>
-      <Text>
-        Gagnés <Text style={infoCardStyles.label}>{winPercentage}%</Text>
-      </Text>
-      <Text>
-        Perdus <Text style={infoCardStyles.label}>{100  -  winPercentage}%</Text>
-      </Text>
+      <Text style={{color: '#757575', marginRight: 3}}>Pronos</Text><Text style={infoCardStyles.label}>999</Text>
+      <Text style={{color: '#757575', marginRight: 3}}>Gagnés</Text><Text style={infoCardStyles.label}>{winPercentage}%</Text>
+      <Text style={{color: '#757575', marginRight: 3}}>Perdus</Text><Text style={infoCardStyles.label}>{100  -  winPercentage}%</Text>
     </View>
   )
 
   const renderFollowers = () => (
     <View style={infoCardStyles.container}>
-      <Text>
-        <Text style={infoCardStyles.label}>{nbFollowing}</Text> Abonnements
-      </Text>
-      <Text>
-        <Text style={infoCardStyles.label}>{nbFollowers}</Text> Abonnés
-      </Text>
+      <Text style={infoCardStyles.label}>{nbFollowing}</Text><Text style={{color: '#757575', marginRight: 5}}>Abonnements</Text>
+      <Text style={infoCardStyles.label}>{nbFollowers}</Text><Text style={{color: '#757575', marginRight: 5}}>Abonnés</Text>
     </View>
   )
 
@@ -131,7 +121,9 @@ export default function Profile(props) {
 
   const renderCurrentSeries = () => (
     <View style={infoCardStyles.container}>
-      <Text>Serie en cours</Text>
+      <Text style={{color: '#757575', marginRight: 3}}>Série en cours:</Text>
+      {
+      currentSeries.length > 0 ?
       <View style={[infoCardStyles.container, { paddingRight: 0 }]}>
         {currentSeries?.map((serie) => (
           <Badge
@@ -143,6 +135,9 @@ export default function Profile(props) {
           />
         ))}
       </View>
+      :
+      <Text>Aucune</Text>
+      }
     </View>
   )
 
@@ -184,7 +179,7 @@ export default function Profile(props) {
     <View style={styles.container}>
       {renderTopBar()}
       <View style={styles.banner}>
-        <Avatar.Image source={{ uri: photoURL }} size={65} />
+        <ProfileAvatar url={photoURL}/>
         {renderXPCard()}
       </View>
       {renderUserInformation()}
@@ -235,18 +230,17 @@ const XPCardStyles = StyleSheet.create({
 const infoCardStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     paddingHorizontal: 15,
     alignItems: 'center',
     marginVertical: 5,
   },
   username: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginHorizontal: 10,
   },
   label: {
     fontWeight: 'bold',
     fontSize: 16,
+    marginRight: 5
   },
 })

@@ -9,7 +9,7 @@ import {
   leaveGroupChat,
 } from '../../store/chatSlice'
 
-export default function GroupChatMenuOptions(props) {
+export default function GroupChatMenuOptions(props: any) {
   const [visible, setVisible] = React.useState(false)
   const navigation = useNavigation()
 

@@ -4,7 +4,7 @@ import { Menu, Divider } from 'react-native-paper'
 import { MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 
-export default function PrivateChatMenuOptions(props) {
+export default function PrivateChatMenuOptions(props: any) {
   const [visible, setVisible] = React.useState(false)
   const navigation = useNavigation()
 

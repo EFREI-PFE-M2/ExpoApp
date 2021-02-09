@@ -7,14 +7,11 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { View } from './../components/Themed'
 import { Dialog, FAB, Portal } from 'react-native-paper'
 import { StyleSheet } from 'react-native'
-import NewPost from '../components/NewPost'
 
 const Tab = createMaterialTopTabNavigator()
 
 export default function HomeTabNavigator() {
-  const [openFab, setOpenFab] = useState(false)
 
-  const fabOnPress = () => setOpenFab(prevState => !prevState)
 
   return (
     <>
@@ -55,14 +52,6 @@ export default function HomeTabNavigator() {
           options={{ title: 'Groupes' }}
         />
       </Tab.Navigator>
-      <FAB
-        style={styles.fab}
-        icon="pen"
-        onPress={fabOnPress}
-      />
-      <Portal>
-        {openFab && <NewPost onClose={fabOnPress} />}
-      </Portal>
     </>
   )
 }
