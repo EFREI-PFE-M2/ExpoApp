@@ -46,6 +46,10 @@ export default function Post(props) {
     })
   }
 
+  const openComments = () => {
+    navigation.navigate('Post_Comments', {feed: feed, entityID: entityID, postID: id})
+  }
+
 
   return (
     <View style={styles.container}>
@@ -175,14 +179,14 @@ export default function Post(props) {
             <Text style={{color: '#757575'}}>{nbLikes} jaimes</Text>
           </TouchableOpacity>
           <Text style={{color: '#757575'}}> · </Text>
-          <TouchableOpacity onPress={()=>{}}>
+          <TouchableOpacity onPress={()=> openComments()}>
             <Text style={{color: '#757575'}}>{nbComments} commentaires</Text>
           </TouchableOpacity>
           {
             type === "bet" && (
               <React.Fragment>
                 <Text style={{color: '#757575'}}> · </Text>
-                <TouchableOpacity onPress={null}>
+                <TouchableOpacity onPress={()=>{}}>
                   <Text style={{color: '#757575'}}>{nbCopiedBets} ont joué</Text>
                 </TouchableOpacity>
               </React.Fragment>
@@ -203,7 +207,7 @@ export default function Post(props) {
             uppercase={false}
             mode="text"
             labelStyle={{fontWeight: 'bold', color: '#757575'}}
-            onPress={() => navigation.navigate('Post_Comments', {feed: feed, entityID: entityID, postID: id})}>Commenter
+            onPress={() => openComments()}>Commenter
           </Button>
           {
             type === "bet" && (

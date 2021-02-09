@@ -21,7 +21,7 @@ import { Keyboard } from 'react-native'
 
 export default function NewPost({ route, navigation }) {
 
-  const { feed, entityID, postID } = route.params
+  const { feed, entityID, postID} = route.params
 
   const [input, setInput] = React.useState('');
   const [pending, setPending] = useState(false)
