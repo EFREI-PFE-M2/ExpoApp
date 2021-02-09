@@ -1,3 +1,4 @@
+import { FirebaseFirestore as firestore} from '../firebase'
 import { createSlice } from '@reduxjs/toolkit'
 
 export const cardGameSlice = createSlice({
@@ -6,7 +7,14 @@ export const cardGameSlice = createSlice({
     ongoingGames: [],
     searchedUsers: [],
   },
-  reducers: {},
+  reducers: {
+    addSearchedUser:(state, action)=>{
+      state.searchedUsers.push(action.payload)
+    },
+    clearSearchedUser:(state)=>{
+      state.searchedUsers=[]
+    },
+  },
 })
 
 /*
@@ -41,9 +49,27 @@ game object format: {
 */
 
 //actions imports
+export const {
+  addSearchedUser,
+  clearSearchedUser,
+} = cardGameSlice.actions
 
 // thunks
+export const getDeck = async(userId) =>{
+  await firestore.collection('CardsDeck').where('userId','==',userId).get()
+}
+
+export const searchUser = (userName) => async(dispatch) =>{
+  await dispatch(clearSearchedUser())
+  const searchedUser = await firestore.collection('Users').orderBy('displayName').startAt(username).endAt(username+'\uf8ff').get()
+  searchedUser.forEach(async (element) => {
+    await dispatch(addSearchedUser(element))
+  });
+}
+
 
 // selectors
+export const selectUserResults = ({ cardGame }) => cardGame.searchedUsers
+
 
 export const cardGameReducer = cardGameSlice.reducer
