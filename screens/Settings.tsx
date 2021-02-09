@@ -13,7 +13,7 @@ import {
 } from '../store/userSlice'
 
 export default function Settings(props) {
-  const { navigation } = props
+  const { navigation, isDialog } = props
   const userEmail = useSelector(selectCurrentUserEmail)
   const notificationState = useSelector(selectCurrentNotificationState)
   const [email, setEmail] = useState(userEmail)
@@ -111,7 +111,7 @@ export default function Settings(props) {
   )
   return (
     <View style={styles.container}>
-      {renderTopbar()}
+      {!isDialog && renderTopbar()}
       <View style={[styles.container, { paddingHorizontal: 20 }]}>
         {renderInputs()}
         <View style={{ marginTop: 20 }}>{renderSystemSection()}</View>

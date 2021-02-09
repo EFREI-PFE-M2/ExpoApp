@@ -163,8 +163,9 @@ export const {
 export const getGroup = (groupID) => async (dispatch) => {
   try {
     const result = await firestore.collection('Groups').doc(groupID).get()
-
-    dispatch(addGroup({ id: result.id, data: result.data() }))
+    let group = result.data()
+    delete group.createdAt
+    dispatch(addGroup({ id: result.id, data: group }))
   } catch (err) {
     console.error(err)
   }
@@ -218,9 +219,10 @@ export const createGroup = (name, isPrivate, photo) => async (
       masterID: user?.uid,
     })
 
-    const data = await result.get()
-
-    await dispatch(addGroup({ id: result.id, data: data.data() }))
+    let res = await result.get()
+    let data = res.data()
+    delete data.createdAt
+    await dispatch(addGroup({ id: result.id, data: data}))
     return result.id
   } catch (err) {
     console.error(err)
@@ -245,7 +247,10 @@ export const getMembers = (groupID) => async (dispatch) => {
 
     result.forEach((doc) => {
       // dispatch(addUser(doc.id, doc.data()))
-      userArray.push(doc.data())
+      let user = doc.data()
+      delete user.createdAt
+
+      userArray.push(user)
     })
 
     dispatch(addUsersToGroup({ users: userArray, groupID }))
@@ -270,7 +275,9 @@ export const getGroupPosts = (groupID) => async (dispatch) => {
     if (!result.size) return
 
     result.forEach((doc) => {
-      groupPosts.push({ id: doc.id, ...doc.data() })
+      let groupPost = doc.data()
+      delete groupPost.createdAt
+      groupPosts.push({ id: doc.id, ...groupPost})
     })
 
     dispatch(addPostsToGroup({ posts: groupPosts, groupID }))
@@ -295,7 +302,9 @@ export const getPendingRequests = (groupID) => async (dispatch) => {
     if (!result.size) return
 
     result.forEach((doc) => {
-      groupRequests.push({ id: doc.id, ...doc.data() })
+      let joinPendingRequest = doc.data()
+      delete joinPendingRequest.createdAt
+      groupRequests.push({ id: doc.id, ...joinPendingRequest })
     })
 
     dispatch(addRequestsToGroup({ requests: groupRequests, groupID }))

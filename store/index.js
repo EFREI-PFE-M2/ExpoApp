@@ -9,6 +9,7 @@ import { searchReducer } from './searchSlice'
 import { subscriberFeedReducer } from './subscriberFeedSlice'
 import { settingsReducer } from './settingsSlice'
 import { sessionReducer } from './sessionSlice'
+import { postEditorReducer } from './postEditorSlice'
 
 export default configureStore({
   reducer: {
@@ -22,5 +23,6 @@ export default configureStore({
     subsciberFeed: subscriberFeedReducer,
     settings: settingsReducer,
     session: sessionReducer,
+    postEditor: postEditorReducer
   },
 })

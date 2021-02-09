@@ -7,15 +7,17 @@ import { addAll } from './groupSlice'
 export const searchSlice = createSlice({
   name: 'search',
   initialState: {
-    searchedUsers: [],
-    searchedGroups: [],
+    searchedUsers: {},
+    searchedGroups: {},
   },
   reducers: {
     addToUsers: (state, action) => {
-      state.searchedUsers = action.payload
+      const { id, ...rest } = action.payload
+      state.searchedUsers[id] = rest
     },
     addToGroups: (state, action) => {
-      state.searchedGroups = action.payload
+      const { id, ...rest } = action.payload
+      state.searchedGroups[id] = rest
     },
     resetUsers: (state) => {
       state.searchedUsers = []

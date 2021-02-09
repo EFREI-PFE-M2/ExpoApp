@@ -5,6 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { View } from './Themed';
 import { sendGroupChatMessage, sendPrivateChatMessage } from '../store/chatSlice';
 import { useDispatch } from 'react-redux';
+import uploadImage from '../utils/uploadImage';
 
 export default function ImagePickerBtn({props}: any) {
     const dispatch = useDispatch()
@@ -41,6 +42,8 @@ export default function ImagePickerBtn({props}: any) {
                 }
             }
             setChatHistory([...chatHistory, message])
+            const path = isPrivateChat ? `chats/private/${chatID}` : `chats/group/${chatID}`
+            message.image.uri = await uploadImage(message.image.uri, message.image.name, path)
             await dispatch(isPrivateChat ? sendPrivateChatMessage(chatID, message) : 
             sendGroupChatMessage(chatID, message))
         }
