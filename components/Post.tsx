@@ -5,6 +5,7 @@ import { Avatar, Divider, Button, Card } from 'react-native-paper'
 import { MaterialIcons } from '@expo/vector-icons'; 
 import timeAgoFormat from '../utils/timeAgoFormatter'
 import ProfileAvatar from './ProfileAvatar';
+import { useNavigation } from '@react-navigation/native';
 
 let currentDate = new Date()
 
@@ -12,7 +13,11 @@ const PMU_URL = 'https://www.pmu.fr/turf'
 
 export default function Post(props) {
 
-  let { post, currentUserID, handleLikePost, handleVote } = props
+  const navigation = useNavigation();
+
+  let { post, currentUserID, handleLikePost, handleVote, feed, entityID} = props
+
+
 
   let { type, displayName, profilePicture, datetime, text, 
     nbLikes, nbComments, image, 
@@ -166,11 +171,11 @@ export default function Post(props) {
           )
         }
         <View style={{ flexDirection: 'row', padding: 5}}>
-          <TouchableOpacity onPress={null}>
+          <TouchableOpacity onPress={()=>{}}>
             <Text style={{color: '#757575'}}>{nbLikes} jaimes</Text>
           </TouchableOpacity>
           <Text style={{color: '#757575'}}> · </Text>
-          <TouchableOpacity onPress={null}>
+          <TouchableOpacity onPress={()=>{}}>
             <Text style={{color: '#757575'}}>{nbComments} commentaires</Text>
           </TouchableOpacity>
           {
@@ -198,7 +203,7 @@ export default function Post(props) {
             uppercase={false}
             mode="text"
             labelStyle={{fontWeight: 'bold', color: '#757575'}}
-            onPress={() => console.log('Pressed')}>Commenter
+            onPress={() => navigation.navigate('Post_Comments', {feed: feed, entityID: entityID, postID: id})}>Commenter
           </Button>
           {
             type === "bet" && (

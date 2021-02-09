@@ -152,6 +152,8 @@ export default function Race({ route, navigation }) {
                 currentUserID={user.uid}
                 handleLikePost={handleLikePost}
                 handleVote={handleVote}
+                feed='race'
+                entityID={raceID}
               />
             }
           />
