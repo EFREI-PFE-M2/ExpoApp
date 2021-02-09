@@ -108,6 +108,38 @@ exports.vote = functions
     }
 })
 
+
+exports.comment = functions
+.region('europe-west1')
+.https.onCall(async (contextData, context) => {
+    let {feed, entityID, postID, userID, datetime, 
+      displayName, picture, text} = contextData
+
+    switch(feed){
+      case 'race':
+        try{
+
+          //Add vote to Votes collection
+          await db.collection(`Races/${entityID}/Posts/${postID}/Comments`)
+          .add({datetime: datetime, displayName: displayName, picture: picture, userID:userID, text: text})
+
+
+          //increment response field
+          let increment = admin.firestore.FieldValue.increment(1);
+          let postRef = db.collection(`Races/${entityID}/Posts`).doc(postID);
+          await postRef.update({nbComments: increment});
+
+        }catch(err){
+          return false
+        }
+        break;
+      case 'sub':
+        break;
+      case 'group':
+        break;
+    }
+})
+
 exports.onCreateUser = functions
   .region('europe-west1')
   .auth.user()

@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 import { FirebaseApp as firebase } from '../firebase'
 import { FirebaseFirestore as firestore } from '../firebase'
 import uploadImage from '../utils/uploadImage'
+import { createSelector } from 'reselect'
 
 const PAGINATION = 3
 
@@ -14,7 +15,9 @@ export const raceSlice = createSlice({
     specificRaceLoading: false,
     specificRaceRecentPostsLoading: false,
     specificRaceNextPostsLoading: false,
-    specificRaceNoMorePosts: false
+    specificRaceNoMorePosts: false,
+    specificRacePostCommentsLoading: false,
+    specificRacePostNoMoreComments: false
   },
   reducers: {
     setRaces: (state, action) => {
@@ -56,7 +59,24 @@ export const raceSlice = createSlice({
       let { postID, response } = action.payload
       state.specificRace.posts = state.specificRace.posts.map((post)=>
       post.id === postID ? {...post, userVote: response, responses: {...post.responses, [response]: post.responses[response] + 1}} : post)
-    }
+    },
+    setSpecificRacePostVoteComments: (state, action) => {
+      let { comments, postID } = action.payload
+      state.specificRace.posts = state.specificRace.posts.map((post)=>
+      post.id === postID ? {...post, comments: comments} : post)
+    },
+    setSpecificRacePostCommentsLoading: (state, action) => {
+      state.specificRacePostCommentsLoading = action.payload
+    },
+    setSpecificRacePostNoMoreComments: (state, action) => {
+      state.specificRacePostNoMoreComments = action.payload
+    },
+    addSpecificRacePostComment: (state, action) => {
+      let { comment, postID } = action.payload
+      console.log('DEBUUG')
+      state.specificRace.posts = state.specificRace.posts.map((post)=>
+      post.id === postID ? {...post, comments: [...post?.comments, comment]} : post)
+    },
   },
 })
 
@@ -64,7 +84,8 @@ export const raceSlice = createSlice({
 export const { setRaces, setSpecificRace, setSpecificRacePosts, addSpecificRacePostToMostRecent,
   setSpecificRaceRecentPostsLoading, setSpecificRaceNextPostsLoading,
   setSpecificRaceNoMorePosts, addSpecificRacePosts, setSpecificRacePostLikeStatus,
-  setSpecificRacePostVoteStatus} = raceSlice.actions
+  setSpecificRacePostVoteStatus, setSpecificRacePostVoteComments, setSpecificRacePostCommentsLoading,
+  setSpecificRacePostNoMoreComments, addSpecificRacePostComment} = raceSlice.actions
 
 // thunks
 export const updateRaces = (date) => async (dispatch) => {
@@ -269,11 +290,91 @@ export const vote = (data, cbSuccess, cbError) => async (dispatch) => {
   }
 }
 
+
+export const updateSpecificRacePostComments = (data) => async (dispatch) => {
+  try {
+
+    let { raceID, postID } = data
+
+
+    dispatch(setSpecificRacePostVoteComments({comments: [], postID: postID}))
+    dispatch(setSpecificRacePostNoMoreComments(false))
+    dispatch(setSpecificRacePostCommentsLoading(true))
+    
+    //make query
+    const snapshot  = await firestore
+      .collection(`Races/${raceID}/Posts/${postID}/Comments`)
+      .orderBy('datetime','asc')
+      .get();
+
+      if (snapshot.empty) {
+        console.log('No matching document');
+        dispatch(setSpecificRacePostCommentsLoading(false))
+        dispatch(setSpecificRacePostNoMoreComments(true))
+        return;
+      } 
+      let comments = []
+
+      for(doc of snapshot.docs) {
+        let comment = doc.data()
+        delete comment.createdAt
+
+        comments.push(comment)
+      } 
+      
+      dispatch(setSpecificRacePostVoteComments({comments: comments, postID: postID}))
+      
+      //hide loading indicator
+      dispatch(setSpecificRacePostCommentsLoading(false))
+  } catch (err) {
+    alert('Erreur interne')
+    console.error(err)
+    dispatch(setSpecificRacePostCommentsLoading(false))
+  }
+}
+
+
+export const comment = (data, cbSuccess, cbError) => async (dispatch, getState) => {
+  let currentDate = new Date()
+  let currentUser = getState().user
+  try{
+    let { raceID, postID, text } = data
+
+    let comment = {
+      datetime: currentDate.toISOString(), 
+      displayName: currentUser.displayName, 
+      picture: currentUser.photoURL, 
+      userID: currentUser.uid, 
+      text: text
+    }
+    
+    const commentCloudFunction = firebase.functions('europe-west1').httpsCallable('comment')
+    await commentCloudFunction({feed: 'race', entityID: raceID, postID: postID, userID: currentUser.uid, datetime: currentDate.toISOString(), 
+      displayName: currentUser.displayName, picture: currentUser.photoURL, text: text})
+    
+    //set local store
+    dispatch(addSpecificRacePostComment({comment: comment, postID: postID}))
+    cbSuccess()
+  }catch(err){
+    console.log(err)
+    cbError()
+  }
+}
+
 // selectors
 export const selectRaces = state => state.race.races
 export const selectSpecificRace = state => state.race.specificRace
+
+export const selectSpecificRacePost = postID => {
+  return createSelector(
+    selectSpecificRace,
+    specificRace => specificRace.posts?.find(post => post.id === postID)
+  )
+}
 export const selectSpecificRaceRecentPostsLoading = state => state.race.specificRaceRecentPostsLoading
 export const selectSpecificRaceNextPostsLoading = state => state.race.specificRaceNextPostsLoading
 export const selectSpecificRaceNoMorePosts = state => state.race.specificRaceNoMorePosts
+export const selectSpecificRacePostCommentsLoading = state => state.race.specificRacePostCommentsLoading
+export const selectSpecificRacePostNoMoreComments = state => state.race.specificRacePostNoMoreComments
 
 export const raceReducer = raceSlice.reducer
