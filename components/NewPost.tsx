@@ -7,7 +7,7 @@ import { selectCurrentUser } from '../store/userSlice'
 import { ScrollView } from 'react-native-gesture-handler'
 
 export default function NewPost(props) {
-  const { onClose } = props
+  const { onClose, isDialog } = props
   const photoURL = useSelector(selectCurrentUser)?.photoURL
   const [content, setContent] = useState('')
 
@@ -72,7 +72,7 @@ export default function NewPost(props) {
 
   return (
     <View style={styles.container}>
-      {renderTopbar()}
+      {!isDialog && renderTopbar()}
       <View style={styles.elementContainer}>
         <Avatar.Image
           source={{ uri: photoURL }}

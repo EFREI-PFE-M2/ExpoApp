@@ -1,13 +1,27 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { StyleSheet } from 'react-native'
-import { Button, IconButton, TouchableRipple } from 'react-native-paper'
+import {
+  Button,
+  Dialog,
+  IconButton,
+  Portal,
+  TouchableRipple,
+} from 'react-native-paper'
 import { View, Text } from '../components/Themed'
 import Search from '../components/Web/Search'
+import Setting from './Dialog/Setting'
+import New from './Dialog/New'
 
 export default function Header() {
-  const newButton = () => console.log('new')
+  const [newVisible, setNewVisible] = useState(false)
+  const [dotsVisible, setDotsVisible] = useState(false)
+  const newButton = () => setNewVisible(true)
   const bellButton = () => console.log('bell')
-  const dotsButton = () => console.log('dots')
+  const dotsButton = () => setDotsVisible(true)
+
+  const newOnDismiss = () => setNewVisible(false)
+  const dotsOnDismiss = () => setDotsVisible(false)
+
   return (
     <View style={styles.container}>
       <TouchableRipple onPress={() => console.log('menu')}>
@@ -26,6 +40,25 @@ export default function Header() {
         <IconButton icon="bell" color="#fff" onPress={bellButton} />
         <IconButton icon="dots-horizontal" color="#fff" onPress={dotsButton} />
       </View>
+
+      <Portal>
+        <Dialog
+          visible={newVisible}
+          onDismiss={newOnDismiss}
+          style={{ height: 600, width: 500, alignSelf: 'center' }}>
+          <Dialog.Content style={{ width: '100%', height: '100%' }}>
+            <New />
+          </Dialog.Content>
+        </Dialog>
+        <Dialog
+          visible={dotsVisible}
+          onDismiss={dotsOnDismiss}
+          style={{ height: 600, width: 500, alignSelf: 'center' }}>
+          <Dialog.Content style={{ width: '100%', height: '100%' }}>
+            <Setting />
+          </Dialog.Content>
+        </Dialog>
+      </Portal>
     </View>
   )
 }
