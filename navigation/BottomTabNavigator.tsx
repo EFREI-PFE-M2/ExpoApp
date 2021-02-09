@@ -189,7 +189,7 @@ function TabChallengeNavigator() {
  * CardGame stack navigator
  */
 const CardGameStack = createStackNavigator()
-function TabCardGameNavigator() {
+export function TabCardGameNavigator() {
   return (
     <CardGameStack.Navigator screenOptions={defaultScreenOptions}>
       <CardGameStack.Screen
