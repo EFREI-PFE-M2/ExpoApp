@@ -17,8 +17,8 @@ export default function PrivateChatMenuOptions(props: any) {
     setVisible(false)
     navigation.navigate('Profil', {
       self: false,
-      user: {
-        username: chatInfo.receiverDisplayName,
+      foreignUser: {
+        displayName: chatInfo.receiverDisplayName,
         photoURL: chatInfo.receiverPhotoURL,
         level: 0,
         experience: 0,
