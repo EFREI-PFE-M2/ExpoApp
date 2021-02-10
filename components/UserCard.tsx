@@ -7,16 +7,14 @@ import { userSlice } from '../store/userSlice'
 import { View, Text } from './Themed'
 
 export default function UserCard({ user, navigate }) {
-  const { photoURL, displayName } = useSelector(
-    ({ search }) => search?.search?.searchedUsers[user]
-  )
+  const { photoURL, displayName } = user
 
   const onPress = () => navigate('Home_Profile', { id: userSlice })
   return (
     <TouchableRipple style={styles.container} onPress={onPress}>
       <>
-          <Image source={{ uri: photoURL || '' }} style={styles.image} />
-          <Text style={styles.title}>{displayName}</Text>
+        <Image source={{ uri: photoURL || '' }} style={styles.image} />
+        <Text style={styles.title}>{displayName}</Text>
       </>
     </TouchableRipple>
   )

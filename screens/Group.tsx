@@ -5,7 +5,7 @@ import { StyleSheet, Image } from 'react-native'
 import { Button, IconButton } from 'react-native-paper'
 import { useDispatch, useSelector } from 'react-redux'
 import Post from '../components/Post'
-import UserCard from '../components/UserCard_Small'
+import UserCard from '../components/UserCard'
 import UserRequestCard from '../components/UserRequestCard'
 import {
   getGroupPosts,
