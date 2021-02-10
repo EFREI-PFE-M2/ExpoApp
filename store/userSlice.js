@@ -198,12 +198,10 @@ export const firebaseAuthCreateUser = (email, password, username) => async (
       throw new Error('Unknown error')
     }
 
-    // await snapshot.user.updateProfile({
-    //   displayName: username,
-    // })
-
     await firestore.collection('Users').doc(snapshot.user.uid).set({
       displayName: username,
+      photoURL:
+        'https://st.depositphotos.com/2101611/3925/v/600/depositphotos_39258143-stock-illustration-businessman-avatar-profile-picture.jpg',
     })
 
     return true
@@ -226,7 +224,6 @@ export const autoAuth = () => async (dispatch) => {
       newUser.emailVerified = user.emailVerified
       newUser.loading = false
 
-    
       dispatch(updateUser(newUser))
       retrieveUserData(user.uid, dispatch)
       // dispatch(getInitRaces(new Date().toDateString()))
@@ -239,7 +236,7 @@ const retrieveUserData = async (id, dispatch) => {
   const resultRef = await firestore.collection('Users').doc(id).get()
   const result = resultRef.data()
   delete result.createdAt
-  
+
   dispatch(updateUser(result))
 }
 

@@ -24,7 +24,10 @@ const Stack = createStackNavigator()
 
 export default function Profile(props) {
   const { user, route, navigation } = props
-  const displayUser = route.params.self ? useSelector(selectCurrentUser) : useSelector(({ foreignUser }) => foreignUser[route.params.id])
+
+  const displayUser = route.params.self ? useSelector(selectCurrentUser) : 
+  useSelector(({ foreignUser }) => foreignUser[route.params.id])
+
   const {
     uid,
     photoURL,
@@ -35,7 +38,7 @@ export default function Profile(props) {
     nbFollowers,
     nbFollowing,
     currentSeries,
-  } = displayUser
+  } = displayUser ? displayUser : route.params.foreignUser
 
   const profileHeader = route.params.self ? 'Mon Profil' : displayName
 
