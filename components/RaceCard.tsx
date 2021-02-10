@@ -27,12 +27,14 @@ export default function RaceCard(props) {
     hour,
   } = race
 
+  
+
   const onPress = () => {
     dispatch(setSpecificRace(race))
     navigation.navigate('Home_Race', { raceID: race.id })
   }
 
-  const description = `${category} - ${distance}m - ${
+  const description = `${category} • ${distance}m • ${
     horses?.length || 0
   } partants`
 

@@ -35,7 +35,7 @@
       "FIREBASE_AUTH_DOMAIN": "pmu-commu.firebaseapp.com",
       "FIREBASE_DATABASE_URL": "https://pmu-commu.firebaseio.com",
       "FIREBASE_PROJECT_ID": "pmu-commu",
-      "FIREBASE_STORAGE_BUCKET": "commu.appspot.com",
+      "FIREBASE_STORAGE_BUCKET": "pmu-commu.appspot.com",
       "FIREBASE_MESSAGING_SENDER_ID": "651773660084",
       "FIREBASE_APP_ID": "1:651773660084:web:fea1eabff5a5cdf29f40e1",
       "FIREBASE_MEASUREMENTID": "G-C5F8DB8CPV"

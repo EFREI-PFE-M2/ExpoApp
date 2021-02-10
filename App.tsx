@@ -4,11 +4,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Provider } from 'react-redux'
 import store from './store'
 import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper'
-import { LogBox } from 'react-native';
+import { LogBox, Platform } from 'react-native'
 
 import useCachedResources from './hooks/useCachedResources'
 import useColorScheme from './hooks/useColorScheme'
 import Navigation from './navigation'
+import WebNavigation from './navigation/webIndex'
 import { Theme } from 'react-native-paper/lib/typescript/src/types'
 import { autoAuth } from './store/userSlice'
 
@@ -28,7 +29,7 @@ const theme: Theme = {
 store.dispatch(autoAuth())
 
 export default function App() {
-  LogBox.ignoreLogs(['Setting a timer']);
+  // LogBox.ignoreLogs(['Setting a timer']);
   const isLoadingComplete = useCachedResources()
   const colorScheme = useColorScheme()
 
@@ -39,8 +40,14 @@ export default function App() {
       <Provider store={store}>
         <PaperProvider theme={theme}>
           <SafeAreaProvider>
-            <StatusBar />
-            <Navigation colorScheme={colorScheme} />
+            {Platform.OS === 'web' ? (
+              <WebNavigation colorScheme={colorScheme} />
+            ) : (
+              <>
+                <StatusBar />
+                <Navigation colorScheme={colorScheme} />
+              </>
+            )}
           </SafeAreaProvider>
         </PaperProvider>
       </Provider>

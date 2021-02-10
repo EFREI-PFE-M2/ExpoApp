@@ -11,7 +11,7 @@ import {
 } from '../store/sessionSlice'
 import { firebaseAuthCreateUser, firebaseAuthLogin } from '../store/userSlice'
 
-export default function SignUp({ navigation }) {
+export default function SignUp({ navigation, signInCallback }) {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -45,7 +45,11 @@ export default function SignUp({ navigation }) {
 
   const navigationLogin = () => {
     dispatch(setFirebaseAuthError(''))
-    navigation.navigate('SignIn')
+    if (signInCallback) {
+      signInCallback()
+    } else {
+      navigation.navigate('SignIn')
+    }
   }
   const navigationTos = () => {
     dispatch(setFirebaseAuthError(''))
@@ -125,6 +129,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#194A4C',
     width: '100%',
+    height: '100%',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',

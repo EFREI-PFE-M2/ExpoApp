@@ -17,6 +17,7 @@
     "@firebase/messaging": "^0.7.3",
     "@react-native-community/datetimepicker": "3.0.0",
     "@react-native-community/masked-view": "0.1.10",
+    "@react-native-picker/picker": "^1.9.10",
     "@react-navigation/bottom-tabs": "^5.8.0",
     "@react-navigation/drawer": "^5.11.4",
     "@react-navigation/material-top-tabs": "^5.3.10",
@@ -39,13 +40,17 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-39.0.4.tar.gz",
     "react-native-gesture-handler": "~1.7.0",
     "react-native-modal-datetime-picker": "^9.1.0",
+    "react-native-numeric-input": "^1.8.3",
     "react-native-paper": "^4.4.1",
+    "react-native-picker-select": "^8.0.4",
+    "react-native-popup-menu": "^0.15.10",
     "react-native-reanimated": "^1.13.2",
     "react-native-safe-area-context": "3.1.4",
     "react-native-screens": "~2.10.1",
     "react-native-tab-view": "^2.15.2",
     "react-native-web": "~0.13.12",
-    "react-redux": "^7.2.2"
+    "react-redux": "^7.2.2",
+    "reselect": "^4.0.0"
   },
   "devDependencies": {
     "@babel/core": "~7.9.0",

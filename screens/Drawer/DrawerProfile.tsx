@@ -5,16 +5,17 @@ import { useSelector } from 'react-redux'
 import ProfilePhoto from '../../components/ProfilePhoto'
 import { View, Text } from '../../components/Themed'
 import { selectCurrentUser } from '../../store/userSlice'
+import ProfileAvatar from '../../components/ProfileAvatar';
 
 export default function DrawerProfile() {
   const user = useSelector(selectCurrentUser)
 
-  const { username, photoURL, nbFollowing, nbFollowers } = user
+  const { displayName, photoURL, nbFollowing, nbFollowers } = user
 
   return (
     <View style={styles.container}>
-      <Avatar.Image source={{  uri: photoURL  }} size={48} />
-      <Text style={styles.title}>{username}</Text>
+      <ProfileAvatar url={photoURL}/>
+      <Text style={styles.title}>{displayName}</Text>
       <View style={styles.folllowContainer}>
         <Text style={styles.followLabel}>
           <Text style={styles.number}>{nbFollowing}</Text> Abonnements
