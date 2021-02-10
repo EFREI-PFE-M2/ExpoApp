@@ -4,36 +4,15 @@ import firebase, { FirebaseFirestore as firestore } from '../firebase'
 export const foreignUserSlice = createSlice({
   name: 'foreignUser',
   initialState: {
-    1: {
-      users: [],
-      username: '',
-      winPercentage: 0,
-      lossPercentage: 0,
-      currentSeries: [],
-      level: 0,
-      experience: 0,
-      nbFollowers: 0,
-      nbFollowing: 0,
-      posts: [],
-      cards: [],
-      userBets: {
-        1: {
-          datetime: new Date().toISOString(),
-          betText: 'Default',
-          betType: 'simple',
-          betCategory: 'gagant',
-          bet: [1, 9, 4, 2, 5],
-          betRaceID: 1,
-          betActionUrl: '',
-          betResults: [1, 9, 4, 2, 5],
-        },
-      },
-    },
+    
   },
   reducers: {
     addUser: (state, action) => {
       const { id, data } = action.payload
       state[id] = data
+    },
+    setUser: (state, action) => {
+      state = Object.assign(state, action.payload)
     },
   },
 })
@@ -103,7 +82,7 @@ let card ={
 */
 
 //actions imports
-export const { addUser } = foreignUserSlice.actions
+export const { addUser, setUser } = foreignUserSlice.actions
 
 // thunks
 export const retrieveUsers = (ids) => async (dispatch) => {
@@ -124,6 +103,34 @@ export const retrieveUsers = (ids) => async (dispatch) => {
     console.log(err)
   }
 }
-// selectors
 
+export const updateForeignUser = (id) => async (dispatch, getState) => {
+  try {
+    const { user } = getState()
+    let userRef = firestore.collection('Users').doc(id)
+    let doc = await userRef.get()
+    if (!doc.exists) {
+      console.log('No user found with this id');
+      return;
+    }
+
+    let foreignUser = doc.data()
+    delete foreignUser.createdAt
+
+    //check if followed
+    const snapshot = await firestore.collection('Follows').where('followerID', '==', user.uid ).where('followedID','==', id).get();
+    if (!snapshot.empty) {
+      foreignUser.isFollowed = true;
+    }  
+
+    dispatch(setUser(foreignUser))
+
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+
+// selectors
+export const selectForeignUser = (state) => state.foreignUser
 export const foreignUserReducer = foreignUserSlice.reducer

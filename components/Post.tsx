@@ -56,7 +56,7 @@ export default function Post(props) {
         <View style={{flexDirection: 'row'}}>
           <ProfileAvatar url={profilePicture}/>
           <View style={{margin: 5}}>
-            <TouchableOpacity onPress={null}>
+            <TouchableOpacity onPress={()=>navigation.navigate('Profil', {id: userID === currentUserID ? -1 : userID})}>
               <Text style={{ fontWeight: 'bold' }}>{displayName}</Text>
             </TouchableOpacity>
             <Text style={styles.date}>{timeAgoFormat(datetime)}</Text>

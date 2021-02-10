@@ -65,7 +65,7 @@ export default function DrawerNavigator() {
             <MaterialIcons name="person-outline" size={24} color={color} />
           ),
         }}
-        initialParams={{ self: true }}
+        initialParams={{ id: -1 }}
       />
       <Drawer.Screen
         name="Messages"
