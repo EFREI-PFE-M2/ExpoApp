@@ -35,7 +35,8 @@ export const userSlice = createSlice({
       state = Object.assign(state, action.payload)
     },
     setNull: (state) => {
-      state = null
+      state.uid = ''
+      state = {}
     },
     changeNotificationState: (state, action) => {
       state.notificationState = action.payload
