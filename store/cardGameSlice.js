@@ -1,10 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { FirebaseApp as firebase } from '../firebase'
+import { FirebaseFirestore as firestore } from '../firebase'
 
 export const cardGameSlice = createSlice({
   name: 'cardGame',
   initialState: {
-    ongoingGames: [],
-    searchedUsers: [],
+    
   },
   reducers: {},
 })
@@ -45,5 +46,17 @@ game object format: {
 // thunks
 
 // selectors
+
+export const handleGameStateChanges = () => async dispatch => {
+  // const lists = await firestore.collection('lists').get()
+  let docs
+  const lists = await firestore.collection('Games').doc(id).onSnapshot(snapshot => {
+    docs = snapshot.docChanges().map(c =>c.doc.data())
+    if (docs) {
+      return dispatch(receiveLists(docs))    
+    }
+    return
+  })
+}
 
 export const cardGameReducer = cardGameSlice.reducer
