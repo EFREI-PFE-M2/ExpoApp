@@ -5,9 +5,24 @@ import { FirebaseFirestore as firestore } from '../firebase'
 export const cardGameSlice = createSlice({
   name: 'cardGame',
   initialState: {
-    
+    ongoingGames: [],
+    searchedUsers: [],
+    deck: [],
   },
-  reducers: {},
+  reducers: {
+    addSearchedUser:(state, action)=>{
+      state.searchedUsers.push(action.payload)
+    },
+    clearSearchedUser:(state)=>{
+      state.searchedUsers=[]
+    },
+    addDeck:(state, action)=>{
+      state.deck.push(action.payload)
+    },
+    clearDeck:(state)=>{
+      state.deck=[]
+    },
+  },
 })
 
 /*
@@ -42,10 +57,26 @@ game object format: {
 */
 
 //actions imports
+export const {
+  addSearchedUser,
+  clearSearchedUser,
+  addDeck,
+  clearDeck
+} = cardGameSlice.actions
 
 // thunks
 
-// selectors
+export const searchUser = (userName) => async(dispatch) =>{
+  await dispatch(clearSearchedUser())
+  const searchedUser = await firestore.collection('Users').orderBy('displayName').startAt(userName).endAt(userName+'\uf8ff').get()
+  searchedUser.forEach(async (element) => {
+    await dispatch(addSearchedUser({
+      userID: element.id,
+      username: element.get('displayName'),
+      profilePicture: element.get('photoURL')
+    }))
+  });
+}
 
 export const handleGameStateChanges = () => async dispatch => {
   // const lists = await firestore.collection('lists').get()
@@ -58,5 +89,12 @@ export const handleGameStateChanges = () => async dispatch => {
     return
   })
 }
+
+// selectors
+export const selectUserResults = ({ cardGame }) => cardGame.searchedUsers
+export const selectDeck = ({ cardGame }) => cardGame.deck
+
+
+
 
 export const cardGameReducer = cardGameSlice.reducer

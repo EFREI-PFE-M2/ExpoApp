@@ -2,15 +2,28 @@ import React, { useEffect, useState } from 'react'
 import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native'
 import { IconButton, Modal, Portal } from 'react-native-paper'
 import { Button } from 'react-native-paper';
+import Card from '../../components/Card'
+import CardResult from '../../components/CardResult'
+
+const testCard = {
+    cardDescription: "finished second to Affirmed in all three 1978 Triple Crown races",
+    cardName: "Foudre",
+    cardPicture: "https://firebasestorage.googleapis.com/v0/b/pmu-commu.appspot.com/o/cards%2Fhorse9.jpg?alt=media&token=dfa22774-f182-486f-9981-e20fccdfb4dc",
+    cardRarity: 3,
+    corde_droite: 52,
+    corde_gauche: 3,
+    herbe: 38,
+    psf: 69
+}
 
 export default function Game({ route, navigation }) {
   
   const [quitModalVisible, setQuitModalVisible] = useState(false)
   
-  const [state, setState] = useState('game_results')
+  const [state, setState] = useState('turn_results')
 
   const [turn, setTurn] = useState(2)
-  const [isLineSelected, setIsLineSelected] = useState(true)
+  const [isLineSelected, setIsLineSelected] = useState(false)
   const [oppenentUsername, setOppenentUsername] = useState('Jeff')
 
   const [isTurnWon, setIsTurnWon] = useState(false)
@@ -67,9 +80,20 @@ export default function Game({ route, navigation }) {
         {
             state === "attempt" && 
             <View style={{flex: 1}}>
-                <View style={{flex: 1}}></View>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                    <Card cardPicture={testCard.cardPicture} 
+                        cardName={testCard.cardName}
+                        cardRarity={testCard.cardRarity}
+                        cardDescription={testCard.cardDescription}
+                        corde_droite={testCard.corde_droite} 
+                        corde_gauche={testCard.corde_gauche}
+                        herbe={testCard.herbe} 
+                        psf={testCard.psf}
+                        selectCaracteristic={(title, score)=>alert(`${title} ${score}`)}
+                    />
+                </View>
                 <View style={{backgroundColor: '#fff', 
-                paddingVertical: 30, flexDirection: 'row', justifyContent: 'space-around'}}>
+                paddingVertical: 20, flexDirection: 'row', justifyContent: 'space-around'}}>
                     <Text style={{fontSize: 20}}>{isLineSelected ? `En attente de ${oppenentUsername}...` : 'Choisissez une ligne...'}</Text>
                     <Text style={{fontSize: 20}}>{`${turn}/5`}</Text>
                 </View>
@@ -83,7 +107,9 @@ export default function Game({ route, navigation }) {
                         {isTurnWon ?  'Vous avez gagné le tour !' : 'Vous avez perdu le tour !'}
                     </Text>
                 </View>
-                <View style={{flex: 1}}></View>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+
+                </View>
             </View>
         }
         {

@@ -29,6 +29,7 @@ export const userSlice = createSlice({
     notificationToken: '',
     notificationState: false,
     cards: [],
+    cardsLoading: false
   },
   reducers: {
     updateUser: (state, action) => {
@@ -40,6 +41,12 @@ export const userSlice = createSlice({
     changeNotificationState: (state, action) => {
       state.notificationState = action.payload
     },
+    setCards: (state, action) => {
+      state.cards = action.payload
+    },
+    setCardsLoading: (state, action) => {
+      state.cardsLoading = action.payload
+    }
   },
 })
 
@@ -154,7 +161,41 @@ export const {
   updateUser,
   setNull,
   changeNotificationState,
+  setCards,
+  setCardsLoading
 } = userSlice.actions
+
+
+export const updateCards = () => async (dispatch, getState) => {
+  dispatch(setCards([]))
+  dispatch(setCardsLoading(true))
+  try{
+    let currentUser = getState().user
+    let snapshot = await firestore.collection(`Users/${currentUser.uid}/Cards`).get()
+  
+    if (snapshot.empty) {
+      console.log('No matching document');
+      dispatch(setCardsLoading(false))
+      return;
+    }
+  
+    let cards = []
+  
+    for(doc of snapshot.docs) {
+      let card = doc.data()
+      delete card.createdAt
+  
+      cards.push(card)
+    } 
+    dispatch(setCards(cards))
+    dispatch(setCardsLoading(false))
+  }catch(err){
+    console.log(err)
+    alert('Internal error')
+    dispatch(setCardsLoading(false))
+  }
+}
+
 
 export const firebaseAuthLogin = (email, password) => async (dispatch) => {
   try {
@@ -292,5 +333,8 @@ export const selectCurrentNotificationToken = (state) =>
   state.user.notificationToken
 export const selectCurrentNotificationState = (state) =>
   state.user.notificationState
+
+export const selectCards = (state) => state.user.cards
+export const selectCardsLoading = (state) => state.user.cardsLoading
 
 export const userReducer = userSlice.reducer

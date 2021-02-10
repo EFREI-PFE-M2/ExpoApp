@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { StyleSheet, View, Text, TextInput, TouchableOpacity  } from 'react-native'
 import { FontAwesome5 } from '@expo/vector-icons'; 
 import { useNavigation } from '@react-navigation/native'
+import { setCardsData } from '../../store/cardGameSlice'
 
 export default function GameLauncher() {
 
   const navigation = useNavigation()
-
+  const dispatch = useDispatch()
+  
   return (
     <View style={{flex: 1, flexDirection: 'column'}}>
         <View style={{backgroundColor: '#fff'}}>
@@ -18,7 +21,7 @@ export default function GameLauncher() {
            />
         </View>
         <TouchableOpacity 
-          onPress={()=>navigation.navigate('CardGame_Ingame')}
+          onPress={()=>dispatch(()=>navigation.navigate('CardGame_Ingame'))}
           style={{backgroundColor: '#fff', borderRadius: 30, alignSelf: 'flex-start', 
           paddingHorizontal: 20, paddingVertical: 20,
           position: 'absolute',
