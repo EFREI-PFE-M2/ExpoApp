@@ -10,6 +10,7 @@ import {
   setFirebaseAuthError,
 } from '../store/sessionSlice'
 import { firebaseAuthCreateUser, firebaseAuthLogin } from '../store/userSlice'
+import { emailRegex, passwordRegex } from '../utils/stringValidator'
 
 export default function SignUp({ navigation, signInCallback }) {
   const [username, setUsername] = useState('')
@@ -38,6 +39,16 @@ export default function SignUp({ navigation, signInCallback }) {
 
   const onSubmit = async () => {
     // TODO: String Validations
+    if (!tosCheck) return alert('Cochez les termes.')
+    if (!email.match(emailRegex)) return alert('Addresse email non conforme.')
+    if (
+      !password ||
+      !passwordConfirmation ||
+      password !== passwordConfirmation ||
+      !password.match(passwordRegex)
+    )
+      return alert('Erreur de saisie de mot de passe.')
+
     if (await dispatch(firebaseAuthCreateUser(email, password, username))) {
       dispatch(firebaseAuthLogin(email, password))
     }
