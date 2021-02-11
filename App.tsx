@@ -29,6 +29,7 @@ const theme: Theme = {
 store.dispatch(autoAuth())
 
 export default function App() {
+  LogBox.ignoreAllLogs()
   // LogBox.ignoreLogs(['Setting a timer']);
   const isLoadingComplete = useCachedResources()
   const colorScheme = useColorScheme()

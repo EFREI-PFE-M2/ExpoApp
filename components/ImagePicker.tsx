@@ -25,13 +25,13 @@ export default function ImagePickerBtn({props}: any) {
         });
     
         if (!result.cancelled) {
-            const { username, photoURL, uid, chatID, isPrivateChat, chatHistory, setChatHistory } = props
+            const { displayName, photoURL, uid, chatID, isPrivateChat, chatHistory, setChatHistory } = props
 
             const datetime = new Date()
             const message = {
                 type: result.type,
                 createdAt: datetime,
-                displayName: username,
+                displayName: displayName,
                 photoURL: photoURL,
                 uid: uid,
                 image: {

@@ -215,7 +215,7 @@ export const searchUsers = (query, groupConversationID = undefined) => async (
         )
           users.push({
             uid: doc.id,
-            username: user.displayName,
+            displayName: user.displayName,
             photoURL:
               user.photoURL != undefined
                 ? user.photoURL
@@ -624,7 +624,7 @@ export const createGroupConversation = (hostID, groupChatInfo) => async (
     users = {
       [hostID]: {
         uid: user.uid,
-        username: user.username,
+        displayName: user.displayName,
         photoURL: user.photoURL,
       },
       ...users,
@@ -847,7 +847,7 @@ export const getGroupChatMembersDetails = (conversationID) => async (
       const user = doc.data()
       usersDetails[doc.id] = {
         uid: user.uid,
-        username: user.username,
+        displayName: user.displayName,
         photoURL: user.photoURL,
         isHost: doc.id === hostID,
       }
@@ -884,7 +884,7 @@ export const addUsersToGroupChatAfterCreation = (
         (user) =>
           (usersDetails[user.uid] = {
             uid: user.uid,
-            username: user.username,
+            displayName: user.displayName,
             photoURL: user.photoURL,
             isHost: false,
           })

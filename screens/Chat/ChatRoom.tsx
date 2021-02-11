@@ -41,7 +41,8 @@ export default function ChatRoom(props: any) {
   const closeMenu = () => setMenuVisible(false);
 
   const displayUser = useSelector(selectCurrentUser)
-  const { username, photoURL, uid } = displayUser
+  const { displayName, photoURL, uid } = displayUser
+  console.log(displayUser)
 
   const { chatInfo, isPrivateChat } = props.route.params
  
@@ -62,7 +63,7 @@ export default function ChatRoom(props: any) {
       const message = {
         type: 'text',
         createdAt: datetime,
-        displayName: username,
+        displayName,
         photoURL,
         uid,
         text: content.trim()
@@ -97,7 +98,7 @@ export default function ChatRoom(props: any) {
   const [refreshing, setRefreshing] = React.useState(false);
 
   useEffect(() => {
-    setChatHistory(messages)    
+    setChatHistory(messages ? messages : [])    
   })
 
   const reachFirstMessageState = isPrivateChat ? useSelector(selectPrivateChats)[chatInfo.chatID]?.reachFirstMessageState
@@ -276,10 +277,10 @@ return (
 
       <View style={styles.containerChatFooter}>
         <View style={styles.chatFooterLeftPart}>
-          <ImagePicker props={{isPrivateChat, uid, username, photoURL, 
+          <ImagePicker props={{isPrivateChat, uid, displayName, photoURL, 
             chatID: chatInfo.chatID, chatHistory, setChatHistory
           }}/>
-          <AudioRecorder props={{isPrivateChat, uid, username, photoURL, 
+          <AudioRecorder props={{isPrivateChat, uid, displayName, photoURL, 
             chatID: chatInfo.chatID, chatHistory, setChatHistory
           }}/>
         </View>

@@ -17,7 +17,7 @@ export default function GroupChatDetails(props: any) {
     const [groupChatName, setGroupChatName] = React.useState(isCreated ? chatInfo.name : '')
     
     const nameOnChange = (name: string) => { setGroupChatName(name); dispatch(changeGroupChatInfo(groupChatInfo)) }
-    
+
     const groupChatInfo = {
       name: groupChatName, 
       photoURL: groupChatPhotoURL, 
@@ -29,16 +29,17 @@ export default function GroupChatDetails(props: any) {
 
     const chatMembersList = () => <ScrollView>
     {Object.values(users).map((u: any) => { 
-        const username = u.isHost ? `${u.username} (Host)` : u.username
+        const { isHost, displayName, photoURL, uid } = u
+        const user = isHost ? `${displayName} (Host)` : displayName
         return(
         <TouchableOpacity
-            key={u.uid}
+            key={uid}
             style={styles.containerProfile}
         >
-            <Avatar.Image size={60} source={{ uri: u.photoURL }} />
+            <Avatar.Image size={60} source={{ uri: photoURL }} />
             <View style={styles.containerView}>
-                <Text style={{marginTop: 8, fontWeight: u.isHost ? 'bold' : 'normal'}}>
-                  {username}
+                <Text style={{marginTop: 8, fontWeight: isHost ? 'bold' : 'normal'}}>
+                  {user}
                 </Text>
             </View>
         </TouchableOpacity>

@@ -25,7 +25,7 @@ export default function AddChat(props: any) {
     } else { // first time
       aUsers[buttonId] = {
         uid: user.uid,
-        username: user.username,
+        displayName: user.displayName,
         photoURL: user.photoURL
       } 
     }
@@ -79,7 +79,7 @@ export default function AddChat(props: any) {
               >
               <Avatar.Image size={60} source={{ uri: u.photoURL }} />
               <View style={styles.containerView}>
-                <Text style={styles.usernameStyle}>{u.username}</Text>
+                <Text style={styles.usernameStyle}>{u.displayName}</Text>
                 <View >
                   <RadioButton
                     value={btnId}

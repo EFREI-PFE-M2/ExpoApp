@@ -40,7 +40,7 @@ export default function GroupChatMenuOptions(props: any) {
       },
       {
         text: 'OK',
-        onPress: async () => {
+        onPress: async () => { 
           await dispatch(leaveGroupChat(chatInfo.chatID))
           navigation.navigate('ChatList')
         },
