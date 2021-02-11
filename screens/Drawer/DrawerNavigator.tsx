@@ -22,7 +22,7 @@ const Drawer = createDrawerNavigator()
 function CustomDrawerContent(props: DrawerContentComponentProps) {
   const dispatch = useDispatch()
   const logoutHandler = () => dispatch(logout())
-
+  
   return (
     <DrawerContentScrollView>
       <DrawerProfile />

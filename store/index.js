@@ -20,7 +20,7 @@ export default configureStore({
     group: groupReducer,
     race: raceReducer,
     search: searchReducer,
-    subsciberFeed: subscriberFeedReducer,
+    subscriberFeed: subscriberFeedReducer,
     settings: settingsReducer,
     session: sessionReducer,
     postEditor: postEditorReducer
