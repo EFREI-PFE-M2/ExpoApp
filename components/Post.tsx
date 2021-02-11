@@ -31,6 +31,7 @@ export default function Post(props) {
 
 
 
+
   let strResponses = []
   let responseObjectList = [];
   let totalVotes = 0;

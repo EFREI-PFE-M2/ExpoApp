@@ -140,6 +140,58 @@ exports.comment = functions
     }
 })
 
+exports.follow = functions
+.region('europe-west1')
+.https.onCall(async (contextData, context) => {
+    let {followerID, followedID, follow} = contextData
+    
+    try {
+
+      if(follow){
+        await db
+        .collection('Follows')
+        .add({ followerID: followerID, followedID: followedID })
+  
+        await Promise.all([
+            db
+            .collection('Users')
+            .doc(followerID)
+            .update({ nbFollowing: admin.firestore.FieldValue.increment(1) }),
+            db
+            .collection('Users')
+            .doc(followedID)
+            .update({ nbFollowers: admin.firestore.FieldValue.increment(1) }),
+        ])
+      }else{
+        let snapshot = await db.collection('Follows').where('followerID', '==', followerID ).where('followedID','==', followedID).get();
+        
+
+        if (!snapshot.empty) {
+          
+          snapshot.forEach(function(doc) {
+            doc.ref.delete();
+          });
+
+          await Promise.all([
+              db
+              .collection('Users')
+              .doc(followerID)
+              .update({ nbFollowing: admin.firestore.FieldValue.increment(-1) }),
+              db
+              .collection('Users')
+              .doc(followedID)
+              .update({ nbFollowers: admin.firestore.FieldValue.increment(-1) }),
+          ])
+        } 
+  
+      }
+      
+    } catch (err) {
+      console.error(err)
+    }
+    
+})
+
 exports.onCreateUser = functions
   .region('europe-west1')
   .auth.user()

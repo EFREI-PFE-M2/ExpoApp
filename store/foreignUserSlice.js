@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
-import firebase, { FirebaseFirestore as firestore } from '../firebase'
+import { FirebaseApp as firebase } from '../firebase'
+import { FirebaseFirestore as firestore } from '../firebase'
 
 export const foreignUserSlice = createSlice({
   name: 'foreignUser',
@@ -13,6 +14,14 @@ export const foreignUserSlice = createSlice({
     },
     setUser: (state, action) => {
       state = Object.assign(state, action.payload)
+    },
+    followUser: (state, action) => {
+      const { follow, followedID } = action.payload
+
+      if(state.id === followedID){
+        state = Object.assign(state, {isFollowed: follow, nbFollowers: follow ? state.nbFollowers + 1 : state.nbFollowers - 1})
+      }
+
     },
   },
 })
@@ -82,7 +91,7 @@ let card ={
 */
 
 //actions imports
-export const { addUser, setUser } = foreignUserSlice.actions
+export const { addUser, setUser, followUser } = foreignUserSlice.actions
 
 // thunks
 export const retrieveUsers = (ids) => async (dispatch) => {
@@ -115,6 +124,7 @@ export const updateForeignUser = (id) => async (dispatch, getState) => {
     }
 
     let foreignUser = doc.data()
+    foreignUser.id = doc.id
     delete foreignUser.createdAt
 
     //check if followed
@@ -124,6 +134,24 @@ export const updateForeignUser = (id) => async (dispatch, getState) => {
     }  
 
     dispatch(setUser(foreignUser))
+
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+
+export const follow = (data) => async (dispatch, getState) => {
+  let {followedID, follow} = data
+  try {
+    const { user } = getState()
+
+
+    const followCloudFunction = firebase.functions('europe-west1').httpsCallable('follow')
+    await followCloudFunction({followerID: user.uid, followedID: followedID, follow: follow})
+
+    dispatch(followUser({followedID: followedID, follow: follow}))
+    
 
   } catch (err) {
     console.log(err)
