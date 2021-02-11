@@ -8,8 +8,10 @@ import { View, Text } from './Themed'
 
 export default function UserCard({ user, navigate }) {
   const { photoURL, displayName } = useSelector(
-    ({ search }) => search?.search?.searchedUsers[user]
+    ({ search }) => search.searchedUsers[user]
   )
+
+  console.log(user)
 
   const onPress = () => navigate('Home_Profile', { id: userSlice })
   return (

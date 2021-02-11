@@ -77,7 +77,9 @@ function UserTab() {
         blurOnSubmit
         onSubmitEditing={submit}
       />
-      <ScrollView>{results?.length ? <RenderUsers /> : <Empty />}</ScrollView>
+      <ScrollView>
+        {Object.keys(results).length ? <RenderUsers /> : <Empty />}
+      </ScrollView>
     </View>
   )
 }
@@ -96,8 +98,8 @@ function GroupTab() {
   const submit = () => dispatch(searchGroups(search))
 
   const RenderGroups = () =>
-    Object.keys(results)?.map((group, key) => (
-      <GroupCard key={key} group={group} navigate={navigate} />
+    Object.entries(results)?.map((group, key) => (
+      <GroupCard key={key} id={group[0]} group={group[1]} navigate={navigate} />
     ))
 
   useEffect(() => {
@@ -132,7 +134,9 @@ function GroupTab() {
           onPress={createGroupPress}
         />
       </Surface>
-      <ScrollView>{results?.length ? <RenderGroups /> : <Empty />}</ScrollView>
+      <ScrollView>
+        {Object.keys(results)?.length ? <RenderGroups /> : <Empty />}
+      </ScrollView>
       <Portal>{visible && <AddGroup goBack={closeGroupAdd} />}</Portal>
     </View>
   )

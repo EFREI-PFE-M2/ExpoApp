@@ -1,13 +1,18 @@
 import React from 'react'
 import { Image, StyleSheet } from 'react-native'
 import { TouchableRipple } from 'react-native-paper'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { getGroup } from '../store/groupSlice'
 import { View, Text } from './Themed'
 
-export default function GroupCard({ group, navigate }) {
-  const { picture, name, nbMembers, id } = group
+export default function GroupCard({ id, group, navigate }) {
+  const { picture, name, nbMembers } = group
+  const dispatch = useDispatch()
 
-  const redirect = () => navigate('Home_Group', { groupID: id })
+  const redirect = async () => {
+    await dispatch(getGroup(id))
+    navigate('Home_Group', { groupID: id })
+  }
   return (
     <TouchableRipple style={styles.container} onPress={redirect}>
       <>
