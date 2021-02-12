@@ -3,8 +3,8 @@ import { View, Text } from '../Themed'
 
 export default function Posts(props) {
   return (
-    <View>
-      <Text> POSTS </Text>
+    <View style={{backgroundColor: 'transparent'}}>
+      <Text> </Text>
     </View>
   )
 }

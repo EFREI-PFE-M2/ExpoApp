@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux'
 import { Text, View } from './Themed'
 
 export default function GroupCard({ groupID }) {
-  const { name, photoURL } = useSelector(
+  const { name, picture } = useSelector(
     (state) => state.group?.groups[groupID]
   )
   const { navigate } = useNavigation()
@@ -17,7 +17,7 @@ export default function GroupCard({ groupID }) {
   return (
     <TouchableRipple style={styles.container} onPress={onPress}>
       <>
-        <Image source={{ uri: photoURL }} style={styles.image} />
+        <Image source={{ uri: picture }} style={styles.image} />
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{name}</Text>
           <Text>Publication il y a 3 jours</Text>

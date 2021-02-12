@@ -11,9 +11,7 @@ export default function UserCard({ user, navigate }) {
     ({ search }) => search.searchedUsers[user]
   )
 
-  console.log(user)
-
-  const onPress = () => navigate('Home_Profile', { id: userSlice })
+  const onPress = () => navigate('Home_Profile', { id: user })
   return (
     <TouchableRipple style={styles.container} onPress={onPress}>
       <>

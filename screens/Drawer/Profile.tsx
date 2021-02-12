@@ -65,7 +65,8 @@ export default function Profile(props) {
           {level}
         </Badge>
       </View>
-      <ProgressBar progress={experience/10} color="#194A4C" style={XPCardStyles.bar} />
+      <Text style={{color: '#194A4C', marginBottom: 3}}>{experience} xp</Text>
+      <ProgressBar progress={experience/100} color="#194A4C" style={XPCardStyles.bar} />
     </View>
   )
 

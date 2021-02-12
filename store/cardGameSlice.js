@@ -198,8 +198,8 @@ export const simulatorOpponentTurn = () => async (dispatch, getState) => {
 
     if( (getState().cardGame.user1Score + getState().cardGame.user2Score) === 5){
       await new Promise(resolve => setTimeout(()=>{
+        let randomPrizeCard = cards[getRandomInt(0,cards.length-1)]
         if(getState().cardGame.user1Score > getState().cardGame.user2Score){
-          let randomPrizeCard = cards[getRandomInt(0,cards.length-1)]
           dispatch(setGame({
             state: 'game_results', 
             winnerXpWon: getState().cardGame.user1Score*20,

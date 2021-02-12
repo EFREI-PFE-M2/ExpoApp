@@ -9,6 +9,8 @@ export default function GroupCard({ id, group, navigate }) {
   const { picture, name, nbMembers } = group
   const dispatch = useDispatch()
 
+
+
   const redirect = async () => {
     await dispatch(getGroup(id))
     navigate('Home_Group', { groupID: id })
@@ -16,7 +18,7 @@ export default function GroupCard({ id, group, navigate }) {
   return (
     <TouchableRipple style={styles.container} onPress={redirect}>
       <>
-        <Image source={{ uri: picture || '' }} style={styles.image} />
+        <Image source={{ uri: picture }} style={styles.image} />
         <View>
           <Text style={styles.title}>{name}</Text>
           <Text style={styles.members}>{nbMembers} members</Text>
