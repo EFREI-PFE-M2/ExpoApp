@@ -1,113 +1,108 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { View} from '../../components/Themed'
 import Post from '../../components/Post'
-import { StyleSheet, SafeAreaView, ScrollView, RefreshControl, Image } from 'react-native'
-let alreadyInBottomZone = false;
+import { StyleSheet, SafeAreaView, RefreshControl, Image, Text, FlatList, TouchableOpacity } from 'react-native'
+import { useDispatch, useSelector } from 'react-redux'
+import { Badge, IconButton, FAB } from 'react-native-paper'
+import { ScrollView } from 'react-native-gesture-handler'
 
-export default function HomeSubFeed() {
+import { selectPosts, updateRecentPosts, 
+  selectRecentPostsLoading, selectNextPostsLoading,
+  selectNoMorePosts, addNextPosts, likePost, vote} from '../../store/subscriberFeedSlice'
+import { selectCurrentUser } from '../../store/userSlice'
 
-  const [loadingRecent, setLoadinRecent] = React.useState(false);
-  const [loadingNext, setLoadingNext] = React.useState(false);
+export default function HomeSubFeed({ route, navigation }) {
 
-  
+  const posts = useSelector(selectPosts);
+  const user = useSelector(selectCurrentUser);
+  const recentPostsLoading = useSelector(selectRecentPostsLoading);
+  const nextPostsLoading = useSelector(selectNextPostsLoading);
+  const noMorePosts = useSelector(selectNoMorePosts);
 
-  const wait = (timeout) => {
-    return new Promise(resolve => {
-      setTimeout(resolve, timeout);
-    });
+  const dispatch = useDispatch()
+
+
+  useEffect(() => {
+    dispatch(updateRecentPosts())
+  }, [])
+
+  const handleNewPost = () => {
+    navigation.navigate('New_Post', {feed: 'sub'})
   }
 
-  const onLoadRecent = React.useCallback(() => {
-    setLoadinRecent(true);
+  const handleActualise = () => {
+    dispatch(updateRecentPosts())
+  }
 
-    wait(2000).then(() => setLoadinRecent(false));
-  }, []);
+  const handleLoadNext = () => {
+    dispatch(addNextPosts())
+  }
 
-  const onLoadNext = React.useCallback(() => {
-    setLoadingNext(true);
+  const handleLikePost = (postID, like, entityID) => {
+    dispatch(likePost({postID: postID, like: like, entityID: entityID, userID: user.uid},()=>{}, ()=>{}))
+  }
 
-    wait(2000).then(() => setLoadingNext(false));
-  }, []);
-
-  const isInBottomZone = ({layoutMeasurement, contentOffset, contentSize}) => {
-    const paddingToBottom = 50;
-    return layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom;
-  };
+  
+  const handleVote = (postID, response, entityID) => {
+    dispatch(vote({postID: postID, response: response, entityID: entityID, userID: user.uid},()=>{}, ()=>{}))
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      {/*
-      <View style={styles.loadingGif}>
-      {loadingRecent && <Image source={require('../../assets/images/loading_horse_green.gif')}  style={{width: 72, height: 47}} />}
+      <ScrollView>
+      {recentPostsLoading ? 
+        <View style={styles.loadingGif}>
+          <Image source={require('../../assets/images/loading_horse_green.gif')}  style={{width: 72, height: 47}} />
+          <Text>Chargement...</Text>
+        </View>
+       :
+       <View style={styles.pubs}>
+        <Text>Publications</Text>
+        <TouchableOpacity onPress={handleActualise}>
+            <Text style={{color: '#757575'}}>Actualiser</Text>
+        </TouchableOpacity>  
       </View>
-      
-       <ScrollView
-        refreshControl={
-          <RefreshControl 
-            refreshing={loadingRecent} 
-            onRefresh={onLoadRecent} 
-            tintColor="transparent"
-            colors={['transparent']}
-            style={{backgroundColor: 'transparent'}}
+      }
+
+      <View style={{backgroundColor: 'transparent'}}>
+        {
+          posts && posts.length > 0 &&
+          <FlatList
+            data={posts}
+            renderItem={({item}) => 
+              <Post 
+                post={item}
+                currentUserID={user.uid}
+                handleLikePost={handleLikePost}
+                handleVote={handleVote}
+                feed='sub'
+                entityID={item.userID}
+              />
+            }
           />
         }
-        onScroll={({nativeEvent}) => {
-          let {layoutMeasurement, contentOffset, contentSize} = nativeEvent
-          
-          if(!isInBottomZone(nativeEvent)){
-            alreadyInBottomZone = false
+      </View>
+      {nextPostsLoading &&
+        <View style={styles.loadingGif}>
+          <Image source={require('../../assets/images/loading_horse_green.gif')}  style={{width: 72, height: 47}} />
+          <Text>Chargement...</Text>
+        </View>
+      }
+      <View style={{flex: 1, alignItems: 'center', backgroundColor: 'transparent', marginTop: 20, marginBottom: 20}}>
+          {
+            noMorePosts ? <Text>Il n'y a pas plus de posts</Text> : !recentPostsLoading && !nextPostsLoading &&
+            <TouchableOpacity onPress={handleLoadNext}>
+              <Text style={{color:'#757575'}}>Charger plus
+              </Text>
+            </TouchableOpacity>
           }
-
-          if(!alreadyInBottomZone && isInBottomZone(nativeEvent)){
-            alreadyInBottomZone = true
-            onLoadNext()
-          }
-        }}
-        scrollEventThrottle={400}
-       >
-        <Post 
-          type="image"
-          photoURL="https://pbs.twimg.com/profile_images/669103856106668033/UF3cgUk4_400x400.jpg"
-          username="Jeff B." date="21/06/2020" nbLikes={2} nbComments={14}
-          text="Hello what's up everyone"
-          image="https://cdn.radiofrance.fr/s3/cruiser-production/2019/06/f7b16196-c9e4-400e-975b-e6cf10b1ca00/870x489_a3878acdc3ef.jpg"
-          />
-          <Post 
-          type="bet"
-          photoURL="https://pbs.twimg.com/profile_images/669103856106668033/UF3cgUk4_400x400.jpg"
-          username="Jeff B." date="21/06/2020" nbLikes={2} nbComments={14}
-          betLocationCode="C1"
-          betRaceCode="R2"
-          betActionUrl={"https://www.pmu.fr/turf/R4/C9"}
-          text="This is my bet"
-          betTitle= "PRIX VALLEE VESUBIE"
-          betRaceDate={new Date().toISOString()}
-          betRaceCategory= "Plat"
-          betCategory="désordre"
-          betDistance={2066}
-          betNbContenders={11}
-          betLocation="VINCENNES"
-          betType="quinté"
-          betResults= {[5, 2, 7, 2, 1]}
-          bet= {[5, 2, 7, 1, 2]}
-          nbCopiedBet={5}
-          />
-          
-          <Post 
-          type="survey"
-          photoURL="https://pbs.twimg.com/profile_images/669103856106668033/UF3cgUk4_400x400.jpg"
-          username="Jeff B." date="21/06/2020" nbLikes={2} nbComments={14}
-          text="Ca va?"
-          responses={{'oui': 545, 'non': 120, 'peut être' : 60}}
-          expirationDate={new Date('2021-01-28T12:00:00')}
-          userVote={1}
-          />
-          <View style={styles.loadingGif}>
-            {loadingNext && <Image source={require('../../assets/images/loading_horse_green.gif')}  style={{width: 72, height: 47}} />}
-          </View>
-      </ScrollView>
-      */}
+      </View>
+    </ScrollView>
+    <FAB
+        style={styles.fab}
+        icon="pen"
+        onPress={handleNewPost}
+    />
     </SafeAreaView>
   )
 }
@@ -123,5 +118,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 50,
     backgroundColor: 'transparent'
-  }
+  },
+  pubs: {
+    width: '100%',
+    backgroundColor: '#fff0',
+    height: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    justifyContent: 'space-between'
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+  },
 })

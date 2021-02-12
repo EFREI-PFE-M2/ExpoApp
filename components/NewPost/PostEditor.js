@@ -30,6 +30,7 @@ import { MaterialIcons } from '@expo/vector-icons'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { newRacePost } from '../../store/raceSlice'
+import { newPost } from '../../store/subscriberFeedSlice'
 import { selectCurrentUser } from '../../store/userSlice'
 
 import { Avatar, IconButton, Snackbar, Modal, Portal } from 'react-native-paper'
@@ -39,7 +40,7 @@ import ProfileAvatar from '../ProfileAvatar';
 
 export default function PostEditor({ route, navigation }) {
 
-  const { feed, race } = route.params
+  const { feed, race, entityID } = route.params
 
   const user = useSelector(selectCurrentUser);
   const dispatch = useDispatch()
@@ -122,7 +123,7 @@ export default function PostEditor({ route, navigation }) {
       image: image, 
       survey: survey, 
       bet: bet,
-      raceID: race.id
+      entityID: feed === 'race' ? race?.id : user.uid
     }
 
     dispatch(setText(''))
@@ -144,6 +145,16 @@ export default function PostEditor({ route, navigation }) {
           }))
         break;
       case 'sub':
+        dispatch(newPost(post,
+          ()=> { 
+            setPending(false);
+            alert('Post publié')
+            navigation.goBack()
+          },
+          ()=> {
+            setPending(false);
+            alert('Erreur interne, veuillez réessayer')
+          }))
         break;
       case 'group':
         break;
@@ -211,7 +222,7 @@ export default function PostEditor({ route, navigation }) {
         </View>
         <View style={{ flexDirection: 'column', flex: 1 }}>
           <View style={{ margin: 10 }}>
-            <ProfileAvatar url={user.profilePicture}/>
+            <ProfileAvatar url={user.photoURL}/>
           </View>
           <ScrollView style={{ marginLeft: 10, marginRight: 10, flex: 1 }}>
             <TextInput

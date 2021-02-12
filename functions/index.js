@@ -70,11 +70,68 @@ exports.likePost = functions
         }catch(err){
           return false
         }
-        break;
       case 'sub':
-        break;
+        try{
+          if(!like){
+            //Remove like from Likes collection
+            let snapshot = await db.collection(`Users/${entityID}/UserPosts/${postID}/Likes`)
+            .where('userID','==',userID).get()
+            snapshot.forEach(doc => {
+              doc.ref.delete()
+            });
+
+            //decrement nbLikes field
+            let decrement = admin.firestore.FieldValue.increment(-1);
+            let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID);
+            await postRef.update({nbLikes: decrement});
+
+            return true
+          }else{
+            //Add like to Likes collection
+            await db.collection(`Users/${entityID}/UserPosts/${postID}/Likes`)
+            .add({userID: userID})
+            
+            //increment nbLikes field
+            let increment = admin.firestore.FieldValue.increment(1);
+            let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID);
+            await postRef.update({nbLikes: increment});
+
+            return true;
+          }
+        }catch(err){
+          return false
+        }
       case 'group':
-        break;
+        try{
+          if(!like){
+            //Remove like from Likes collection
+            let snapshot = await db.collection(`Groups/${entityID}/Posts/${postID}/Likes`)
+            .where('userID','==',userID).get()
+            snapshot.forEach(doc => {
+              doc.ref.delete()
+            });
+
+            //decrement nbLikes field
+            let decrement = admin.firestore.FieldValue.increment(-1);
+            let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID);
+            await postRef.update({nbLikes: decrement});
+
+            return true
+          }else{
+            //Add like to Likes collection
+            await db.collection(`Groups/${entityID}/Posts/${postID}/Likes`)
+            .add({userID: userID})
+            
+            //increment nbLikes field
+            let increment = admin.firestore.FieldValue.increment(1);
+            let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID);
+            await postRef.update({nbLikes: increment});
+
+            return true;
+          }
+        }catch(err){
+          return false
+        }
     }
 })
 
@@ -86,11 +143,9 @@ exports.vote = functions
     switch(feed){
       case 'race':
         try{
-
           //Add vote to Votes collection
           await db.collection(`Races/${entityID}/Posts/${postID}/Votes`)
           .add({userID: userID, response: response})
-
 
           //increment response field
           let increment = admin.firestore.FieldValue.increment(1);
@@ -102,8 +157,34 @@ exports.vote = functions
         }
         break;
       case 'sub':
+        try{
+          //Add vote to Votes collection
+          await db.collection(`Users/${entityID}/UserPosts/${postID}/Votes`)
+          .add({userID: userID, response: response})
+
+          //increment response field
+          let increment = admin.firestore.FieldValue.increment(1);
+          let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID);
+          await postRef.update({[`responses.${response}`]: increment});
+
+        }catch(err){
+          return false
+        }
         break;
       case 'group':
+        try{
+          //Add vote to Votes collection
+          await db.collection(`Groups/${entityID}/Posts/${postID}/Votes`)
+          .add({userID: userID, response: response})
+
+          //increment response field
+          let increment = admin.firestore.FieldValue.increment(1);
+          let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID);
+          await postRef.update({[`responses.${response}`]: increment});
+
+        }catch(err){
+          return false
+        }
         break;
     }
 })
@@ -134,10 +215,92 @@ exports.comment = functions
         }
         break;
       case 'sub':
+        try{
+
+          //Add vote to Votes collection
+          await db.collection(`Users/${entityID}/UserPosts/${postID}/Comments`)
+          .add({datetime: datetime, displayName: displayName, picture: picture, userID:userID, text: text})
+
+
+          //increment response field
+          let increment = admin.firestore.FieldValue.increment(1);
+          let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID);
+          await postRef.update({nbComments: increment});
+
+        }catch(err){
+          return false
+        }
         break;
       case 'group':
+        try{
+
+          //Add vote to Votes collection
+          await db.collection(`Groups/${entityID}/Posts/${postID}/Comments`)
+          .add({datetime: datetime, displayName: displayName, picture: picture, userID:userID, text: text})
+
+
+          //increment response field
+          let increment = admin.firestore.FieldValue.increment(1);
+          let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID);
+          await postRef.update({nbComments: increment});
+
+        }catch(err){
+          return false
+        }
         break;
     }
+})
+
+exports.follow = functions
+.region('europe-west1')
+.https.onCall(async (contextData, context) => {
+    let {followerID, followedID, follow} = contextData
+    
+    try {
+
+      if(follow){
+        await db
+        .collection('Follows')
+        .add({ followerID: followerID, followedID: followedID })
+  
+        await Promise.all([
+            db
+            .collection('Users')
+            .doc(followerID)
+            .update({ nbFollowing: admin.firestore.FieldValue.increment(1) }),
+            db
+            .collection('Users')
+            .doc(followedID)
+            .update({ nbFollowers: admin.firestore.FieldValue.increment(1) }),
+        ])
+      }else{
+        let snapshot = await db.collection('Follows').where('followerID', '==', followerID ).where('followedID','==', followedID).get();
+        
+
+        if (!snapshot.empty) {
+          
+          snapshot.forEach(function(doc) {
+            doc.ref.delete();
+          });
+
+          await Promise.all([
+              db
+              .collection('Users')
+              .doc(followerID)
+              .update({ nbFollowing: admin.firestore.FieldValue.increment(-1) }),
+              db
+              .collection('Users')
+              .doc(followedID)
+              .update({ nbFollowers: admin.firestore.FieldValue.increment(-1) }),
+          ])
+        } 
+  
+      }
+      
+    } catch (err) {
+      console.error(err)
+    }
+    
 })
 
 exports.onCreateUser = functions

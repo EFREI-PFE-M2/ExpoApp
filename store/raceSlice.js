@@ -73,7 +73,6 @@ export const raceSlice = createSlice({
     },
     addSpecificRacePostComment: (state, action) => {
       let { comment, postID } = action.payload
-      console.log('DEBUUG')
       state.specificRace.posts = state.specificRace.posts.map((post)=>
       post.id === postID ? {...post, comments: [...post?.comments, comment]} : post)
     },
@@ -206,7 +205,7 @@ export const addSpecificRaceNextPosts = (raceID) => async (dispatch, getState) =
 export const newRacePost = (data, cbSuccess, cbError) => async (dispatch) => {
   
   try{
-    let {user, text, image, survey, bet, raceID} = data;
+    let {user, text, image, survey, bet, entityID} = data;
     
     let currentDate = new Date()
     
@@ -241,7 +240,7 @@ export const newRacePost = (data, cbSuccess, cbError) => async (dispatch) => {
     }
 
 
-    await firestore.collection(`Races/${raceID}/Posts`).add(post)//insert in firestore
+    await firestore.collection(`Races/${entityID}/Posts`).add(post)//insert in firestore
 
     dispatch(addSpecificRacePostToMostRecent([post]))//add to local store
 
