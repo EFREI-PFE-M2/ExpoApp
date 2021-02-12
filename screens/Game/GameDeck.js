@@ -4,7 +4,8 @@ import { updateCards, selectCards, selectCardsLoading } from '../../store/userSl
 import { useDispatch, useSelector } from 'react-redux'
 import CardPreview from '../../components/CardPreview'
 
-export default function GameDeck() {
+
+export default function GameDeck({route, navigation}) {
   const dispatch = useDispatch()
   const cards = useSelector(selectCards)
   const cardsLoading = useSelector(selectCardsLoading)
@@ -29,7 +30,7 @@ export default function GameDeck() {
       <View style={{flexDirection: 'row', flexWrap: 'wrap', flex: 1}}>
         {
           cards && cards.map((card, index)=>
-              <TouchableOpacity key={index} onPress={()=>{}}>
+              <TouchableOpacity key={index} onPress={()=>navigation.navigate('Card_Screen', {cardData: card})}>
                 <CardPreview cardPicture={card.cardPicture} cardName={card.cardName} cardRarity={card.cardRarity}/>
               </TouchableOpacity>
           )

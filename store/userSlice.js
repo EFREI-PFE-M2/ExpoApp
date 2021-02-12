@@ -187,6 +187,8 @@ export const updateCards = () => async (dispatch, getState) => {
   
       cards.push(card)
     } 
+  
+
     dispatch(setCards(cards))
     dispatch(setCardsLoading(false))
   }catch(err){

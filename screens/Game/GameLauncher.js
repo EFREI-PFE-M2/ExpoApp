@@ -21,7 +21,7 @@ export default function GameLauncher() {
            />
         </View>
         <TouchableOpacity 
-          onPress={()=>dispatch(()=>navigation.navigate('CardGame_Ingame'))}
+          onPress={()=>navigation.navigate('CardGame_Ingame')}
           style={{backgroundColor: '#fff', borderRadius: 30, alignSelf: 'flex-start', 
           paddingHorizontal: 20, paddingVertical: 20,
           position: 'absolute',
