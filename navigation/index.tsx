@@ -20,6 +20,8 @@ import { useSelector } from 'react-redux'
 import { selectCurrent } from '../store/userSlice'
 import NewPost from '../screens/NewPost.js'
 import PostComments from '../screens/PostComments.js'
+import CardScreen from '../screens/CardScreen.js'
+import InGame from '../screens/Game/Game'
 
 export default function Navigation({
   colorScheme,
@@ -47,6 +49,8 @@ function RootNavigator() {
           <Stack.Screen name="Root" component={DrawerNavigator} />
           <Stack.Screen name="New_Post" component={NewPost}/>
           <Stack.Screen name="Post_Comments" component={PostComments}/>
+          <Stack.Screen name="CardGame_Ingame" component={InGame}/>
+          <Stack.Screen name="Card_Screen" component={CardScreen}/>
         </>
       ) : (
         <>

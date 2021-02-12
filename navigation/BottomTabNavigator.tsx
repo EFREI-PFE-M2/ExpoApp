@@ -15,7 +15,7 @@ import {
 } from '@react-navigation/stack'
 import Colors from '../constants/Colors'
 import useColorScheme from '../hooks/useColorScheme'
-import CardGame from '../screens/CardGame'
+import CardGame from '../screens/GameTabNavigator'
 import Challenge from '../screens/Challenge'
 import Home from '../screens/HomeTabNavigator'
 import Search from '../screens/Search'
