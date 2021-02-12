@@ -144,10 +144,28 @@ exports.comment = functions
 exports.onCreateUser = functions
   .region('europe-west1')
   .auth.user()
-  .onCreate((userRecord, context) => {
+  .onCreate(async (userRecord, context) => {
     const { email, uid } = userRecord
-
-    return db
+    const cards = await db.collection('Cards').where('cardRarity','<',2).get()
+    var random = []
+    while(random.length<5){
+      rand = Math.ceil(Math.random()*(cards.docs.length-1))
+      if(!random.includes(rand)){
+        random.push(rand)
+      }
+    }
+    for(var k = 0; k < cards.docs.length; k++){
+      if(random.includes(k)){
+        await db
+        .collection('Users')
+        .doc(uid)
+        .collection('Cards')
+        .doc(cards.docs[k].id)
+        .set(cards.docs[k].data())
+        .catch(console.error)
+      }
+    }
+    await db
       .collection('Users')
       .doc(uid)
       .set({ email, createdAt: admin.firestore.Timestamp.fromDate(new Date()) })
