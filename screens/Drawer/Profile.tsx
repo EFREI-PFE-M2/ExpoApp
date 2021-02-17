@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import { StyleSheet } from 'react-native'
 import {
@@ -9,12 +9,13 @@ import {
   ProgressBar,
   TouchableRipple,
 } from 'react-native-paper'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import Badges from '../../components/ProfileTabs/Badges'
 import CardCollection from '../../components/ProfileTabs/CardCollection'
 import Challenges from '../../components/ProfileTabs/Challenges'
 import Posts from '../../components/ProfileTabs/Posts'
 import { selectCurrentUser } from '../../store/userSlice'
+import { selectForeignUser, updateForeignUser, follow } from '../../store/foreignUserSlice'
 import { Text, View } from './../../components/Themed'
 import { createStackNavigator } from '@react-navigation/stack'
 import ProfileAvatar from '../../components/ProfileAvatar';
@@ -25,8 +26,16 @@ const Stack = createStackNavigator()
 export default function Profile(props) {
   const { user, route, navigation } = props
 
-  const displayUser = route.params.self ? useSelector(selectCurrentUser) : 
-  useSelector(({ foreignUser }) => foreignUser[route.params.id])
+  const dispatch = useDispatch()
+
+  const displayUser = route.params.id === -1  ? useSelector(selectCurrentUser) : useSelector(selectForeignUser)
+
+  useEffect(()=>{ 
+    if(route.params.id !== -1){
+      dispatch(updateForeignUser(route.params.id))
+    }
+  },[route.params.id])
+
 
   const {
     uid,
@@ -34,13 +43,19 @@ export default function Profile(props) {
     displayName,
     level,
     experience,
-    winPercentage,
+    nbWin,
     nbFollowers,
     nbFollowing,
     currentSeries,
-  } = displayUser ? displayUser : route.params.foreignUser
+    isFollowed,
+    nbBets
+  } = displayUser || {}
 
-  const profileHeader = route.params.self ? 'Mon Profil' : displayName
+  const profileHeader = route.params.id === -1 ? 'Mon Profil' : displayName
+
+  const requestFollow = () => {
+    dispatch(follow({followedID: route.params.id, follow: !isFollowed}))
+  }
 
   const renderXPCard = () => (
     <View style={XPCardStyles.container}>
@@ -50,28 +65,28 @@ export default function Profile(props) {
           {level}
         </Badge>
       </View>
-      <ProgressBar progress={0.5} color="#194A4C" style={XPCardStyles.bar} />
+      <Text style={{color: '#194A4C', marginBottom: 3}}>{experience} xp</Text>
+      <ProgressBar progress={experience/100} color="#194A4C" style={XPCardStyles.bar} />
     </View>
   )
 
   const renderUserInformation = () => (
     <View style={infoCardStyles.container}>
       <Text style={infoCardStyles.username}>{displayName}</Text>
-      {!self && 
+      {/*route.params.id !== -1 && 
         <View style={[infoCardStyles.container, { paddingRight: 0 }]}>
           <IconButton color="#194A4C" size={32} icon="message" />
           <View style={{ width: 10 }} />
           <IconButton color="#194A4C" size={32} icon="account-multiple-plus" />
         </View>
-      }
+      */}
     </View>
   )
 
   const renderStats = () => (
     <View style={infoCardStyles.container}>
-      <Text style={{color: '#757575', marginRight: 3}}>Pronos</Text><Text style={infoCardStyles.label}>999</Text>
-      <Text style={{color: '#757575', marginRight: 3}}>Gagnés</Text><Text style={infoCardStyles.label}>{winPercentage}%</Text>
-      <Text style={{color: '#757575', marginRight: 3}}>Perdus</Text><Text style={infoCardStyles.label}>{100  -  winPercentage}%</Text>
+      <Text style={{color: '#757575', marginRight: 3}}>Pronos</Text><Text style={infoCardStyles.label}>{nbBets ||0}</Text>
+      <Text style={{color: '#757575', marginRight: 3}}>Gagnés</Text><Text style={infoCardStyles.label}>{nbBets && nbWin ? (nbWin/nbBets)*100 : 0}%</Text>
     </View>
   )
 
@@ -126,7 +141,7 @@ export default function Profile(props) {
     <View style={infoCardStyles.container}>
       <Text style={{color: '#757575', marginRight: 3}}>Série en cours:</Text>
       {
-      currentSeries.length > 0 ?
+      currentSeries?.length > 0 ?
       <View style={[infoCardStyles.container, { paddingRight: 0 }]}>
         {currentSeries?.map((serie) => (
           <Badge
@@ -162,21 +177,29 @@ export default function Profile(props) {
         color="#fff"
       />
       <Text style={{fontSize:24, fontWeight:'bold', color:"#fff"}}>{profileHeader}</Text>
-      {(route.params.self ? 
+      {(route.params.id === -1 ? 
       <IconButton icon="account-edit" 
         onPress={edit}
         size={30}
         color="#fff"/> 
-        : <IconButton icon="account-plus" 
-        onPress={follow}
-        size={30}
-        color="#fff"/>)}
+        : 
+          isFollowed ? 
+          <IconButton icon="check" 
+          onPress={()=> requestFollow()}
+          size={30}
+          color="#fff"/>
+          :
+          <IconButton icon="account-plus" 
+          onPress={()=> requestFollow()}
+          size={30}
+          color="#fff"/>
+      )}
     </View>
   )
 
-  const goBack = () => { navigation.setParams({self: true }); navigation.goBack(); }
+  const goBack = () => { navigation.goBack() }
   const edit = () => console.log('editing')
-  const follow = () => console.log('follow')
+
 
   return (
     <View style={styles.container}>

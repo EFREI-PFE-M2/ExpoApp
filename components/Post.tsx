@@ -31,6 +31,7 @@ export default function Post(props) {
 
 
 
+
   let strResponses = []
   let responseObjectList = [];
   let totalVotes = 0;
@@ -56,7 +57,7 @@ export default function Post(props) {
         <View style={{flexDirection: 'row'}}>
           <ProfileAvatar url={profilePicture}/>
           <View style={{margin: 5}}>
-            <TouchableOpacity onPress={null}>
+            <TouchableOpacity onPress={()=>navigation.navigate('Profil', {id: userID === currentUserID ? -1 : userID})}>
               <Text style={{ fontWeight: 'bold' }}>{displayName}</Text>
             </TouchableOpacity>
             <Text style={styles.date}>{timeAgoFormat(datetime)}</Text>
@@ -96,7 +97,7 @@ export default function Post(props) {
                   data={strResponses}
                   renderItem={({item}) => (
                     <Button style={{margin: 4}} mode="outlined" color="#194A4C" uppercase={false} 
-                    onPress={()=> handleVote(id, item)}>
+                    onPress={()=> handleVote(id, item, entityID)}>
                       {item}
                     </Button>
                   )}
@@ -200,7 +201,7 @@ export default function Post(props) {
             mode="text"
             uppercase={false}
             labelStyle={[{fontWeight: 'bold'},alreadyLiked ? {color: '#194A4C'} : {color: '#757575'}]}
-            onPress={()=> handleLikePost(id, !alreadyLiked)}>J'aime
+            onPress={()=> handleLikePost(id, !alreadyLiked, entityID)}>J'aime
           </Button>
           <Button 
             icon="comment-text-outline"  

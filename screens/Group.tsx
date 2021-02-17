@@ -23,7 +23,7 @@ const Tab = createMaterialTopTabNavigator()
 
 export default function Group({ route, navigation }) {
   const { groupID } = route.params
-  const { name, photoURL, private: isPrivate, nbMembers } = useSelector(
+  const { name, picture, private: isPrivate, nbMembers } = useSelector(
     (state) => state.group?.groups[groupID]
   )
   const dispatch = useDispatch()
@@ -66,7 +66,7 @@ export default function Group({ route, navigation }) {
     <View style={styles.container}>
       <View style={styles.groupInfoContainer}>
         <Image
-          source={{ uri: photoURL }}
+          source={{ uri: picture }}
           style={styles.photoURL}
           resizeMode="cover"
         />
