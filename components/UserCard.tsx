@@ -5,11 +5,16 @@ import { useSelector } from 'react-redux'
 import Navigation from '../navigation'
 import { userSlice } from '../store/userSlice'
 import { View, Text } from './Themed'
+import { selectCurrentUser } from '../store/userSlice'
+import { useNavigation } from '@react-navigation/native'
 
 export default function UserCard({ user, navigate }) {
-  const { photoURL, displayName } = user
+  const { photoURL, displayName, uid } = user
 
-  const onPress = () => navigate('Home_Profile', { id: userSlice })
+  const navigation = useNavigation()
+  const currentUser = useSelector(selectCurrentUser);
+
+  const onPress = () => navigation.navigate('Profil', {id: uid === currentUser.uid ? -1 : uid})
   return (
     <TouchableRipple style={styles.container} onPress={onPress}>
       <>

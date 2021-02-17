@@ -160,13 +160,16 @@ exports.vote = functions
       case 'sub':
         try{
           //Add vote to Votes collection
+
           await db.collection(`Users/${entityID}/UserPosts/${postID}/Votes`)
           .add({userID: userID, response: response})
 
+          
           //increment response field
           let increment = admin.firestore.FieldValue.increment(1);
           let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID);
           await postRef.update({[`responses.${response}`]: increment});
+          
 
         }catch(err){
           return false
@@ -209,7 +212,7 @@ exports.comment = functions
           //increment response field
           let increment = admin.firestore.FieldValue.increment(1);
           let postRef = db.collection(`Races/${entityID}/Posts`).doc(postID);
-          await postRef.update({nbComments: increment});
+          await postRef.set({nbComments: increment}, { merge: true });
 
         }catch(err){
           return false
@@ -217,16 +220,14 @@ exports.comment = functions
         break;
       case 'sub':
         try{
-
           //Add vote to Votes collection
           await db.collection(`Users/${entityID}/UserPosts/${postID}/Comments`)
           .add({datetime: datetime, displayName: displayName, picture: picture, userID:userID, text: text})
 
-
           //increment response field
           let increment = admin.firestore.FieldValue.increment(1);
           let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID);
-          await postRef.update({nbComments: increment});
+          await postRef.set({nbComments: increment}, { merge: true });
 
         }catch(err){
           return false
@@ -243,7 +244,7 @@ exports.comment = functions
           //increment response field
           let increment = admin.firestore.FieldValue.increment(1);
           let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID);
-          await postRef.update({nbComments: increment});
+          await postRef.set({nbComments: increment}, { merge: true });
 
         }catch(err){
           return false

@@ -15,6 +15,7 @@ import CardCollection from '../../components/ProfileTabs/CardCollection'
 import Challenges from '../../components/ProfileTabs/Challenges'
 import Posts from '../../components/ProfileTabs/Posts'
 import { selectCurrentUser } from '../../store/userSlice'
+
 import { selectForeignUser, updateForeignUser, follow } from '../../store/foreignUserSlice'
 import { Text, View } from './../../components/Themed'
 import { createStackNavigator } from '@react-navigation/stack'

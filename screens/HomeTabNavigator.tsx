@@ -16,6 +16,7 @@ export default function HomeTabNavigator() {
   return (
     <>
       <Tab.Navigator
+        initialRouteName="SubFeed"
         tabBarOptions={{
           labelStyle: {
             fontSize: 12,
