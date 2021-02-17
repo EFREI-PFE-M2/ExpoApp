@@ -111,7 +111,6 @@ function PrivateChatList(props: any) {
 
           return(
             <TouchableOpacity
-              key={chatInfo.chatID}
               style={styles.containerChatRoomItem}
               onPress={redirectToPrivateChatRoom({props: {chatID: chatInfo.chatID, displayName, photoURL, chatInfo}})}
             >
@@ -230,7 +229,6 @@ function GroupChatList(props: any) {
 
           return(
             <TouchableOpacity
-              key={chatInfo.chatID}
               style={styles.containerChatRoomItem}
               onPress={redirectToGroupChatRoom({props: {chatID: chatInfo.chatID, groupChatName, photoURL, chatInfo}})}
             >
