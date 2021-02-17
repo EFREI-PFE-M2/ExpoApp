@@ -15,6 +15,7 @@ export default function NewPost({ route, navigation }) {
 
   let feed;
   let race;
+  let groupID;
   if(route.params.hasOwnProperty("feed"))
     feed = route.params.feed;
 
