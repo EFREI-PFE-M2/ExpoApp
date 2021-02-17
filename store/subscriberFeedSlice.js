@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 import { FirebaseApp as firebase } from '../firebase'
 import { FirebaseFirestore as firestore } from '../firebase'
 import uploadImage from '../utils/uploadImage'
+import { createSelector } from 'reselect'
 
 const PAGINATION = 3
 
@@ -64,7 +65,7 @@ export const subscriberFeedSlice = createSlice({
     addPostComment: (state, action) => {
       let { comment, postID } = action.payload
       state.posts = state.posts.map((post)=>
-      post.id === postID ? {...post, comments: [...post?.comments, comment]} : post)
+      post.id === postID ? {...post, nbComments: post.nbComments + 1, comments: [...post?.comments, comment]} : post)
     },
   },
 })
@@ -292,8 +293,9 @@ export const vote = (data, cbSuccess, cbError) => async (dispatch) => {
     let { postID, entityID, userID, response } = data
     
     const voteCloudFunction = firebase.functions('europe-west1').httpsCallable('vote')
-    await voteCloudFunction({feed: 'sub', entityID: entityID,
+    let res = await voteCloudFunction({feed: 'sub', entityID: entityID,
        postID: postID, userID: userID, response: response})
+      console.log('TEST',res)
     
     //set local store
     dispatch(setPostVoteStatus({postID: postID, response: response}))
@@ -361,13 +363,17 @@ export const comment = (data, cbSuccess, cbError) => async (dispatch, getState) 
       userID: currentUser.uid, 
       text: text
     }
+
     
     const commentCloudFunction = firebase.functions('europe-west1').httpsCallable('comment')
     await commentCloudFunction({feed: 'sub', entityID: entityID, postID: postID, userID: currentUser.uid, datetime: currentDate.toISOString(), 
       displayName: currentUser.displayName, picture: currentUser.photoURL, text: text})
+
     
     //set local store
     dispatch(addPostComment({comment: comment, postID: postID}))
+    dispatch(setPostNoMoreComments(false))
+
     cbSuccess()
   }catch(err){
     console.log(err)
@@ -377,6 +383,13 @@ export const comment = (data, cbSuccess, cbError) => async (dispatch, getState) 
 
 // selectors
 export const selectPosts = state => state.subscriberFeed.posts
+
+export const selectPost = postID => {
+  return createSelector(
+    selectPosts,
+    posts => posts?.find(post => post.id === postID)
+  )
+}
 
 export const selectRecentPostsLoading = state => state.subscriberFeed.recentPostsLoading
 export const selectNextPostsLoading = state => state.subscriberFeed.nextPostsLoading

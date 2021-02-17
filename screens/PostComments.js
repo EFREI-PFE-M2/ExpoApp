@@ -14,7 +14,12 @@ import ProfileAvatar from '../components/ProfileAvatar';
 import timeAgoFormat from '../utils/timeAgoFormatter'
 import { selectSpecificRacePost, selectSpecificRacePostCommentsLoading, 
   updateSpecificRacePostComments, selectSpecificRacePostNoMoreComments,
-  comment } from '../store/raceSlice'
+  comment as commentRacePost } from '../store/raceSlice'
+import { selectPost, selectPostCommentsLoading, updatePostComments, selectPostNoMoreComments, comment as commentSubPost } from '../store/subscriberFeedSlice'
+import { selectSpecificGroupPost, selectSpecificGroupPostCommentsLoading, 
+  updateSpecificGroupPostComments, selectSpecificGroupPostNoMoreComments,
+  comment as commentGroupPost } from '../store/groupSlice'
+
 import { useDispatch, useSelector } from 'react-redux'
 import { Keyboard } from 'react-native'
 
@@ -23,19 +28,47 @@ export default function NewPost({ route, navigation }) {
 
   const { feed, entityID, postID} = route.params
 
+
   const [input, setInput] = React.useState('');
   const [pending, setPending] = useState(false)
 
-  const post = useSelector(selectSpecificRacePost(postID))
+  let post
+  let commentsLoading 
+  let noMoreComments 
 
-  const commentsLoading = useSelector(selectSpecificRacePostCommentsLoading)
+  switch(feed){
+    case 'race':
+      post = useSelector(selectSpecificRacePost(postID))
+      commentsLoading = useSelector(selectSpecificRacePostCommentsLoading)
+      noMoreComments = useSelector(selectSpecificRacePostNoMoreComments)
+      break;
+    case 'sub':
+      post = useSelector(selectPost(postID))
+      commentsLoading = useSelector(selectPostCommentsLoading)
+      noMoreComments = useSelector(selectPostNoMoreComments)
+      break;
+    case 'group':
+      post = useSelector(selectSpecificGroupPost(postID))
+      commentsLoading = useSelector(selectSpecificGroupPostCommentsLoading)
+      noMoreComments = useSelector(selectSpecificGroupPostNoMoreComments)
+      break;
+  }
 
-  const noMoreComments = useSelector(selectSpecificRacePostNoMoreComments)
 
   const dispatch = useDispatch()
 
   useEffect(()=>{
-    dispatch(updateSpecificRacePostComments({raceID: entityID, postID: postID}))
+    switch(feed){
+      case 'race':
+        dispatch(updateSpecificRacePostComments({raceID: entityID, postID: postID}))
+        break;
+      case 'sub':
+        dispatch(updatePostComments({entityID: entityID, postID: postID}))
+        break;
+      case 'group':
+        dispatch(updateSpecificGroupPostComments({entityID: entityID, postID: postID}))
+        break;
+    }
   },[])
   
   const goBack = () => {
@@ -44,10 +77,36 @@ export default function NewPost({ route, navigation }) {
 
   const sendComment = (text) => {
     setPending(true)
-    dispatch(comment({raceID: entityID, postID: postID, text: text},
-      ()=>setPending(false), ()=>setPending(false)))
+    switch(feed){
+      case 'race':
+        dispatch(commentRacePost({raceID: entityID, postID: postID, text: text},
+          ()=>setPending(false), ()=>setPending(false)))
+        break;
+      case 'sub':
+        dispatch(commentSubPost({entityID: entityID, postID: postID, text: text},
+          ()=>setPending(false), ()=>setPending(false)))
+        break;
+      case 'group':
+        dispatch(commentGroupPost({entityID: entityID, postID: postID, text: text},
+          ()=>setPending(false), ()=>setPending(false)))
+        break;
+    }
     setInput('')
     Keyboard.dismiss()
+  }
+
+  const actualise = () => {
+    switch(feed){
+      case 'race':
+        dispatch(updateSpecificRacePostComments({raceID: entityID, postID: postID}))
+        break;
+      case 'sub':
+        dispatch(updatePostComments({entityID: entityID, postID: postID}))
+        break;
+      case 'group':
+        dispatch(updateSpecificGroupPostComments({entityID: entityID, postID: postID}))
+        break;
+    }
   }
 
   return (
@@ -82,7 +141,7 @@ export default function NewPost({ route, navigation }) {
           </View>
           <View style={{ flexDirection: 'column', flex: 1}}>
             <View style={{flexDirection: 'row-reverse',margin: 10}}>
-              <TouchableOpacity onPress={()=>dispatch(updateSpecificRacePostComments({raceID: entityID, postID: postID}))}>
+              <TouchableOpacity onPress={()=> actualise()}>
                   <Text style={{color: '#757575'}}>Actualiser</Text>
               </TouchableOpacity>  
             </View>
@@ -93,7 +152,7 @@ export default function NewPost({ route, navigation }) {
               </View>
             }
             {
-                post.comments && post.comments.length > 0 &&
+                post && post.comments && post.comments.length > 0 &&
                 <FlatList
                   data={post.comments}
                   renderItem={({item}) => 

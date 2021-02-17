@@ -74,7 +74,7 @@ export const raceSlice = createSlice({
     addSpecificRacePostComment: (state, action) => {
       let { comment, postID } = action.payload
       state.specificRace.posts = state.specificRace.posts.map((post)=>
-      post.id === postID ? {...post, comments: [...post?.comments, comment]} : post)
+      post.id === postID ? {...post, nbComments: post.nbComments + 1, comments: [...post?.comments, comment]} : post)
     },
   },
 })

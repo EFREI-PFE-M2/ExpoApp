@@ -20,6 +20,9 @@ export default function NewPost({ route, navigation }) {
 
   if(route.params.hasOwnProperty("race"))
     race = route.params.race;
+
+  if(route.params.hasOwnProperty("groupID"))
+    groupID = route.params.groupID;
   
 
   return (
@@ -29,7 +32,7 @@ export default function NewPost({ route, navigation }) {
       <NewPostStack.Screen
         name="Post_Editor"
         component={PostEditor}
-        initialParams={{ feed: feed, race: race }}
+        initialParams={{ feed: feed, race: race, groupID: groupID }}
       />
       <NewPostStack.Screen
         name="Race_Selector"

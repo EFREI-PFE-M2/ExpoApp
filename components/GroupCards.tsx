@@ -3,16 +3,24 @@ import { useNavigation } from '@react-navigation/native'
 import React from 'react'
 import { Image, StyleSheet } from 'react-native'
 import { TouchableRipple } from 'react-native-paper'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { Text, View } from './Themed'
+import { setSpecificGroup } from '../store/groupSlice'
 
 export default function GroupCard({ groupID }) {
-  const { name, picture } = useSelector(
+  const group = useSelector(
     (state) => state.group?.groups[groupID]
   )
-  const { navigate } = useNavigation()
 
-  const onPress = () => navigate('Home_Group', { groupID })
+  let { name, picture } = group
+
+  const { navigate } = useNavigation()
+  const dispatch = useDispatch()
+
+  const onPress = () => {
+    dispatch(setSpecificGroup(group))
+    navigate('Home_Group', { groupID })
+  } 
 
   return (
     <TouchableRipple style={styles.container} onPress={onPress}>

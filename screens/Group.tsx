@@ -1,8 +1,8 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import { useNavigation } from '@react-navigation/native'
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, Image } from 'react-native'
-import { Button, IconButton } from 'react-native-paper'
+import { StyleSheet, Image, ScrollView, TouchableOpacity, FlatList } from 'react-native'
+import { Button, IconButton, FAB } from 'react-native-paper'
 import { useDispatch, useSelector } from 'react-redux'
 import Post from '../components/Post'
 import UserCard from '../components/UserCard'
@@ -15,6 +15,10 @@ import {
 } from '../store/groupSlice'
 import { selectCurrent, selectCurrentUser } from '../store/userSlice'
 import { Text, View } from './../components/Themed'
+
+import { selectSpecificGroupPosts, updateSpecificGroupRecentPosts, 
+  selectSpecificGroupRecentPostsLoading, selectSpecificGroupNextPostsLoading,
+  selectSpecificGroupNoMorePosts, addSpecificGroupNextPosts, likePost, vote} from '../store/groupSlice'
 
 const PUBLIC = 'public'
 const PRIVE = 'privé'
@@ -40,7 +44,6 @@ export default function Group({ route, navigation }) {
   useEffect(() => {
     dispatch(getPendingRequests(groupID))
     dispatch(getMembers(groupID))
-    dispatch(getGroupPosts(groupID))
   }, [])
 
   navigation.setOptions({
@@ -61,6 +64,9 @@ export default function Group({ route, navigation }) {
       />
     ),
   })
+
+
+  
 
   return (
     <View style={styles.container}>
@@ -124,14 +130,106 @@ export default function Group({ route, navigation }) {
   )
 }
 
-function Posts({ route }) {
+function Posts({ route, navigation }) {
   const { groupID } = route.params
-  const postList = useSelector(({ group }) => group?.groups[groupID].posts)
 
-  // Render posts from groupeID
-  const renderPosts = Object.keys(postList)?.map((element, key) => <Post />)
+  const dispatch = useDispatch()
 
-  return <View>{renderPosts}</View>
+  const posts = useSelector(selectSpecificGroupPosts);
+  const user = useSelector(selectCurrentUser);
+  const recentPostsLoading = useSelector(selectSpecificGroupRecentPostsLoading);
+  const nextPostsLoading = useSelector(selectSpecificGroupNextPostsLoading);
+  const noMorePosts = useSelector(selectSpecificGroupNoMorePosts);
+
+
+  useEffect(()=> {
+    dispatch(updateSpecificGroupRecentPosts(groupID))
+  }, [])
+
+
+  const handleNewPost = () => {
+    
+    navigation.navigate('New_Post', {
+      groupID: groupID, 
+      feed: 'group'
+    })
+  }
+
+  const handleActualise = () => {
+    dispatch(updateSpecificGroupRecentPosts(groupID))
+  }
+
+  const handleLoadNext = () => {
+    dispatch(addSpecificGroupNextPosts(groupID))
+  }
+
+  const handleLikePost = (postID, like, entityID) => {
+    dispatch(likePost({postID: postID, like: like, entityID: entityID, userID: user.uid},()=>{}, ()=>{}))
+  }
+
+  
+  const handleVote = (postID, response, entityID) => {
+    dispatch(vote({postID: postID, response: response, entityID: entityID, userID: user.uid},()=>{}, ()=>{}))
+  }
+  
+  return (
+  <>
+  <ScrollView style={{flex: 1}}>
+    {recentPostsLoading ? 
+        <View style={styles.loadingGif}>
+          <Image source={require('../assets/images/loading_horse_green.gif')}  style={{width: 72, height: 47}} />
+          <Text>Chargement...</Text>
+        </View>
+       :
+       <View style={styles.pubs}>
+        <Text>Publications</Text>
+        <TouchableOpacity onPress={handleActualise}>
+            <Text style={{color: '#757575'}}>Actualiser</Text>
+        </TouchableOpacity>  
+      </View>
+      }
+
+      <View>
+        {
+          posts && posts.length > 0 &&
+          <FlatList
+            data={posts}
+            renderItem={({item}) => 
+              <Post 
+                post={item}
+                currentUserID={user.uid}
+                handleLikePost={handleLikePost}
+                handleVote={handleVote}
+                feed='group'
+                entityID={groupID}
+              />
+            }
+          />
+        }
+      </View>
+      {nextPostsLoading &&
+        <View style={styles.loadingGif}>
+          <Image source={require('../assets/images/loading_horse_green.gif')}  style={{width: 72, height: 47}} />
+          <Text>Chargement...</Text>
+        </View>
+      }
+      <View style={{flex: 1, alignItems: 'center', backgroundColor: 'transparent', marginTop: 20, marginBottom: 20}}>
+          {
+            noMorePosts ? <Text>Il n'y a pas plus de posts</Text> : !recentPostsLoading && !nextPostsLoading &&
+            <TouchableOpacity onPress={handleLoadNext}>
+              <Text style={{color:'#757575'}}>Charger plus
+              </Text>
+            </TouchableOpacity>
+          }
+      </View>
+  </ScrollView>
+  <FAB
+        style={styles.fab}
+        icon="pen"
+        onPress={handleNewPost}
+  />
+  </>
+  )
 }
 
 function Members({ route }) {
@@ -178,7 +276,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'column',
-    justifyContent: 'flex-start',
   },
   groupInfoContainer: {
     flexDirection: 'column',
@@ -200,5 +297,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     bottom: 10,
+  },
+  loadingGif: {
+    flex: 1,
+    alignItems: 'center',
+    height: 50,
+    backgroundColor: 'transparent'
+  },
+  pubs: {
+    width: '100%',
+    backgroundColor: '#fff0',
+    height: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    justifyContent: 'space-between'
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
   },
 })

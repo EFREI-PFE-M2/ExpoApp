@@ -31,6 +31,7 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { newRacePost } from '../../store/raceSlice'
 import { newPost } from '../../store/subscriberFeedSlice'
+import { newGroupPost } from '../../store/groupSlice'
 import { selectCurrentUser } from '../../store/userSlice'
 
 import { Avatar, IconButton, Snackbar, Modal, Portal } from 'react-native-paper'
@@ -40,7 +41,8 @@ import ProfileAvatar from '../ProfileAvatar';
 
 export default function PostEditor({ route, navigation }) {
 
-  const { feed, race, entityID } = route.params
+  const { feed, groupID, race } = route.params
+
 
   const user = useSelector(selectCurrentUser);
   const dispatch = useDispatch()
@@ -122,8 +124,7 @@ export default function PostEditor({ route, navigation }) {
       text: text, 
       image: image, 
       survey: survey, 
-      bet: bet,
-      entityID: feed === 'race' ? race?.id : user.uid
+      bet: bet
     }
 
     dispatch(setText(''))
@@ -133,6 +134,7 @@ export default function PostEditor({ route, navigation }) {
     setPending(true);
     switch(feed){
       case 'race':
+        post.entityID = race?.id
         dispatch(newRacePost(post,
           ()=> { 
             setPending(false);
@@ -145,6 +147,7 @@ export default function PostEditor({ route, navigation }) {
           }))
         break;
       case 'sub':
+        post.entityID = user.uid
         dispatch(newPost(post,
           ()=> { 
             setPending(false);
@@ -157,6 +160,17 @@ export default function PostEditor({ route, navigation }) {
           }))
         break;
       case 'group':
+        post.entityID = groupID
+        dispatch(newGroupPost(post,
+          ()=> { 
+            setPending(false);
+            alert('Post publié')
+            navigation.goBack()
+          },
+          ()=> {
+            setPending(false);
+            alert('Erreur interne, veuillez réessayer')
+          }))
         break;
     }
     //navigation.goBack()

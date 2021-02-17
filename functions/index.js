@@ -195,15 +195,18 @@ exports.vote = functions
       case 'sub':
         try {
           //Add vote to Votes collection
-          await db
-            .collection(`Users/${entityID}/UserPosts/${postID}/Votes`)
-            .add({ userID: userID, response: response })
 
+          await db.collection(`Users/${entityID}/UserPosts/${postID}/Votes`)
+          .add({userID: userID, response: response})
+
+          
           //increment response field
-          let increment = admin.firestore.FieldValue.increment(1)
-          let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID)
-          await postRef.update({ [`responses.${response}`]: increment })
-        } catch (err) {
+          let increment = admin.firestore.FieldValue.increment(1);
+          let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID);
+          await postRef.update({[`responses.${response}`]: increment});
+          
+
+        }catch(err){
           return false
         }
         break

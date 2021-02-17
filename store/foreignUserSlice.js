@@ -1,6 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { FirebaseApp as firebase } from '../firebase'
 import { FirebaseFirestore as firestore } from '../firebase'
+import uploadImage from '../utils/uploadImage'
+import { createSelector } from 'reselect'
+
+const PAGINATION = 3
 
 export const foreignUserSlice = createSlice({
   name: 'foreignUser',
