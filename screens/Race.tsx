@@ -67,8 +67,8 @@ export default function Race({ route, navigation }) {
     dispatch(addSpecificRaceNextPosts(raceID))
   }
 
-  const handleLikePost = (postID, like) => {
-    dispatch(likePost({postID: postID, like: like, raceID: race.id, userID: user.uid},()=>{}, ()=>{}))
+  const handleLikePost = (postID, like, entityID, postOwnerID) => {
+    dispatch(likePost({postID: postID, like: like, raceID: race.id, userID: user.uid, postOwnerID: postOwnerID},()=>{}, ()=>{}))
   }
 
   

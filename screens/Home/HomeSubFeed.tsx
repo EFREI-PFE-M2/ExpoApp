@@ -38,8 +38,8 @@ export default function HomeSubFeed({ route, navigation }) {
     dispatch(addNextPosts())
   }
 
-  const handleLikePost = (postID, like, entityID) => {
-    dispatch(likePost({postID: postID, like: like, entityID: entityID, userID: user.uid},()=>{}, ()=>{}))
+  const handleLikePost = (postID, like, entityID, postOwnerID) => {
+    dispatch(likePost({postID: postID, like: like, entityID: entityID, userID: user.uid, postOwnerID: postOwnerID},()=>{}, ()=>{}))
   }
 
   

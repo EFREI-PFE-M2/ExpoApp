@@ -24,9 +24,9 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Keyboard } from 'react-native'
 
 
-export default function NewPost({ route, navigation }) {
+export default function PostComments({ route, navigation }) {
 
-  const { feed, entityID, postID} = route.params
+  const { feed, entityID, postID, postOwnerID} = route.params
 
 
   const [input, setInput] = React.useState('');
@@ -79,15 +79,15 @@ export default function NewPost({ route, navigation }) {
     setPending(true)
     switch(feed){
       case 'race':
-        dispatch(commentRacePost({raceID: entityID, postID: postID, text: text},
+        dispatch(commentRacePost({raceID: entityID, postID: postID, text: text, postOwnerID: postOwnerID},
           ()=>setPending(false), ()=>setPending(false)))
         break;
       case 'sub':
-        dispatch(commentSubPost({entityID: entityID, postID: postID, text: text},
+        dispatch(commentSubPost({entityID: entityID, postID: postID, text: text, postOwnerID: postOwnerID},
           ()=>setPending(false), ()=>setPending(false)))
         break;
       case 'group':
-        dispatch(commentGroupPost({entityID: entityID, postID: postID, text: text},
+        dispatch(commentGroupPost({entityID: entityID, postID: postID, text: text, postOwnerID: postOwnerID},
           ()=>setPending(false), ()=>setPending(false)))
         break;
     }

@@ -48,7 +48,7 @@ export default function Post(props) {
   }
 
   const openComments = () => {
-    navigation.navigate('Post_Comments', {feed: feed, entityID: entityID, postID: id})
+    navigation.navigate('Post_Comments', {feed: feed, entityID: entityID, postID: id, postOwnerID: userID})
   }
 
 
@@ -201,7 +201,7 @@ export default function Post(props) {
             mode="text"
             uppercase={false}
             labelStyle={[{fontWeight: 'bold'},alreadyLiked ? {color: '#194A4C'} : {color: '#757575'}]}
-            onPress={()=> handleLikePost(id, !alreadyLiked, entityID)}>J'aime
+            onPress={()=> handleLikePost(id, !alreadyLiked, entityID, userID)}>J'aime
           </Button>
           <Button 
             icon="comment-text-outline"  

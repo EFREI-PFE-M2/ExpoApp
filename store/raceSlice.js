@@ -255,11 +255,11 @@ export const newRacePost = (data, cbSuccess, cbError) => async (dispatch) => {
 export const likePost = (data, cbSuccess, cbError) => async (dispatch) => {
   
   try{
-    let { postID, like, raceID, userID } = data
+    let { postID, like, raceID, userID, postOwnerID } = data
     
     const likePostCloudFunction = firebase.functions('europe-west1').httpsCallable('likePost')
     await likePostCloudFunction({feed: 'race', entityID: raceID,
-       postID: postID, userID: userID, like: like})
+       postID: postID, userID: userID, like: like, postOwnerID: postOwnerID})
     
     //set local store
     dispatch(setSpecificRacePostLikeStatus({postID: postID, like: like}))
@@ -337,7 +337,7 @@ export const comment = (data, cbSuccess, cbError) => async (dispatch, getState) 
   let currentDate = new Date()
   let currentUser = getState().user
   try{
-    let { raceID, postID, text } = data
+    let { raceID, postID, text, postOwnerID } = data
 
     let comment = {
       datetime: currentDate.toISOString(), 
@@ -349,7 +349,7 @@ export const comment = (data, cbSuccess, cbError) => async (dispatch, getState) 
     
     const commentCloudFunction = firebase.functions('europe-west1').httpsCallable('comment')
     await commentCloudFunction({feed: 'race', entityID: raceID, postID: postID, userID: currentUser.uid, datetime: currentDate.toISOString(), 
-      displayName: currentUser.displayName, picture: currentUser.photoURL, text: text})
+      displayName: currentUser.displayName, picture: currentUser.photoURL, text: text, postOwnerID: postOwnerID})
     
     //set local store
     dispatch(addSpecificRacePostComment({comment: comment, postID: postID}))

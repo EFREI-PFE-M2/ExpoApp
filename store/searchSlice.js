@@ -96,7 +96,9 @@ export const searchGroups = (keyword) => async (dispatch) => {
     if (!result.size) return
 
     result.forEach((doc) => {
-      groups.push({ id: doc.id, ...doc.data() })
+      let res = doc.data()
+      delete res.createdAt
+      groups.push({ id: doc.id, ...res })
     })
   } catch (err) {
     console.log(err)

@@ -271,11 +271,11 @@ export const newPost = (data, cbSuccess, cbError) => async (dispatch) => {
 export const likePost = (data, cbSuccess, cbError) => async (dispatch) => {
   
   try{
-    let { postID, like, entityID, userID } = data
+    let { postID, like, entityID, userID, postOwnerID } = data
     
     const likePostCloudFunction = firebase.functions('europe-west1').httpsCallable('likePost')
     await likePostCloudFunction({feed: 'sub', entityID: entityID,
-       postID: postID, userID: userID, like: like})
+       postID: postID, userID: userID, like: like, postOwnerID: postOwnerID})
     
     //set local store
     dispatch(setPostLikeStatus({postID: postID, like: like}))
@@ -354,7 +354,7 @@ export const comment = (data, cbSuccess, cbError) => async (dispatch, getState) 
   let currentDate = new Date()
   let currentUser = getState().user
   try{
-    let { entityID, postID, text } = data
+    let { entityID, postID, text, postOwnerID } = data
 
     let comment = {
       datetime: currentDate.toISOString(), 
@@ -367,7 +367,7 @@ export const comment = (data, cbSuccess, cbError) => async (dispatch, getState) 
     
     const commentCloudFunction = firebase.functions('europe-west1').httpsCallable('comment')
     await commentCloudFunction({feed: 'sub', entityID: entityID, postID: postID, userID: currentUser.uid, datetime: currentDate.toISOString(), 
-      displayName: currentUser.displayName, picture: currentUser.photoURL, text: text})
+      displayName: currentUser.displayName, picture: currentUser.photoURL, text: text, postOwnerID: postOwnerID})
 
     
     //set local store

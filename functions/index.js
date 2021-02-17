@@ -40,7 +40,7 @@ exports.races = functions
 exports.likePost = functions
   .region('europe-west1')
   .https.onCall(async (contextData, context) => {
-    let { feed, entityID, postID, userID, like } = contextData
+    let { feed, entityID, postID, userID, like, postOwnerID } = contextData
     switch (feed) {
       case 'race':
         try {
@@ -57,7 +57,7 @@ exports.likePost = functions
             //decrement nbLikes field
             let decrement = admin.firestore.FieldValue.increment(-1)
             let postRef = db.collection(`Races/${entityID}/Posts`).doc(postID)
-            await postRef.update({ nbLikes: decrement })
+            await postRef.set({ nbLikes: decrement },{ merge: true })
 
             return true
           } else {
@@ -69,7 +69,16 @@ exports.likePost = functions
             //increment nbLikes field
             let increment = admin.firestore.FieldValue.increment(1)
             let postRef = db.collection(`Races/${entityID}/Posts`).doc(postID)
-            await postRef.update({ nbLikes: increment })
+            await postRef.set({ nbLikes: increment },{ merge: true })
+
+            await db.collection(`Users/${postOwnerID}/Notifications`).add({
+              type: 'like',
+              datetime: new Date(),
+              userID,
+              postID,
+            })
+
+            return true
           }
         } catch (err) {
           return false
@@ -91,7 +100,7 @@ exports.likePost = functions
             let postRef = db
               .collection(`Users/${entityID}/UserPosts`)
               .doc(postID)
-            await postRef.update({ nbLikes: decrement })
+            await postRef.set({ nbLikes: decrement },{ merge: true })
 
             return true
           } else {
@@ -105,7 +114,16 @@ exports.likePost = functions
             let postRef = db
               .collection(`Users/${entityID}/UserPosts`)
               .doc(postID)
-            await postRef.update({ nbLikes: increment })
+            await postRef.set({ nbLikes: increment },{ merge: true })
+
+            await db.collection(`Users/${postOwnerID}/Notifications`).add({
+              type: 'like',
+              datetime: new Date(),
+              userID,
+              postID,
+            })
+
+            return true
           }
         } catch (err) {
           return false
@@ -125,7 +143,7 @@ exports.likePost = functions
             //decrement nbLikes field
             let decrement = admin.firestore.FieldValue.increment(-1)
             let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID)
-            await postRef.update({ nbLikes: decrement })
+            await postRef.set({ nbLikes: decrement },{ merge: true })
 
             return true
           } else {
@@ -137,29 +155,26 @@ exports.likePost = functions
             //increment nbLikes field
             let increment = admin.firestore.FieldValue.increment(1)
             let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID)
-            await postRef.update({ nbLikes: increment })
+            await postRef.set({ nbLikes: increment },{ merge: true })
+
+            await db.collection(`Users/${postOwnerID}/Notifications`).add({
+              type: 'like',
+              datetime: new Date(),
+              userID,
+              postID,
+            })
+
+            return true
           }
         } catch (err) {
           return false
         }
     }
-
-    if (like) {
-      const ref = db.collection(`Users/${followerID}`)
-      const userDisplayName = await ref.get('displayName')
-      const userPhotoURL = await ref.get('photoURL')
-
-      await db.collection(`Users/${userID}/Notifications`).add({
-        type: 'like',
-        datetime: new Date(),
-        userID,
-        userDisplayName,
-        userPhotoURL,
-        postID,
-      })
+    if(like){
+      let postOwnerRef = db.collection('Users').doc(postOwnerID)
+      let incrementExp = admin.firestore.FieldValue.increment(15)
+      await postOwnerRef.set({ experience: incrementExp },{ merge: true })
     }
-
-    return true
   })
 
 exports.vote = functions
@@ -230,6 +245,7 @@ exports.comment = functions
       displayName,
       picture,
       text,
+      postOwnerID
     } = contextData
 
     switch (feed) {
@@ -249,7 +265,14 @@ exports.comment = functions
           //increment response field
           let increment = admin.firestore.FieldValue.increment(1)
           let postRef = db.collection(`Races/${entityID}/Posts`).doc(postID)
-          await postRef.update({ nbComments: increment })
+          await postRef.set({ nbComments: increment },{ merge: true })
+
+          await db.collection(`Users/${postOwnerID}/Notifications`).add({
+            type: 'comment',
+            datetime,
+            userID,
+            postID,
+          })
         } catch (err) {
           return false
         }
@@ -270,7 +293,14 @@ exports.comment = functions
           //increment response field
           let increment = admin.firestore.FieldValue.increment(1)
           let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID)
-          await postRef.update({ nbComments: increment })
+          await postRef.set({ nbComments: increment },{ merge: true })
+
+          await db.collection(`Users/${postOwnerID}/Notifications`).add({
+            type: 'comment',
+            datetime,
+            userID,
+            postID,
+          })
         } catch (err) {
           return false
         }
@@ -291,27 +321,19 @@ exports.comment = functions
           //increment response field
           let increment = admin.firestore.FieldValue.increment(1)
           let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID)
-          await postRef.update({ nbComments: increment })
+          await postRef.set({ nbComments: increment },{ merge: true })
+
+          await db.collection(`Users/${postOwnerID}/Notifications`).add({
+            type: 'comment',
+            datetime,
+            userID,
+            postID,
+          })
         } catch (err) {
           return false
         }
         break
     }
-
-    const ref = db.collection(`Users/${followerID}`)
-    const userDisplayName = await ref.get('displayName')
-    const userPhotoURL = await ref.get('photoURL')
-
-    await db.collection(`Users/${userID}/Notifications`).add({
-      type: 'comment',
-      datetime,
-      userID,
-      userDisplayName,
-      userPhotoURL,
-      postID,
-    })
-
-    return true
   })
 
 exports.follow = functions
@@ -325,19 +347,15 @@ exports.follow = functions
           .collection('Follows')
           .add({ followerID: followerID, followedID: followedID })
 
-        const ref = db.collection(`Users/${followerID}`)
-        const followerDisplayName = await ref.get('displayName')
-        const followerPhotoURL = await ref.get('photoURL')
-
         await Promise.all([
           db
             .collection('Users')
             .doc(followerID)
-            .update({ nbFollowing: admin.firestore.FieldValue.increment(1) }),
+            .set({ nbFollowing: admin.firestore.FieldValue.increment(1) },{ merge: true }),
           db
             .collection('Users')
             .doc(followedID)
-            .update({ nbFollowers: admin.firestore.FieldValue.increment(1) }),
+            .set({ nbFollowers: admin.firestore.FieldValue.increment(1) },{ merge: true }),
           db
             .collection('Users')
             .doc(followedID)
@@ -346,8 +364,6 @@ exports.follow = functions
               type: 'follow',
               datetime: new Date(),
               followerID: followerID,
-              followerDisplayName,
-              followerPhotoURL,
               followedID: followedID,
             }),
         ])
@@ -367,15 +383,15 @@ exports.follow = functions
             db
               .collection('Users')
               .doc(followerID)
-              .update({
+              .set({
                 nbFollowing: admin.firestore.FieldValue.increment(-1),
-              }),
+              },{ merge: true }),
             db
               .collection('Users')
               .doc(followedID)
-              .update({
+              .set({
                 nbFollowers: admin.firestore.FieldValue.increment(-1),
-              }),
+              },{ merge: true }),
           ])
         }
       }
@@ -673,5 +689,119 @@ exports.onUpdateGame = functions
         turnUser2CardId: '',
         state: 'game_results',
       })
+    }
+  })
+
+
+
+
+
+
+  function isWin(betType, betCategory, bet, betResults) {
+    let podium
+    switch (betType) {
+      case 'simple':
+        switch (betCategory) {
+          case 'placé':
+            podium = betResults.slice(0, 3)
+            return podium.includes(bet[0])
+          case 'gagnant':
+            return betResults[0] === bet[0]
+        }
+        break
+      case 'couplé':
+        switch (betCategory) {
+          case 'gagnant':
+            podium = betResults.slice(0, 2)
+            return hasSubArray(podium, bet)
+          case 'placé':
+            podium = betResults.slice(0, 3)
+            return hasSubArray(podium, bet)
+          case 'ordre':
+            return bet[0] === betResults[0] && bet[1] === betResults[1]
+        }
+        break
+      case 'quinté':
+        switch (betCategory) {
+          case 'ordre':
+            return (
+              bet[0] === betResults[0] &&
+              bet[1] === betResults[1] &&
+              bet[2] === betResults[2] &&
+              bet[3] === betResults[3] &&
+              bet[4] === betResults[4]
+            )
+          case 'désordre':
+            return hasSubArray(betResults, bet)
+        }
+        break
+    }
+  }
+  
+  function hasSubArray(master, sub) {
+    return !sub.some((r) => !master.includes(r))
+  }
+  
+  function addExp(userID, points) {
+    return db.collection(`Users`).doc(userID).set({
+      experience: admin.firestore.FieldValue.increment(points),
+    }, {merge: true})
+  }
+  
+  const AWARD_SIMPLE_POINTS = 25
+  const AWARD_COUPLE_POINTS = 35
+  const AWARD_QUINTE_POINTS = 50
+  //https://europe-west1-pmu-commu.cloudfunctions.net/raceUpdate?raceID=19&results=[8,7,5,2,9]
+  exports.raceUpdate = functions
+    .region('europe-west1')
+    .https.onRequest(async (req, res) => {
+      let raceID = req.query.raceID
+      let results = JSON.parse(req.query.results)
+
+      try{
+
+        
+        let betDocs = db
+        .collection(`Races/${raceID}/Posts`)
+        .where('type', '==', 'bet')
+
+        let raceDocs = await betDocs.where('raceID', '==', parseInt(raceID)).get()
+
+        //TODO: Do this for Sub and Group feeds
+        
+        for(doc of raceDocs.docs){
+
+          const { betType, category, bet, userID } = doc.data()
+            
+          
+          const result = isWin(betType, category, bet, results)
+          
+          
+          await doc.ref.set({
+            won: result,
+          }, {merge: true})
+
+          if(result){
+          
+            switch (betType) {
+              case 'simple':
+                await addExp(userID, AWARD_SIMPLE_POINTS)
+                break
+              case 'couplé':
+                await addExp(userID, AWARD_COUPLE_POINTS)
+                break
+              case 'quinté':
+                await addExp(userID, AWARD_QUINTE_POINTS)
+                break
+            }  
+          
+          }
+          
+        
+      }
+      
+      res.status(200).send(`Bets updated for race ${raceID} !`);    
+    }catch(err){
+      return res.status(400).send({error: err})
     }
   })
