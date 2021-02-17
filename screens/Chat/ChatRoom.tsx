@@ -61,6 +61,7 @@ export default function ChatRoom(props: any) {
     if (content.trim() != '') {    
       setContent('')
       setRefreshing(true)
+      setScrollOnce(0)
 
       const message = {
         type: 'text',
