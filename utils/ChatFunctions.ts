@@ -1,3 +1,5 @@
+import { Animated } from "react-native"
+
 export function GetRoomTitleShort(title: string) {
   if (title.length > 25) return title.substring(0, 25) + '...'
   else return title
@@ -58,6 +60,30 @@ export const capitalize = (s: string) => {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
+export const wait = (timeout: number) => {
+  return new Promise(resolve => {
+    setTimeout(resolve, timeout);
+  });
+}
+
+export const fadeIn = (fadeAnimation: Animated.Value | Animated.ValueXY) => {
+  // Will change fadeAnimation value to 1 in 500 ms
+  Animated.timing(fadeAnimation, {
+    toValue: 1,
+    duration: 500,
+    useNativeDriver: true
+  }).start();
+};
+
+export const fadeOut = (fadeAnimation: Animated.Value | Animated.ValueXY) => {
+  // Will change fadeAnimation value to 0 in 500 ms
+  Animated.timing(fadeAnimation, {
+    toValue: 0,
+    duration: 500,
+    useNativeDriver: true
+  }).start();
+};
+
 export function sortChatFunction(a: any, b: any) {
   const aLastMessage = a.data.lastMessage
   const aLength = Object.keys(aLastMessage).length
@@ -79,5 +105,20 @@ export function sortChatFunction(a: any, b: any) {
     } else {
       return aCreatedAt['seconds'] - bCreatedAt['seconds']
     }
+  }
+}
+
+import constants from '../constants/ChatConstants'
+
+export function checkMessageType (type1: string, type2: string) {
+  switch(type1) {
+    case(constants.message.type.text):
+    case(constants.message.type.image):
+    case(constants.message.type.audio):
+    case(constants.message.type.edited):
+    case(constants.message.type.deleted):
+      return type1 === type2
+    default:
+      return false
   }
 }

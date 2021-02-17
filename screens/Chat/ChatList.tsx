@@ -1,28 +1,28 @@
 import React, { useEffect, useState } from 'react'
 import { View } from '../../components/Themed'
-import { StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native'
+import { StyleSheet, ScrollView, Text, TouchableOpacity, RefreshControl } from 'react-native'
 import { Avatar } from 'react-native-paper'
 import {
   GetMessageShort,
   GetRoomTitleShort,
   GetPublishedDate,
+  wait,
+  checkMessageType,
 } from '../../utils/ChatFunctions'
 import { useDispatch, useSelector } from 'react-redux'
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import {
   selectPrivateChats,
   getMessagesFromPrivateConversation,
-  setReachFirstMessageState,
   selectGroupChats,
   getMessagesFromGroupConversation,
   getConversationFromID,
   getGroupConversationFromID,
 } from '../../store/chatSlice'
 import { selectCurrentUser } from '../../store/userSlice'
+import constants from '../../constants/ChatConstants'
 
 function PrivateChatList(props: any) {
-  const noPrivateChats = 'No private conversations.'
-
   const displayUser = useSelector(selectCurrentUser)
   const { uid } = displayUser
 
@@ -32,10 +32,19 @@ function PrivateChatList(props: any) {
   const [privateConversations, setPrivateConversations] = useState(privateChats)
 
   useEffect(() => {
-    setPrivateConversations(privateChats)   
-  })
+    setRefreshing(true);
+    setPrivateConversations(privateChats);
+    wait(2000).then(() => setRefreshing(false));
+  }, [privateChats])
 
   const { navigation } = props
+
+  const [refreshing, setRefreshing] = React.useState(false);
+  const scrollViewRef = React.useRef<ScrollView>()
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    wait(2000).then(() => setRefreshing(false));  
+  }, []);
 
   const redirectToPrivateChatRoom = ({props}: any) => async () => 
   {
@@ -66,14 +75,11 @@ function PrivateChatList(props: any) {
     })
   }
 
-
   const privateConversationsList = () =>
     {
       return Object.keys(privateConversations).length == 0 ? 
       (
-        <Text style={{ marginTop: 10, marginStart: 10, fontSize: 16 }}>
-          {noPrivateChats}
-        </Text>
+        null
       ) : 
       <View style={{backgroundColor: 'rgba(0,0,0,0)'}}>
         {Object.keys(privateConversations).map((key) => {
@@ -81,14 +87,20 @@ function PrivateChatList(props: any) {
 
           const displayName = GetRoomTitleShort(uid == chatInfo.senderID ? chatInfo.receiverDisplayName : chatInfo.senderDisplayName)
           const photoURL = uid == chatInfo.senderID ? chatInfo.receiverPhotoURL : chatInfo.senderPhotoURL
+          const lastMessageType = chatInfo.lastMessage['type']  
+
+          const isText = checkMessageType(lastMessageType, constants.message.type.text) 
+          const isEditedText = checkMessageType(lastMessageType, constants.message.type.edited)
+          const isImage = checkMessageType(lastMessageType, constants.message.type.image)
+          const isAudio = checkMessageType(lastMessageType, constants.message.type.audio)
 
           const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
-            (chatInfo.lastMessage['type'] == 'text' ? 
-              chatInfo.lastMessage.text : (chatInfo.lastMessage['type'] == 'image' ?
-                '[New image has been sent]' : (chatInfo.lastMessage['type'] == 'audio' ? 
-                '[New audio has been sent]' : '[Message has been deleted]' 
+            (isText || isEditedText ? 
+              chatInfo.lastMessage.text : (isImage ?
+                constants.lastMessage.type.image : (isAudio ? 
+                constants.lastMessage.type.audio : constants.lastMessage.type.deleted 
             ))) 
-              : '[Be the first to send message]')
+              : constants.lastMessage.type.first)
 
           const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length ? 
             GetPublishedDate(new Date(!chatInfo.lastMessage.createdAt['seconds'] ? 
@@ -125,25 +137,32 @@ function PrivateChatList(props: any) {
       </View>
     }
     
-
   return (
-    <ScrollView>
-      {privateConversationsList()}
+    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}
+      ref={scrollViewRef}>
+        {privateConversationsList()}
     </ScrollView>
   )
 }
 
 function GroupChatList(props: any) {
-  const noGroupChats = 'No group conversations.'
-
   const dispatch = useDispatch()
 
-  let groupChats = useSelector(selectGroupChats)
+  const groupChats = useSelector(selectGroupChats)
   const [groupConversations, setGroupConversations] = useState(groupChats)
 
   useEffect(() => {
+    setRefreshing(true);
     setGroupConversations(groupChats)
-  })
+    wait(2000).then(() => setRefreshing(false));
+  }, [groupChats])
+
+  const [refreshing, setRefreshing] = React.useState(false);
+  const scrollViewRef = React.useRef<ScrollView>()
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    wait(2000).then(() => setRefreshing(false));  
+  }, []);
 
   const { navigation } = props
 
@@ -179,9 +198,7 @@ function GroupChatList(props: any) {
   { 
     return Object.keys(groupConversations).length == 0 ? 
     (
-      <Text style={{ marginTop: 10, marginStart: 10, fontSize: 16 }}>
-        {noGroupChats}
-      </Text>
+      null
     ) : (
       <View style={{backgroundColor: 'rgba(0,0,0,0)'}}>
         {Object.keys(groupConversations).map((key) => {
@@ -189,14 +206,20 @@ function GroupChatList(props: any) {
 
           const groupChatName = GetRoomTitleShort(chatInfo.name)
           const photoURL = chatInfo.photoURL
+          const lastMessageType = chatInfo.lastMessage['type'] 
+
+          const isText = checkMessageType(lastMessageType, constants.message.type.text) 
+          const isEditedText = checkMessageType(lastMessageType, constants.message.type.edited)
+          const isImage = checkMessageType(lastMessageType, constants.message.type.image)
+          const isAudio = checkMessageType(lastMessageType, constants.message.type.audio)
 
           const lastMessage = GetMessageShort(Object.keys(chatInfo.lastMessage).length ? 
-            (chatInfo.lastMessage['type'] == 'text' ? 
-              chatInfo.lastMessage.text : (chatInfo.lastMessage['type'] == 'image' ?
-              '[New image has been sent]' : (chatInfo.lastMessage['type'] == 'audio' ? 
-              '[New audio has been sent]' : '[Message has been deleted]' 
+            (isText || isEditedText ? 
+              chatInfo.lastMessage.text : (isImage ?
+                constants.lastMessage.type.image : (isAudio ? 
+                constants.lastMessage.type.audio : constants.lastMessage.type.deleted 
             ))) 
-              : '[Be the first to send message]')
+              : constants.lastMessage.type.first)
 
           const createdOrPublishedAt = Object.keys(chatInfo.lastMessage).length ? 
             GetPublishedDate(new Date(!chatInfo.lastMessage.createdAt['seconds'] ? 
@@ -231,12 +254,13 @@ function GroupChatList(props: any) {
             </TouchableOpacity>) 
         })} 
       </View>
-      )
-    }
+    )
+  }
   
   return (
-    <ScrollView>
-      {groupConversationsList()}
+    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}
+      ref={scrollViewRef}>
+        {groupConversationsList()}
     </ScrollView>
   )
 }
@@ -253,8 +277,10 @@ export default function ChatListStack(props: any) {
     await dispatch(getGroupConversationFromID(uid))
   }
   
-  getConversations()
-
+  useEffect(()=> {
+    getConversations()
+  }, [])
+  
   return (
     <>
       <Tab.Navigator

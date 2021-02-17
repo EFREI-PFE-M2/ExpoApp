@@ -1,5 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { FirebaseFirestore as firestore } from '../firebase'
+import constants from '../constants/ChatConstants'
+import { useDispatch } from 'react-redux'
 
 export const chatSlice = createSlice({
   name: 'chat',
@@ -53,27 +55,27 @@ export const chatSlice = createSlice({
           conversationID
         ].reachFirstMessageState = reachFirstMessageState
     },
-    updateLastMessageDeleted: (state, action) => {
-      const { id, lastMessage, isPrivate } = action.payload
+    updateLastMessage: (state, action) => {
+      const { conversationID, lastMessage, isPrivate } = action.payload
       isPrivate
-        ? (state.privateConversations[id].lastMessage = lastMessage)
-        : (state.groupConversations[id].lastMessage = lastMessage)
+        ? (state.privateConversations[conversationID].lastMessage = lastMessage)
+        : (state.groupConversations[conversationID].lastMessage = lastMessage)
     },
     putAtTopLastUpToDatePrivateChat: (state, action) => {
-      const referencedID = action.payload.id
-      const lastMessage = action.payload.lastMessage
-      state.privateConversations[referencedID].lastMessage = lastMessage
+      const { conversationID, lastMessage } = action.payload
+
+      state.privateConversations[conversationID].lastMessage = lastMessage
 
       let privateChatToTop = Object.assign(
         {},
-        { [referencedID]: state.privateConversations[referencedID] }
+        { [conversationID]: state.privateConversations[conversationID] }
       )
 
       privateChatToTop = Object.entries(privateChatToTop)
 
       let privateConversations = Object.assign({}, state.privateConversations)
 
-      delete privateConversations[referencedID]
+      delete privateConversations[conversationID]
 
       let updatedPrivateConversations = Object.entries(privateConversations)
 
@@ -85,20 +87,20 @@ export const chatSlice = createSlice({
       )
     },
     putAtTopLastUpToDateGroupChat: (state, action) => {
-      const referencedID = action.payload.id
-      const lastMessage = action.payload.lastMessage
-      state.groupConversations[referencedID].lastMessage = lastMessage
+      const { conversationID, lastMessage } = action.payload
+
+      state.groupConversations[conversationID].lastMessage = lastMessage
 
       let groupChatToTop = Object.assign(
         {},
-        { [referencedID]: state.groupConversations[referencedID] }
+        { [conversationID]: state.groupConversations[conversationID] }
       )
 
       groupChatToTop = Object.entries(groupChatToTop)
 
       let groupConversations = Object.assign({}, state.groupConversations)
 
-      delete groupConversations[referencedID]
+      delete groupConversations[conversationID]
 
       let updatedGroupConversations = Object.entries(groupConversations)
 
@@ -200,7 +202,7 @@ export const searchUsers = (query, groupConversationID = undefined) => async (
 
     const sp = groupConversationID
       ? await firestore
-          .collection('GroupConversation')
+          .collection(constants.collection.chat.group)
           .doc(groupConversationID)
           .get()
           .then((doc) => (alreadyInvitedUsers = doc.data().users))
@@ -258,30 +260,21 @@ export const getMessagesFromPrivateConversation = (
 
   let messages = []
 
+  const ref = firestore
+    .collection(constants.collection.chat.private)
+    .doc(conversationID)
+    .collection(constants.collection.chat.messages)
+
   const sp =
     typeof earliestMessageID == 'string'
-      ? await firestore
-          .collection('PrivateConversation')
-          .doc(conversationID)
-          .collection('Messages')
-          .doc(earliestMessageID)
-          .get()
+      ? await ref.doc(earliestMessageID).get()
       : undefined
 
   const snapshot = !earliestMessageID
     ? // 10 most recent messages in the chat
-      await firestore
-        .collection('PrivateConversation')
-        .doc(conversationID)
-        .collection('Messages')
-        .orderBy('createdAt')
-        .limitToLast(10)
-        .get()
+      await ref.orderBy('createdAt').limitToLast(10).get()
     : // <= 10 older messages than the referenced message
-      await firestore
-        .collection('PrivateConversation')
-        .doc(conversationID)
-        .collection('Messages')
+      await ref
         .where('createdAt', '<', sp.data().createdAt)
         .orderBy('createdAt', 'desc')
         .limitToLast(10)
@@ -343,32 +336,23 @@ export const getMessagesFromGroupConversation = (
 
   let messages = []
 
+  const ref = firestore
+    .collection(constants.collection.chat.group)
+    .doc(conversationID)
+    .collection(constants.collection.chat.messages)
+
   const sp =
     typeof earliestMessageID == 'string'
-      ? await firestore
-          .collection('GroupConversation')
-          .doc(conversationID)
-          .collection('Messages')
-          .doc(earliestMessageID)
-          .get()
+      ? await ref.doc(earliestMessageID).get()
       : undefined
 
   const snapshot = !earliestMessageID
     ? // 10 most recent messages in the chat
-      await firestore
-        .collection('GroupConversation')
-        .doc(conversationID)
-        .collection('Messages')
-        .orderBy('createdAt')
-        .limitToLast(10)
-        .get()
+      await ref.orderBy('createdAt').limitToLast(10).get()
     : // <= 10 older messages than the referenced message
-      await firestore
-        .collection('GroupConversation')
-        .doc(conversationID)
-        .collection('Messages')
+      await ref
         .where('createdAt', '<', sp.data().createdAt)
-        .orderBy('createdAt', 'desc')
+        .orderBy('createdAt')
         .limitToLast(10)
         .get()
 
@@ -413,42 +397,13 @@ export const getMessagesFromGroupConversation = (
   )
 }
 
-// thunks
-/*export const getConversationList = (conversationID) => async (dispatch) => {
-  try {
-    // Snapshot will only contain field
-    // const snapshot = await firestore
-    //   .collection('PrivateConversation')
-    //   .doc(conversationID)
-    //   .collection('messages')
-    //   .orderBy('createdAt', 'desc')
-    //   .limitToLast(10)
-    //   .get()
-    // snapshot.forEach((data) => console.log(data.id, data.data()))
-
-    const snapshot = await firestore
-      .collection('PrivateConversation')
-      .doc(conversationID)
-      .get()
-
-    dispatch(
-      addToPrivate({
-        id: snapshot.id,
-        data: snapshot.data(),
-      })
-    )
-  } catch (err) {
-    console.error(err)
-  }
-}*/
-
 /**
  * @param {String} userID
  */
 export const getConversationFromID = (userID) => async (dispatch) => {
   try {
     const snapshot = await firestore
-      .collection('PrivateConversation')
+      .collection(constants.collection.chat.private)
       .where('users', 'array-contains', userID)
       .orderBy('createdAt', 'desc')
       .get()
@@ -459,9 +414,9 @@ export const getConversationFromID = (userID) => async (dispatch) => {
 
     snapshot.forEach(async (doc) => {
       const lastMessage = await firestore
-        .collection('PrivateConversation')
+        .collection(constants.collection.chat.private)
         .doc(doc.id)
-        .collection('Messages')
+        .collection(constants.collection.chat.messages)
         .orderBy('createdAt')
         .limitToLast(1)
         .get()
@@ -493,7 +448,7 @@ export const getConversationFromID = (userID) => async (dispatch) => {
 export const getGroupConversationFromID = (userID) => async (dispatch) => {
   try {
     const snapshot = await firestore
-      .collection('GroupConversation')
+      .collection(constants.collection.chat.group)
       .where('users', 'array-contains', userID)
       .orderBy('createdAt', 'desc')
       .get()
@@ -504,9 +459,9 @@ export const getGroupConversationFromID = (userID) => async (dispatch) => {
 
     snapshot.forEach(async (doc) => {
       const lastMessage = await firestore
-        .collection('GroupConversation')
+        .collection(constants.collection.chat.group)
         .doc(doc.id)
-        .collection('Messages')
+        .collection(constants.collection.chat.messages)
         .orderBy('createdAt')
         .limitToLast(1)
         .get()
@@ -547,7 +502,7 @@ export const createConversation = (senderID, receiverID) => async (
 ) => {
   try {
     const snapshot = await firestore
-      .collection('PrivateConversation')
+      .collection(constants.collection.chat.private)
       .where('users', 'array-contains', senderID)
       .get()
 
@@ -563,12 +518,10 @@ export const createConversation = (senderID, receiverID) => async (
     if (array.length != 0)
       return dispatch(setError('Conversation already exists.'))
     else {
-      const senderDoc = await firestore.collection('Users').doc(senderID).get()
+      const ref = firestore.collection('Users')
+      const senderDoc = await ref.doc(senderID).get()
       const sender = senderDoc.data()
-      const receiverDoc = await firestore
-        .collection('Users')
-        .doc(receiverID)
-        .get()
+      const receiverDoc = await ref.doc(receiverID).get()
       const receiver = receiverDoc.data()
 
       let data = {
@@ -589,7 +542,7 @@ export const createConversation = (senderID, receiverID) => async (
 
       // Create new conversation on the database
       const querySnapshot = await firestore
-        .collection('PrivateConversation')
+        .collection(constants.collection.chat.private)
         .add(data)
 
       await dispatch(updateUsersToAdd({}))
@@ -634,17 +587,16 @@ export const createGroupConversation = (hostID, groupChatInfo) => async (
     data['users'] = Object.keys(users)
 
     const querySnapshot = await firestore
-      .collection('GroupConversation')
+      .collection(constants.collection.chat.group)
       .add(data)
 
+    const ref = firestore
+      .collection(constants.collection.chat.group)
+      .doc(querySnapshot.id)
+      .collection(constants.collection.chat.members)
+
     Object.entries(users).forEach(
-      async (element) =>
-        await firestore
-          .collection('GroupConversation')
-          .doc(querySnapshot.id)
-          .collection('GroupChatMembers')
-          .doc(element[0])
-          .set(element[1])
+      async (element) => await ref.doc(element[0]).set(element[1])
     )
 
     dispatch(
@@ -676,19 +628,32 @@ export const sendPrivateChatMessage = (conversationID, message) => async (
     if (!chat.privateConversations.hasOwnProperty(conversationID))
       return dispatch(setError('Conversation not loaded, error aborting.'))
 
-    let messageID
+    let earliestMessage = chat.privateConversations[conversationID].messages[0]
 
-    await firestore
-      .collection('PrivateConversation')
+    const ref = firestore
+      .collection(constants.collection.chat.private)
       .doc(conversationID)
-      .collection('Messages')
-      .add(message)
-      .then((doc) => (messageID = doc.id))
+      .collection(constants.collection.chat.messages)
 
-    let messages = [
+    await ref.add(message)
+
+    const snapshot = await ref
+      .where(
+        'createdAt',
+        '>=',
+        earliestMessage ? earliestMessage.createdAt : message.createdAt
+      )
+      .orderBy('createdAt')
+      .get()
+
+    const messages = snapshot.docs.map((doc) => {
+      return { messageID: doc.id, ...doc.data() }
+    })
+
+    /*let messages = [
       ...chat.privateConversations[conversationID].messages,
       { ...message, messageID },
-    ]
+    ]*/
 
     await dispatch(
       addMessagesToPrivateConversation({
@@ -699,8 +664,8 @@ export const sendPrivateChatMessage = (conversationID, message) => async (
 
     await dispatch(
       putAtTopLastUpToDatePrivateChat({
-        id: conversationID,
-        lastMessage: { ...message, createdAt: new Date() },
+        conversationID,
+        lastMessage: message,
       })
     )
   } catch (err) {
@@ -724,19 +689,33 @@ export const sendGroupChatMessage = (conversationID, message) => async (
     if (!chat.groupConversations.hasOwnProperty(conversationID))
       return dispatch(setError('Conversation not loaded, error aborting.'))
 
-    let messageID
+    let earliestMessage = chat.groupConversations[conversationID].messages[0]
 
-    await firestore
-      .collection('GroupConversation')
+    const ref = firestore
+      .collection(constants.collection.chat.group)
       .doc(conversationID)
-      .collection('Messages')
-      .add(message)
-      .then((doc) => (messageID = doc.id))
+      .collection(constants.collection.chat.messages)
 
+    await ref.add(message) //.then((doc) => (messageID = doc.id))
+
+    const snapshot = await ref
+      .where(
+        'createdAt',
+        '>=',
+        earliestMessage ? earliestMessage.createdAt : message.createdAt
+      )
+      .orderBy('createdAt')
+      .get()
+
+    const messages = snapshot.docs.map((doc) => {
+      return { messageID: doc.id, ...doc.data() }
+    })
+
+    /*
     let messages = [
       ...chat.groupConversations[conversationID].messages,
       { ...message, messageID },
-    ]
+    ]*/
 
     await dispatch(
       addMessagesToGroupConversation({
@@ -747,10 +726,82 @@ export const sendGroupChatMessage = (conversationID, message) => async (
 
     await dispatch(
       putAtTopLastUpToDateGroupChat({
-        id: conversationID,
-        lastMessage: { ...message, createdAt: new Date() },
+        conversationID,
+        lastMessage: message,
       })
     )
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+/**
+ * @param {String} conversationID
+ * @param {String} messageID
+ * @param {Boolean} isPrivate
+ */
+export const editMessageFromConversation = (
+  conversationID,
+  messageID,
+  editedText,
+  isPrivate
+) => async (dispatch, getState) => {
+  try {
+    const { chat } = getState()
+
+    const ref = isPrivate
+      ? firestore
+          .collection(constants.collection.chat.private)
+          .doc(conversationID)
+          .collection(constants.collection.chat.messages)
+      : firestore
+          .collection(constants.collection.chat.group)
+          .doc(conversationID)
+          .collection(constants.collection.chat.messages)
+
+    await ref.doc(messageID).update({ type: 'edited', text: editedText })
+
+    let earliestMessage = isPrivate
+      ? chat.privateConversations[conversationID].messages[0]
+      : chat.groupConversations[conversationID].messages[0]
+
+    let messageToEdit
+    let toEdit
+
+    const snapshot = await ref
+      .where('createdAt', '>=', earliestMessage.createdAt)
+      .orderBy('createdAt')
+      .get()
+
+    const messages = snapshot.docs.map((doc, index) => {
+      const message = doc.data()
+      if (doc.id == messageID) {
+        toEdit = index
+        messageToEdit = message
+      }
+      return { messageID: doc.id, ...message }
+    })
+
+    await dispatch(
+      isPrivate
+        ? addMessagesToPrivateConversation({
+            conversationID,
+            messages,
+          })
+        : addMessagesToGroupConversation({
+            conversationID,
+            messages,
+          })
+    )
+
+    if (toEdit == messages.length - 1)
+      await dispatch(
+        updateLastMessage({
+          conversationID,
+          lastMessage: messageToEdit,
+          isPrivate,
+        })
+      )
   } catch (err) {
     console.error(err)
   }
@@ -764,52 +815,69 @@ export const sendGroupChatMessage = (conversationID, message) => async (
 export const deleteMessageFromConversation = (
   conversationID,
   messageID,
-  isPrivate = true
+  isPrivate
 ) => async (dispatch, getState) => {
   try {
     const { chat } = getState()
 
     const ref = isPrivate
-      ? firestore.collection('PrivateConversation')
-      : firestore.collection('GroupConversation')
+      ? firestore
+          .collection(constants.collection.chat.private)
+          .doc(conversationID)
+          .collection(constants.collection.chat.messages)
+      : firestore
+          .collection(constants.collection.chat.group)
+          .doc(conversationID)
+          .collection(constants.collection.chat.messages)
 
-    await ref
-      .doc(conversationID)
-      .collection('Messages')
-      .doc(messageID)
-      .update({ type: 'deleted' })
+    await ref.doc(messageID).update({ type: 'deleted' })
 
-    let messages = isPrivate
-      ? chat.privateConversations[conversationID].messages
-      : chat.groupConversations[conversationID].messages
+    let earliestMessage = isPrivate
+      ? chat.privateConversations[conversationID].messages[0]
+      : chat.groupConversations[conversationID].messages[0]
 
     let messageToDelete
     let toDel
 
-    const updatedMessages = messages.map((m, index) => {
+    /*
+     = messages.map((m, index) => {
       if (m.messageID == messageID) {
         toDel = index
         messageToDelete = { ...m, type: 'deleted' }
         return messageToDelete
       } else return m
+    })*/
+
+    const snapshot = await ref
+      .where('createdAt', '>=', earliestMessage.createdAt)
+      .orderBy('createdAt')
+      .get()
+
+    const messages = snapshot.docs.map((doc, index) => {
+      const message = doc.data()
+      if (doc.id == messageID) {
+        toDel = index
+        messageToDelete = message
+      }
+      return { messageID: doc.id, ...message }
     })
 
     await dispatch(
       isPrivate
         ? addMessagesToPrivateConversation({
             conversationID,
-            messages: updatedMessages,
+            messages,
           })
         : addMessagesToGroupConversation({
             conversationID,
-            messages: updatedMessages,
+            messages,
           })
     )
 
-    if (toDel == updatedMessages.length - 1)
+    if (toDel == messages.length - 1)
       await dispatch(
-        updateLastMessageDeleted({
-          id: conversationID,
+        updateLastMessage({
+          conversationID,
           lastMessage: messageToDelete,
           isPrivate,
         })
@@ -828,7 +896,7 @@ export const getGroupChatMembersDetails = (conversationID) => async (
   try {
     let usersDetails = {}
 
-    const ref = await firestore.collection('GroupConversation')
+    const ref = await firestore.collection(constants.collection.chat.group)
     let hostID
 
     await ref
@@ -840,7 +908,7 @@ export const getGroupChatMembersDetails = (conversationID) => async (
 
     const snapshot = await ref
       .doc(conversationID)
-      .collection('GroupChatMembers')
+      .collection(constants.collection.chat.members)
       .get()
 
     snapshot.docs.map((doc) => {
@@ -871,7 +939,9 @@ export const addUsersToGroupChatAfterCreation = (
 ) => async (dispatch, getState) => {
   try {
     const { chat } = getState()
-    const ref = firestore.collection('GroupConversation').doc(conversationID)
+    const ref = firestore
+      .collection(constants.collection.chat.group)
+      .doc(conversationID)
 
     await ref.get().then(async (doc) => {
       const chatInfo = doc.data()
@@ -893,7 +963,7 @@ export const addUsersToGroupChatAfterCreation = (
       Object.entries(aUsers).forEach(
         async (element) =>
           await ref
-            .collection('GroupChatMembers')
+            .collection(constants.collection.chat.members)
             .doc(element[0])
             .set(element[1])
       )
@@ -924,7 +994,9 @@ export const leaveGroupChat = (conversationID) => async (
 ) => {
   try {
     const { user } = getState()
-    const ref = firestore.collection('GroupConversation').doc(conversationID)
+    const ref = firestore
+      .collection(constants.collection.chat.group)
+      .doc(conversationID)
 
     await ref.get().then(async (doc) => {
       const chatInfo = doc.data()
@@ -932,17 +1004,27 @@ export const leaveGroupChat = (conversationID) => async (
       if (users.length > 1) {
         users.splice(users.indexOf(user.uid), 1)
         await ref.update({ users: users })
-        await ref.collection('GroupChatMembers').doc(user.uid).delete()
+        await ref
+          .collection(constants.collection.chat.members)
+          .doc(user.uid)
+          .delete()
 
         if (chatInfo.hostID === user.uid) await ref.update({ hostID: users[0] })
       } else {
         await ref.delete()
-        await ref.collection('GroupChatMembers').doc(user.uid).delete()
         await ref
-          .collection('Messages')
+          .collection(constants.collection.chat.members)
+          .doc(user.uid)
+          .delete()
+        await ref
+          .collection(constants.collection.chat.messages)
           .get()
           .then(
-            async (doc) => await ref.collection('Messages').doc(doc.id).delete()
+            async (doc) =>
+              await ref
+                .collection(constants.collection.chat.messages)
+                .doc(doc.id)
+                .delete()
           )
       }
       await dispatch(updateGroupConversationsAfterLeaving({ conversationID }))
@@ -977,11 +1059,84 @@ const sortChatFunction = (a, b) => {
   }
 }
 
+/*export const messagesReducer = (state, action) => {
+  switch (action.type) {
+    case ChatConstants.addMessage.toPrivate:
+      const { chatID, message } = action.payload
+      console.log('Heloooo')
+      const dispatch = useDispatch()
+      //await dispatch(sendPrivateChatMessage(chatID, message))
+      break
+    case ChatConstants.addMessage.toGroup:
+      console.log('1')
+      break
+    case ChatConstants.deleteMessage.inPrivate:
+      console.log('2')
+      break
+    case ChatConstants.deleteMessage.inGroup:
+      console.log('3')
+      break
+    default:
+      console.log('action not implemented')
+  }
+}*/
+
+/*
+export const isMessagesCollectionUpdated = async (params) => async (
+  dispatch
+) => {
+  const { isPrivate, chatID } = params
+
+  const ref = isPrivate
+    ? firestore
+        .collection('PrivateConversation')
+        .doc(chatID)
+        .collection('Messages')
+    : firestore
+        .collection('GroupConversation')
+        .doc(chatID)
+        .collection('Messages')
+
+  //const sp = await ref.doc(earliestMessageID).get()
+
+  let earliestMessage = isPrivate
+    ? chat.privateConversations[conversationID].messages[0]
+    : chat.groupConversations[conversationID].messages[0]
+
+  const snapshot = earliestMessage
+    ? await ref
+        .where('createdAt', '>=', earliestMessage.createdAt)
+        .orderBy('createdAt')
+        .get()
+    : await ref.orderBy('createdAt').limit(10).get()
+
+  const messages = snapshot.docs.map((doc) => {
+    return { messageID: doc.id, ...doc.data() }
+  })
+
+  await dispatch(
+    isPrivate
+      ? addMessagesToPrivateConversation({
+          conversationID: chatID,
+          messages,
+        })
+      : addMessagesToGroupConversation({
+          conversationID: chatID,
+          messages,
+        })
+  )
+
+  return messages
+}
+
+export const isChatCollectionUpdated = async (params) => {}
+*/
+
 //actions imports
 export const {
   updateGroupChatInfo,
   setReachFirstMessageState,
-  updateLastMessageDeleted,
+  updateLastMessage,
   updateGroupChatMembersList,
   putAtTopLastUpToDatePrivateChat,
   putAtTopLastUpToDateGroupChat,

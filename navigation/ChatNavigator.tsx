@@ -148,7 +148,6 @@ export default function ChatStack(props: any) {
         color="#fff"
       />  
   
-
   const AddChatHeaderRight = ({props}: any) => () =>
     props.isCreated ? 
       <IconButton 

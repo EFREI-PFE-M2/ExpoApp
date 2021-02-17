@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useReducer, useRef, useState } from 'react'
 import { Animated, StyleSheet, ScrollView, TextInput, Image, RefreshControl, Dimensions } from 'react-native'
 import { Text, View } from '../../components/Themed'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentUser } from '../../store/userSlice'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { GetPublishedDate } from '../../utils/ChatFunctions'
+import { checkMessageType, fadeIn, fadeOut, GetPublishedDate, wait } from '../../utils/ChatFunctions'
 import { Avatar, Divider } from 'react-native-paper'
 import ImagePicker from '../../components/ImagePicker'
 import { MaterialIcons } from '@expo/vector-icons'
 import {
-  deleteMessageFromConversation,
+  editMessageFromConversation,
   getMessagesFromGroupConversation,
   getMessagesFromPrivateConversation,
+  isMessagesCollectionUpdated,
   selectGroupChats,
   selectPrivateChats,
   sendGroupChatMessage,
@@ -20,6 +21,8 @@ import {
 import AudioRecorder from '../../components/AudioRecorder'
 import  { MenuProvider } from 'react-native-popup-menu';
 import MessageOptions from '../../components/Custom/MessageOptions'
+import useMessages from '../../hooks/useMessages'
+import constants from '../../constants/ChatConstants'
 
 export default function ChatRoom(props: any) {
   const [dateVisible, setTimeVisible] = useState(false)
@@ -42,43 +45,59 @@ export default function ChatRoom(props: any) {
 
   const displayUser = useSelector(selectCurrentUser)
   const { displayName, photoURL, uid } = displayUser
-  console.log(displayUser)
 
   const { chatInfo, isPrivateChat } = props.route.params
- 
-  const messages = isPrivateChat ? useSelector(selectPrivateChats)[chatInfo.chatID]?.messages
-  : useSelector(selectGroupChats)[chatInfo.chatID]?.messages
+
+  const messages = useMessages({isPrivateChat, chatID: chatInfo.chatID})
 
   const [chatHistory, setChatHistory] = useState(messages)
-  
+
   const dispatch = useDispatch()
   
   const [content, setContent] = useState('')
   const changeText = (text: string) => setContent(text)
 
   const sendMessage = async () => {
-    const datetime = new Date()
+    if (content.trim() != '') {    
+      setContent('')
+      setRefreshing(true)
 
-    if (content.trim() != '') {
       const message = {
         type: 'text',
-        createdAt: datetime,
+        createdAt: new Date(),
         displayName,
         photoURL,
         uid,
         text: content.trim()
       }
 
-      setContent('')
-
       await dispatch(isPrivateChat ? 
         sendPrivateChatMessage(chatInfo.chatID, message) 
         : 
         sendGroupChatMessage(chatInfo.chatID, message)
-      ) 
+      )
+      
+      wait(500).then(() => {
+        setRefreshing(false)
+        contentSizeChange()
+      });
     }
-  }
-
+  }  
+  
+  useEffect(() => {
+    setRefreshing(true);
+    if (messages)
+      setChatHistory(messages)
+    wait(2000).then(() => {  
+      setRefreshing(false);});
+    //isMessagesCollectionUpdated({isPrivate: isPrivateChat, chatID: chatInfo.chatID}).then(async (res: any) => console.log(await res)); 
+    /*console.log(messages.filter((m1: any) => !chatHistory.some((m2: any) => m1.messageID === m2.messageID && m1.type === m2.type)))
+    if (messages.filter((m1: any) => !chatHistory.some((m2: any) => m1.messageID === m2.messageID && m1.type === m2.type)).length != 0)
+      isMessagesCollectionUpdated({isPrivate: isPrivateChat, chatID: chatInfo.chatID, earliestMessageID: messages[0].messageID})
+     
+    .catch((err)=> console.log('Error:'+err))*/
+  }, [messages])
+  
   function isCloseToBottom({ layoutMeasurement, contentOffset, contentSize }: any) {
     return layoutMeasurement.height + contentOffset.y >= contentSize.height - 20
   }
@@ -89,50 +108,21 @@ export default function ChatRoom(props: any) {
 
   const onScroll = ({ nativeEvent }: any) => {
     if (isCloseToTop(nativeEvent)) {
-      fadeIn()
+      fadeIn(fadeAnimation)
     } else {
-      fadeOut()
+      fadeOut(fadeAnimation)
     }
   }
 
   const [refreshing, setRefreshing] = React.useState(false);
-
-  useEffect(() => {
-    setChatHistory(messages ? messages : [])    
-  })
 
   const reachFirstMessageState = isPrivateChat ? useSelector(selectPrivateChats)[chatInfo.chatID]?.reachFirstMessageState
   : useSelector(selectGroupChats)[chatInfo.chatID]?.reachFirstMessageState
 
   const fadeAnimation = React.useRef(new Animated.Value(0)).current;
 
-  const fadeIn = () => {
-    // Will change fadeAnimation value to 1 in 500 ms
-    Animated.timing(fadeAnimation, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true
-    }).start();
-  };
-
-  const fadeOut = () => {
-    // Will change fadeAnimation value to 0 in 500 ms
-    Animated.timing(fadeAnimation, {
-      toValue: 0,
-      duration: 500,
-      useNativeDriver: true
-    }).start();
-  };
-
-  const wait = (timeout: number) => {
-    return new Promise(resolve => {
-      setTimeout(resolve, timeout);
-    });
-  }
-
   const onRefresh = React.useCallback(() => {
       setRefreshing(true);
-
       const earliestMessageID = chatHistory[0].messageID
       dispatch(isPrivateChat ? getMessagesFromPrivateConversation(
         chatInfo.chatID,
@@ -147,17 +137,23 @@ export default function ChatRoom(props: any) {
 
   const clickToRefresh = () => { return reachFirstMessageState ? null : onRefresh() }
 
-  const scrollViewRef = React.createRef<ScrollView>()
-  let scrollToTopMessage = reachFirstMessageState ? 
-    'You already reached the top of the messages' : 'Click or scroll up to display older messages'
+  const scrollViewRef = React.useRef<ScrollView>()
 
-  const contentSizeChange = () => scrollViewRef.current?.scrollToEnd({ animated: true })
+  let scrollToTopMessage = reachFirstMessageState ? 
+  constants.topMessage.type.first : constants.topMessage.type.scrollUp
+
+  const [scrollOnce, setScrollOnce] = useState(0)
+
+  const contentSizeChange = () => { 
+    if (scrollOnce == 0) 
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    setScrollOnce(scrollOnce+1);
+  }
 
   const senderMessageTemplate = ({m, i, isCurrentUser}: any) => <View style={styles.subViewRightStyle}>
-  <TouchableOpacity
-    style={styles.containerMessageRight}
-    //onLongPress={openMenu}
-    onPress={showDate(i)}
+    <TouchableOpacity
+      style={styles.containerMessageRight}
+      onPress={showDate(i)}
     >
       {showContent(m, isCurrentUser)} 
     </TouchableOpacity>
@@ -176,37 +172,66 @@ export default function ChatRoom(props: any) {
     /> 
     <TouchableOpacity
       style={styles.containerMessageLeft}
-      //onLongPress={openMenu}
       onPress={showDate(i)}
       >
         {showContent(m, isCurrentUser)}
     </TouchableOpacity>
   </View> 
 
+  const [messageToEdit, setMessageToEdit] = useState('')
+  const [editedContent, setEditedContent] = useState('')
+  const changeOldText = (text: string) => setEditedContent(text)
   
-const showContent = (message: any, currentUser: any) => {
-  return message.type === 'text' ? 
-  <Text style={{ color: currentUser ? '#fff' : '#000' }}>
-    {message.text}
-    </Text> 
-    :
-    (message.type === 'image' ? 
-    <Image 
-      source={{ uri: message.image.uri }} 
-      style={styles.imageStyle}
-    /> 
-        : 
-        (message.type === 'audio' ?
-          <Text>audio part</Text>
-          :
-          <Text style={{ fontStyle: 'italic', color: currentUser ? '#fff' : '#000' }}>
-            Ce message a été supprimé
-          </Text>
-        )
-    )
-}
+  const showContent = (message: any, currentUser: any) => {
+    const isText = checkMessageType(message.type, constants.message.type.text) 
+    const isEditedText = checkMessageType(message.type, constants.message.type.edited)
+    const isImage = checkMessageType(message.type, constants.message.type.image)
+    const isAudio = checkMessageType(message.type, constants.message.type.audio) 
+
+    return isText || isEditedText ? 
+    messageToEdit != message.messageID ?
+    <Text style={{ fontStyle: isEditedText ? 'italic' : 'normal', color: currentUser ? '#fff' : '#000' }}>
+      {message.text}
+    </Text> :
+    <TextInput
+      style={{ height: 20, width: 100, color: '#fff' }}
+      onChangeText={changeOldText}
+      value={editedContent}
+    />
+      :
+      (isImage ? 
+      <Image 
+        source={{ uri: message.image.uri }} 
+        style={styles.imageStyle}
+      /> 
+          : 
+          (isAudio ?
+            <Text>audio part</Text>
+            :
+            <Text style={{ fontStyle: 'italic', opacity: 0.7, color: currentUser ? '#fff' : '#000' }}>
+              {constants.message.deleted.text}
+            </Text>
+          )
+      )
+  }
+
+  const confirmEdit = (message: any) => async () => {
+    setRefreshing(true)
+    await dispatch(editMessageFromConversation(chatInfo.chatID, message.messageID, editedContent, isPrivateChat))
+    setMessageToEdit('')
+    wait(500).then(() => {
+      setEditedContent('')
+      setRefreshing(false)
+    });
+    
+  }
+
+  const revertBack = () => {
+    setMessageToEdit('')
+    setEditedContent('')
+  }
   
-return (
+  return (
     <View style={styles.container}>
       <ScrollView
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}
@@ -251,19 +276,40 @@ return (
                   receiverMessageTemplate({m,i,isCurrentUser})
                 } 
 
-          { m.type != 'deleted' 
-          ?
+          { m.type != constants.message.type.deleted 
+          ? messageToEdit != m.messageID ?
             <MessageOptions props={{
               chatID: chatInfo.chatID,
               menuVisible,
               closeMenu,
               openMenu,
+              setRefreshing,
+              setMessageToEdit,
+              setEditedContent,
               m,
               i,
               currentItemForMenu,
               isCurrentUser,
               isPrivateChat
-            }}/>    
+            }}/> 
+            :
+            <View style={{flexDirection: 'row', backgroundColor:'rgba(0,0,0,0)'}}>
+              <MaterialIcons
+                name="check-circle"
+                style={{
+                  marginStart: Dimensions.get('window').width - 145
+                }}
+                color={'#217338'}
+                size={36}
+                onPress={confirmEdit(m)}
+              />   
+              <MaterialIcons
+                name="cancel"
+                color={'#c9342e'}
+                size={36}
+                onPress={revertBack}
+              /> 
+            </View>
           :
             null
           }    
@@ -272,9 +318,9 @@ return (
         </MenuProvider>
         )
       })}
-        
-      </ScrollView>
 
+      </ScrollView>
+      
       <View style={styles.containerChatFooter}>
         <View style={styles.chatFooterLeftPart}>
           <ImagePicker props={{isPrivateChat, uid, displayName, photoURL, 

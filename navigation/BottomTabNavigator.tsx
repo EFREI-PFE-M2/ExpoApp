@@ -117,7 +117,7 @@ function TabHomeNavigator({ navigation }) {
       screenOptions={{
         ...defaultScreenOptions,
         headerRight: ({ tintColor }) => (
-          <IconButton icon="bell" size={24} color={tintColor} />
+          <IconButton icon="bell" size={24} color={tintColor} onPress={() => navigation.navigate('Notifications')} />
         ),
         headerLeft: ({ tintColor }) => (
           <IconButton

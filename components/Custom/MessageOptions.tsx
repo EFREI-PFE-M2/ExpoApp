@@ -10,13 +10,16 @@ import {
 import { Divider } from 'react-native-paper'
 import { deleteMessageFromConversation } from '../../store/chatSlice'
 import { useDispatch } from 'react-redux'
+import { checkMessageType, wait } from '../../utils/ChatFunctions'
+import constants from '../../constants/ChatConstants'
 
 export default function MessageOptions({ props }: any) {
 
   const dispatch = useDispatch()
 
   const editMessage = (message: any) => async () => {
-    alert('Edit message ' + message.messageID)
+    setMessageToEdit(message.messageID)
+    setEditedContent(message.text)
     closeMenu()
   }
 
@@ -31,11 +34,11 @@ export default function MessageOptions({ props }: any) {
       {
         text: 'OK',
         onPress: async () => {
-          await dispatch(isPrivateChat ? 
-            deleteMessageFromConversation(chatID, message.messageID)
-            :
-            deleteMessageFromConversation(chatID, message.messageID, false)
-          )
+          setRefreshing(true)
+          await dispatch(deleteMessageFromConversation(chatID, message.messageID, isPrivateChat))
+          wait(500).then(() => {
+            setRefreshing(false)
+          });
         },
       },
     ])
@@ -63,6 +66,9 @@ export default function MessageOptions({ props }: any) {
     menuVisible,
     closeMenu,
     openMenu,
+    setRefreshing,
+    setMessageToEdit,
+    setEditedContent,
     m,
     i,
     currentItemForMenu,
@@ -84,6 +90,11 @@ export default function MessageOptions({ props }: any) {
     },
   }
 
+  const isText = checkMessageType(m.type, constants.message.type.text) 
+  const isEditedText = checkMessageType(m.type, constants.message.type.edited)
+  const isImage = checkMessageType(m.type, constants.message.type.image)
+  const isAudio = checkMessageType(m.type, constants.message.type.audio)
+
   return (
     <Menu
       opened={menuVisible && i === currentItemForMenu}
@@ -103,18 +114,18 @@ export default function MessageOptions({ props }: any) {
       </MenuTrigger>
         { isCurrentUser ? 
           <MenuOptions customStyles={optionsStyles}>
-            { m.type === 'text' ? 
+            { isText || isEditedText ? 
             <MenuOption text="Editer" onSelect={editMessage(m)} /> : null }
-            { m.type === 'image' ? 
+            { isImage ? 
             <MenuOption text="Télécharger" onSelect={downloadImage(m)} /> : null}
             <Divider />
-            <MenuOption text="Supprimer" onSelect={deleteMessage(m, isPrivateChat)} />             
+            <MenuOption text="Supprimer" onSelect={deleteMessage(m)} />             
           </MenuOptions>
         :
         <MenuOptions customStyles={optionsStyles}>
           <MenuOption text="Répondre" onSelect={replyMessage(m)} />
           <Divider />  
-            { m.type === 'image' ? 
+            { isImage ? 
             <MenuOption text="Télécharger" onSelect={downloadImage(m)} /> : null} 
         </MenuOptions>
         }

@@ -10,10 +10,12 @@ import { subscriberFeedReducer } from './subscriberFeedSlice'
 import { settingsReducer } from './settingsSlice'
 import { sessionReducer } from './sessionSlice'
 import { postEditorReducer } from './postEditorSlice'
+import { notificationReducer } from './notificationSlice'
 
 export default configureStore({
   reducer: {
     user: userReducer,
+    notification: notificationReducer,
     cardGame: cardGameReducer,
     chat: chatReducer,
     foreignUser: foreignUserReducer,
@@ -23,6 +25,6 @@ export default configureStore({
     subsciberFeed: subscriberFeedReducer,
     settings: settingsReducer,
     session: sessionReducer,
-    postEditor: postEditorReducer
+    postEditor: postEditorReducer,
   },
 })
