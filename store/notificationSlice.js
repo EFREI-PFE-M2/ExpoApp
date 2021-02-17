@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { exp } from 'react-native-reanimated'
 import { FirebaseFirestore as firestore } from '../firebase'
 
 export const notificationSlice = createSlice({
@@ -42,6 +43,8 @@ export const getNotifications = (userID) => async (dispatch, getState) => {
     console.error(err)
   }
 }
+
+export const { updateNotifications } = notificationSlice.actions
 
 export const selectNotifications = (state) => state.notification.notifications
 

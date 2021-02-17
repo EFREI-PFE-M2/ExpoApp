@@ -114,16 +114,28 @@ exports.likePost = functions
             let postRef = db
               .collection(`Users/${entityID}/UserPosts`)
               .doc(postID)
-            await postRef.set({ nbLikes: increment },{ merge: true })
+            await postRef.update({ nbLikes: increment })
 
-            await db.collection(`Users/${postOwnerID}/Notifications`).add({
+            const ref = db.collection(`Users`).doc(entityID)
+            let userDisplayName
+            let userPhotoURL
+            await ref.get().then((doc) => {
+              const user = doc.data()
+              userDisplayName = user.displayName
+              userPhotoURL = user.photoURL
+            })
+
+            await db.collection(`Users/${entityID}/Notifications`).add({
               type: 'like',
               datetime: new Date(),
               userID,
+              userDisplayName: userDisplayName ? userDisplayName : 'TestUser',
+              userPhotoURL: userPhotoURL
+                ? userPhotoURL
+                : 'https://st.depositphotos.com/2101611/3925/v/600/depositphotos_39258143-stock-illustration-businessman-avatar-profile-picture.jpg',
+
               postID,
             })
-
-            return true
           }
         } catch (err) {
           return false
@@ -201,17 +213,15 @@ exports.vote = functions
         try {
           //Add vote to Votes collection
 
-          await db.collection(`Users/${entityID}/UserPosts/${postID}/Votes`)
-          .add({userID: userID, response: response})
+          await db
+            .collection(`Users/${entityID}/UserPosts/${postID}/Votes`)
+            .add({ userID: userID, response: response })
 
-          
           //increment response field
-          let increment = admin.firestore.FieldValue.increment(1);
-          let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID);
-          await postRef.update({[`responses.${response}`]: increment});
-          
-
-        }catch(err){
+          let increment = admin.firestore.FieldValue.increment(1)
+          let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID)
+          await postRef.update({ [`responses.${response}`]: increment })
+        } catch (err) {
           return false
         }
         break
@@ -290,6 +300,15 @@ exports.comment = functions
               text: text,
             })
 
+          await db.collection(`Users/${entityID}/Notifications`).add({
+            type: 'comment',
+            datetime,
+            userID,
+            userDisplayName: displayName,
+            userPhotoURL: picture,
+            postID,
+          })
+
           //increment response field
           let increment = admin.firestore.FieldValue.increment(1)
           let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID)
@@ -334,6 +353,7 @@ exports.comment = functions
         }
         break
     }
+    return true
   })
 
 exports.follow = functions
@@ -346,6 +366,15 @@ exports.follow = functions
         await db
           .collection('Follows')
           .add({ followerID: followerID, followedID: followedID })
+
+        const ref = db.collection(`Users`).doc(followerID)
+        let followerDisplayName
+        let followerPhotoURL
+        await ref.get().then((doc) => {
+          const user = doc.data()
+          followerDisplayName = user.displayName
+          followerPhotoURL = user.photoURL
+        })
 
         await Promise.all([
           db
@@ -364,6 +393,12 @@ exports.follow = functions
               type: 'follow',
               datetime: new Date(),
               followerID: followerID,
+              followerDisplayName: followerDisplayName
+                ? followerDisplayName
+                : 'TestUser',
+              followerPhotoURL: followerPhotoURL
+                ? followerPhotoURL
+                : 'https://st.depositphotos.com/2101611/3925/v/600/depositphotos_39258143-stock-illustration-businessman-avatar-profile-picture.jpg',
               followedID: followedID,
             }),
         ])
