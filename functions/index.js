@@ -70,15 +70,6 @@ exports.likePost = functions
             let increment = admin.firestore.FieldValue.increment(1)
             let postRef = db.collection(`Races/${entityID}/Posts`).doc(postID)
             await postRef.update({ nbLikes: increment })
-
-            await db.collection(`Users/${userID}/Notifications`).add({
-              type: 'like',
-              datetime: new Date(),
-              userID,
-              postID,
-            })
-
-            return true
           }
         } catch (err) {
           return false
@@ -115,15 +106,6 @@ exports.likePost = functions
               .collection(`Users/${entityID}/UserPosts`)
               .doc(postID)
             await postRef.update({ nbLikes: increment })
-
-            await db.collection(`Users/${userID}/Notifications`).add({
-              type: 'like',
-              datetime: new Date(),
-              userID,
-              postID,
-            })
-
-            return true
           }
         } catch (err) {
           return false
@@ -156,20 +138,28 @@ exports.likePost = functions
             let increment = admin.firestore.FieldValue.increment(1)
             let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID)
             await postRef.update({ nbLikes: increment })
-
-            await db.collection(`Users/${userID}/Notifications`).add({
-              type: 'like',
-              datetime: new Date(),
-              userID,
-              postID,
-            })
-
-            return true
           }
         } catch (err) {
           return false
         }
     }
+
+    if (like) {
+      const ref = db.collection(`Users/${followerID}`)
+      const userDisplayName = await ref.get('displayName')
+      const userPhotoURL = await ref.get('photoURL')
+
+      await db.collection(`Users/${userID}/Notifications`).add({
+        type: 'like',
+        datetime: new Date(),
+        userID,
+        userDisplayName,
+        userPhotoURL,
+        postID,
+      })
+    }
+
+    return true
   })
 
 exports.vote = functions
@@ -260,13 +250,6 @@ exports.comment = functions
           let increment = admin.firestore.FieldValue.increment(1)
           let postRef = db.collection(`Races/${entityID}/Posts`).doc(postID)
           await postRef.update({ nbComments: increment })
-
-          await db.collection(`Users/${userID}/Notifications`).add({
-            type: 'comment',
-            datetime,
-            userID,
-            postID,
-          })
         } catch (err) {
           return false
         }
@@ -288,13 +271,6 @@ exports.comment = functions
           let increment = admin.firestore.FieldValue.increment(1)
           let postRef = db.collection(`Users/${entityID}/UserPosts`).doc(postID)
           await postRef.update({ nbComments: increment })
-
-          await db.collection(`Users/${userID}/Notifications`).add({
-            type: 'comment',
-            datetime,
-            userID,
-            postID,
-          })
         } catch (err) {
           return false
         }
@@ -316,18 +292,26 @@ exports.comment = functions
           let increment = admin.firestore.FieldValue.increment(1)
           let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID)
           await postRef.update({ nbComments: increment })
-
-          await db.collection(`Users/${userID}/Notifications`).add({
-            type: 'comment',
-            datetime,
-            userID,
-            postID,
-          })
         } catch (err) {
           return false
         }
         break
     }
+
+    const ref = db.collection(`Users/${followerID}`)
+    const userDisplayName = await ref.get('displayName')
+    const userPhotoURL = await ref.get('photoURL')
+
+    await db.collection(`Users/${userID}/Notifications`).add({
+      type: 'comment',
+      datetime,
+      userID,
+      userDisplayName,
+      userPhotoURL,
+      postID,
+    })
+
+    return true
   })
 
 exports.follow = functions
@@ -340,6 +324,10 @@ exports.follow = functions
         await db
           .collection('Follows')
           .add({ followerID: followerID, followedID: followedID })
+
+        const ref = db.collection(`Users/${followerID}`)
+        const followerDisplayName = await ref.get('displayName')
+        const followerPhotoURL = await ref.get('photoURL')
 
         await Promise.all([
           db
@@ -358,6 +346,8 @@ exports.follow = functions
               type: 'follow',
               datetime: new Date(),
               followerID: followerID,
+              followerDisplayName,
+              followerPhotoURL,
               followedID: followedID,
             }),
         ])

@@ -12,7 +12,6 @@ import {
   editMessageFromConversation,
   getMessagesFromGroupConversation,
   getMessagesFromPrivateConversation,
-  isMessagesCollectionUpdated,
   selectGroupChats,
   selectPrivateChats,
   sendGroupChatMessage,
