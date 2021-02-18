@@ -493,6 +493,7 @@ export const addSpecificGroupNextPosts = (entityID) => async (dispatch, getState
   try {
     
     let currentPosts = getState().group.specificGroup.posts;
+    let userID = getState().user.uid
 
     if(!currentPosts || currentPosts.length < 1)
       return;
@@ -516,12 +517,30 @@ export const addSpecificGroupNextPosts = (entityID) => async (dispatch, getState
       } 
 
       let posts = []
-      snapshot.forEach(doc => {
+      for(doc of snapshot.docs) {
         let post = doc.data()
         delete post.createdAt
         post.id = doc.id
+        let isAlreadyLiked = await doc.ref.collection('Likes').where('userID', '==', userID).get()
+        if(!isAlreadyLiked.empty)
+          post.alreadyLiked = true
+        else
+          post.alreadyLiked = false
+
+        if(post.type === "survey"){
+          
+          let voteDocs = await doc.ref.collection('Votes').where('userID', '==', userID).get()
+          if (!voteDocs.empty) {
+            let vote;
+            voteDocs.forEach(voteDoc => {
+              vote = voteDoc.data()
+            });
+            post.userVote = vote.response;
+          } 
+        }
+
         posts.push(post)
-      });
+      } 
 
       dispatch(addSpecificGroupPosts(posts))
 

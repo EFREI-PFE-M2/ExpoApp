@@ -41,6 +41,7 @@ exports.likePost = functions
   .region('europe-west1')
   .https.onCall(async (contextData, context) => {
     let { feed, entityID, postID, userID, like, postOwnerID } = contextData
+
     switch (feed) {
       case 'race':
         try {
@@ -59,7 +60,6 @@ exports.likePost = functions
             let postRef = db.collection(`Races/${entityID}/Posts`).doc(postID)
             await postRef.set({ nbLikes: decrement },{ merge: true })
 
-            return true
           } else {
             //Add like to Likes collection
             await db
@@ -78,7 +78,6 @@ exports.likePost = functions
               postID,
             })
 
-            return true
           }
         } catch (err) {
           return false
@@ -102,7 +101,6 @@ exports.likePost = functions
               .doc(postID)
             await postRef.set({ nbLikes: decrement },{ merge: true })
 
-            return true
           } else {
             //Add like to Likes collection
             await db
@@ -157,7 +155,6 @@ exports.likePost = functions
             let postRef = db.collection(`Groups/${entityID}/Posts`).doc(postID)
             await postRef.set({ nbLikes: decrement },{ merge: true })
 
-            return true
           } else {
             //Add like to Likes collection
             await db
@@ -176,7 +173,6 @@ exports.likePost = functions
               postID,
             })
 
-            return true
           }
         } catch (err) {
           return false
@@ -193,6 +189,7 @@ exports.vote = functions
   .region('europe-west1')
   .https.onCall(async (contextData, context) => {
     let { feed, entityID, postID, userID, response } = contextData
+
     switch (feed) {
       case 'race':
         try {
@@ -840,3 +837,28 @@ exports.onUpdateGame = functions
       return res.status(400).send({error: err})
     }
   })
+
+
+
+exports.levelUpdate = functions
+    .region('europe-west1')
+    .firestore
+    .document('Users/{userId}')
+    .onUpdate((change, context) => {
+      // context.params.userId == "marie"
+      const newValue = change.after.data();
+      const previousValue = change.before.data();
+      if(newValue.experience && previousValue.experience){
+        if (newValue.experience === previousValue.experience) {
+          return null;
+        }
+  
+        if(newValue.experience > 100){
+          let rest = newValue.experience % 100
+          return change.after.ref.set({
+            level: newValue.level ? newValue.level + 1 : 1,
+            experience: rest
+          }, {merge: true});
+        }
+      }
+});

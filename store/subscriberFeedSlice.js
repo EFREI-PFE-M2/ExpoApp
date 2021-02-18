@@ -123,6 +123,7 @@ export const updateRecentPosts = () => async (dispatch, getState) => {
         let post = doc.data()
         delete post.createdAt
         post.id = doc.id
+
         let isAlreadyLiked = await doc.ref.collection('Likes').where('userID', '==', userID).get()
         if(!isAlreadyLiked.empty)
           post.alreadyLiked = true
@@ -202,12 +203,30 @@ export const addNextPosts = () => async (dispatch, getState) => {
       } 
 
       let posts = []
-      postsSnapshot.forEach(doc => {
+      for(doc of postsSnapshot.docs) {
         let post = doc.data()
         delete post.createdAt
         post.id = doc.id
+
+        let isAlreadyLiked = await doc.ref.collection('Likes').where('userID', '==', userID).get()
+        if(!isAlreadyLiked.empty)
+          post.alreadyLiked = true
+        else
+          post.alreadyLiked = false
+
+        if(post.type === "survey"){
+          
+          let voteDocs = await doc.ref.collection('Votes').where('userID', '==', userID).get()
+          if (!voteDocs.empty) {
+            let vote;
+            voteDocs.forEach(voteDoc => {
+              vote = voteDoc.data()
+            });
+            post.userVote = vote.response;
+          } 
+        }
         posts.push(post)
-      });
+      }
 
       dispatch(addPosts(posts))
 
@@ -293,9 +312,8 @@ export const vote = (data, cbSuccess, cbError) => async (dispatch) => {
     let { postID, entityID, userID, response } = data
     
     const voteCloudFunction = firebase.functions('europe-west1').httpsCallable('vote')
-    let res = await voteCloudFunction({feed: 'sub', entityID: entityID,
+    await voteCloudFunction({feed: 'sub', entityID: entityID,
        postID: postID, userID: userID, response: response})
-      console.log('TEST',res)
     
     //set local store
     dispatch(setPostVoteStatus({postID: postID, response: response}))
